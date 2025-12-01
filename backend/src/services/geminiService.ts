@@ -8,6 +8,9 @@ const ai = new GoogleGenAI({
   apiKey: env.GEMINI_API_KEY,
 });
 
+const INFOGRAPHIC_MAX_ATTEMPTS = 3;
+const INFOGRAPHIC_BASE_BACKOFF_MS = 400;
+
 const slideDefinitionSchema = z.object({
   deck_title: z.string().min(1),
   slides: z
@@ -125,6 +128,67 @@ async function callGemini(prompt: string): Promise<string> {
   return sanitizeText(response.text);
 }
 
+type GeminiApiError = Error & { code?: number | string; status?: string };
+
+function isProviderUnavailableError(error: unknown): error is GeminiApiError {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+  const candidate = error as GeminiApiError;
+  return candidate.code === 503 || candidate.status === 'UNAVAILABLE';
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function callGeminiInfographicWithRetry(prompt: string): Promise<string> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= INFOGRAPHIC_MAX_ATTEMPTS; attempt++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: prompt,
+        config: {
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        },
+      });
+
+      return sanitizeText(response.text);
+    } catch (error) {
+      lastError = error;
+
+      if (isProviderUnavailableError(error)) {
+        logger.warn(
+          { attempt, err: error },
+          'Gemini infographic provider unavailable; retrying',
+        );
+
+        if (attempt === INFOGRAPHIC_MAX_ATTEMPTS) {
+          logger.error(
+            { err: error },
+            'Gemini infographic provider unavailable after retries',
+          );
+          throw new Error('INFOPGRAPHIC_PROVIDER_UNAVAILABLE');
+        }
+
+        const backoff = INFOGRAPHIC_BASE_BACKOFF_MS * attempt;
+        await delay(backoff);
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw lastError;
+  }
+
+  throw new Error('Gemini infographic call failed');
+}
+
 function buildSlideDeckPrompt(companyJson: unknown, attempt: number): string {
   const typeDefinition = `type SlideDeckDefinition = {
   deck_title: string;
@@ -223,7 +287,7 @@ export async function generateGeminiInfographicFromCompanyJson(
   companyJson: unknown,
 ): Promise<InfographicPage> {
   const prompt = buildInfographicPrompt(companyJson);
-  const raw = await callGemini(prompt);
+  const raw = await callGeminiInfographicWithRetry(prompt);
   const cleaned = cleanGeminiJson(raw);
 
   let parsed: unknown;

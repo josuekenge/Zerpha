@@ -21,12 +21,42 @@ export interface Company {
   summary: string | null;
   raw_json: CompanyRawJson;
   status?: string;
+  is_saved?: boolean;
+  saved_category?: string | null;
+  created_at?: string;
 }
 
 export interface SearchResponse {
   searchId: string;
   global_opportunities: string;
   companies: Company[];
+}
+
+export interface SearchHistoryItem {
+  id: string;
+  query: string;
+  created_at: string;
+  company_count: number;
+}
+
+export type FitBand = 'high' | 'medium' | 'low' | null;
+
+export interface SavedCompany {
+  id: string;
+  search_id: string;
+  name: string;
+  domain: string;
+  fitScore: number | null;
+  category: string;
+  summary: string | null;
+  headquarters: string | null;
+  headcount: string | null;
+  techStack: string | null;
+  fit_band: FitBand;
+  is_saved: boolean;
+  saved_category: string | null;
+  created_at: string | null;
+  raw_json: CompanyRawJson;
 }
 
 export interface InfographicPage {

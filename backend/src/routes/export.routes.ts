@@ -21,6 +21,14 @@ exportRouter.post('/export-report', async (req, res) => {
     const result = await generateInfographicForCompany(parsed.data.companyId);
     res.status(200).json(result);
   } catch (error) {
+    if (error instanceof Error && error.message === 'INFOPGRAPHIC_PROVIDER_UNAVAILABLE') {
+      logger.warn(
+        { err: error, companyId: parsed.data.companyId },
+        'Infographic provider unavailable',
+      );
+      return res.status(503).json({ message: 'infographic_provider_unavailable' });
+    }
+
     logger.error({ err: error, body: req.body }, 'Failed to generate infographic report');
     res.status(500).json({ message: 'Failed to generate report' });
   }

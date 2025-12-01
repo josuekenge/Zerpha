@@ -16,6 +16,8 @@ create table if not exists public.companies (
   vertical_query text,
   raw_json jsonb,
   acquisition_fit_score integer,
+  is_saved boolean not null default false,
+  saved_category text,
   created_at timestamptz not null default now()
 );
 

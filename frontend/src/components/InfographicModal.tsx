@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, FileText, Loader2 } from 'lucide-react';
+import { X, Copy, Check, FileText, Loader2, Download } from 'lucide-react';
 import { useState } from 'react';
 import { InfographicPage } from '../types';
 
@@ -14,6 +14,10 @@ interface InfographicModalProps {
 
 export function InfographicModal({ isOpen, isLoading, data, onClose, error, onRetry }: InfographicModalProps) {
   const [copied, setCopied] = useState(false);
+  const resolvedErrorMessage =
+    error === 'infographic_provider_unavailable'
+      ? 'Infographic temporarily unavailable due to AI provider load, please try again.'
+      : error;
 
   const handleCopyMarkdown = () => {
     if (!data) return;
@@ -31,6 +35,55 @@ ${data.bullets.map(b => `- ${b}`).join('\n')}
     navigator.clipboard.writeText(md);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadPdf = () => {
+    if (!data) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      return;
+    }
+
+    const documentHtml = `
+      <html>
+        <head>
+          <title>${data.title}</title>
+          <style>
+            body { font-family: 'Inter', sans-serif; padding: 32px; color: #0f172a; }
+            h1 { font-size: 28px; margin-bottom: 8px; }
+            h2 { font-size: 18px; margin-top: 24px; }
+            ul { padding-left: 20px; }
+            li { margin-bottom: 8px; }
+            .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+            .metric { padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+            .muted { color: #64748b; }
+          </style>
+        </head>
+        <body>
+          <h1>${data.title}</h1>
+          <p class="muted">${data.subtitle}</p>
+          <h2>Key Metrics</h2>
+          <div class="metrics">
+            ${data.key_metrics
+              .map(
+                (metric) =>
+                  `<div class="metric"><div class="muted">${metric.label}</div><strong>${metric.value}</strong></div>`,
+              )
+              .join('')}
+          </div>
+          <h2>Strategic Analysis</h2>
+          <ul>
+            ${data.bullets.map((b) => `<li>${b}</li>`).join('')}
+          </ul>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(documentHtml);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   };
 
   return (
@@ -76,7 +129,7 @@ ${data.bullets.map(b => `- ${b}`).join('\n')}
                  </div>
               ) : error ? (
                  <div className="h-full flex flex-col items-center justify-center space-y-4">
-                    <p className="text-danger font-medium">{error}</p>
+                    <p className="text-danger font-medium text-center px-6">{resolvedErrorMessage}</p>
                     <button onClick={onRetry} className="px-4 py-2 bg-text text-white rounded-lg text-sm font-medium hover:bg-text/90">
                       Try Again
                     </button>
@@ -124,6 +177,13 @@ ${data.bullets.map(b => `- ${b}`).join('\n')}
                     className="px-4 py-2 border border-border hover:bg-background text-muted font-medium rounded-lg transition-colors"
                   >
                     Close
+                  </button>
+                  <button
+                    onClick={handleDownloadPdf}
+                    className="flex items-center gap-2 px-4 py-2 border border-primary text-primary font-medium rounded-lg hover:bg-primarySoft transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download PDF
                   </button>
                   <button
                     onClick={handleCopyMarkdown}

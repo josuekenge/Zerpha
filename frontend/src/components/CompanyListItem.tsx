@@ -1,11 +1,12 @@
 import { Company } from '../types';
-import { cn } from '../lib/utils';
-import { ChevronRight } from 'lucide-react';
+import { cn, formatDomain } from '../lib/utils';
 
 interface CompanyListItemProps {
   company: Company;
   isSelected: boolean;
   onClick: () => void;
+  onSave?: () => void;
+  isSaving?: boolean;
 }
 
 function FitBadge({ score }: { score: number | null }) {
@@ -23,34 +24,59 @@ function FitBadge({ score }: { score: number | null }) {
   );
 }
 
-export function CompanyListItem({ company, isSelected, onClick }: CompanyListItemProps) {
+export function CompanyListItem({
+  company,
+  isSelected,
+  onClick,
+  onSave,
+  isSaving,
+}: CompanyListItemProps) {
+  const websiteLabel = formatDomain(company.website);
+
   return (
     <div
       onClick={onClick}
       className={cn(
-        "group relative p-4 rounded-xl border transition-all duration-200 cursor-pointer mb-2",
-        isSelected 
-          ? "bg-primarySoft border-primary shadow-sm" 
-          : "bg-surface border-border hover:border-primary/30 hover:shadow-soft"
+        'p-4 rounded-xl border transition-all duration-200 cursor-pointer bg-white',
+        isSelected
+          ? 'border-primary bg-primarySoft/60 shadow-sm'
+          : 'border-border hover:border-primary/40 hover:shadow-soft'
       )}
     >
-      <div className="flex justify-between items-start mb-1">
-        <div>
-          <h3 className={cn("font-bold text-sm mb-0.5", isSelected ? "text-primary" : "text-text")}>
+      <div className="flex justify-between items-start gap-2">
+        <div className="min-w-0">
+          <h3
+            className={cn(
+              'font-semibold text-sm truncate',
+              isSelected ? 'text-primary' : 'text-text',
+            )}
+          >
             {company.name}
           </h3>
-          <div className="text-xs text-muted font-medium truncate max-w-[160px]">
-            {company.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
-          </div>
+          <div className="text-xs text-muted font-medium truncate">{websiteLabel}</div>
         </div>
-        <FitBadge score={company.acquisition_fit_score} />
+        <div className="flex flex-col items-end gap-2">
+          <FitBadge score={company.acquisition_fit_score} />
+          {onSave && (
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                onSave();
+              }}
+              disabled={isSaving}
+              className={cn(
+                'text-[11px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border transition',
+                company.is_saved
+                  ? 'text-success border-success/30 bg-success/10'
+                  : 'text-primary border-primary/40 bg-primarySoft/60 hover:bg-primarySoft',
+                isSaving && 'opacity-60 cursor-not-allowed',
+              )}
+            >
+              {company.is_saved ? 'Saved' : isSaving ? 'Saving...' : 'Save'}
+            </button>
+          )}
+        </div>
       </div>
-      
-      {isSelected && (
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-primary">
-           <ChevronRight className="w-4 h-4" />
-        </div>
-      )}
     </div>
   );
 }

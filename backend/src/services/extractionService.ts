@@ -13,7 +13,7 @@ const anthropic = new Anthropic({
 export const companyExtractionSchema = z.object({
   name: z.string().min(1),
   website: z.string().url(),
-  summary: z.string().min(1),
+  summary: z.string().optional().default(''),
   product_offering: z.string().min(1).optional().default('N/A'),
   customer_segment: z.string().min(1).optional().default('N/A'),
   tech_stack: z.string().min(1).optional().default('N/A'),

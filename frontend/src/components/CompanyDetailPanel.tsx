@@ -1,5 +1,13 @@
 import { Company } from '../types';
-import { ExternalLink, Building2, Users, Globe, Wallet, BarChart3, FileText } from 'lucide-react';
+import {
+  ExternalLink,
+  Building2,
+  Users,
+  Globe,
+  BarChart3,
+  FileText,
+  Mail,
+} from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface CompanyDetailPanelProps {
@@ -7,11 +15,21 @@ interface CompanyDetailPanelProps {
   onGenerateInfographic: () => void;
 }
 
-function SectionCard({ title, icon: Icon, children, className }: { title: string, icon?: any, children: React.ReactNode, className?: string }) {
+function SectionCard({
+  title,
+  icon: Icon,
+  children,
+  className,
+}: {
+  title: string;
+  icon?: any;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <section className={cn("bg-surface rounded-xl border border-border shadow-soft p-6", className)}>
-      <h3 className="flex items-center text-xs font-bold text-text uppercase tracking-wider mb-4 gap-2">
-        {Icon ? <Icon className="w-4 h-4 text-primary" /> : <div className="w-1 h-4 bg-primary rounded-full" />}
+    <section className={cn('bg-white rounded-2xl border border-border/70 shadow-soft p-6', className)}>
+      <h3 className="flex items-center gap-2 text-xs font-semibold text-muted uppercase tracking-widest mb-4">
+        {Icon ? <Icon className="w-4 h-4 text-primary" /> : <div className="w-1.5 h-4 rounded-full bg-primary" />}
         {title}
       </h3>
       {children}
@@ -19,117 +37,138 @@ function SectionCard({ title, icon: Icon, children, className }: { title: string
   );
 }
 
+function InfoField({ label, value }: { label: string; value?: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">{label}</p>
+      <p className="text-sm text-text mt-1">
+        {value || <span className="text-muted">Not available</span>}
+      </p>
+    </div>
+  );
+}
+
 export function CompanyDetailPanel({ company, onGenerateInfographic }: CompanyDetailPanelProps) {
   const { raw_json } = company;
 
-  const score = company.acquisition_fit_score ?? 0;
-  let fitLabel = "Low Fit";
-  let fitColor = "text-danger bg-danger/10";
-  if (score >= 8) {
-    fitLabel = "High Fit";
-    fitColor = "text-success bg-success/10";
-  } else if (score >= 5) {
-    fitLabel = "Medium Fit";
-    fitColor = "text-warning bg-warning/10";
+  const score = company.acquisition_fit_score ?? null;
+  let fitLabel = 'Low Fit';
+  let fitColor = 'text-danger bg-danger/10';
+  if (score !== null && score >= 8) {
+    fitLabel = 'High Fit';
+    fitColor = 'text-success bg-success/10';
+  } else if (score !== null && score >= 5) {
+    fitLabel = 'Medium Fit';
+    fitColor = 'text-warning bg-warning/10';
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-background p-6">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between mb-6 bg-surface p-4 rounded-xl border border-border shadow-sm">
-        <div>
-          <h1 className="text-2xl font-bold text-text mb-1">{company.name}</h1>
-          <a
-            href={company.website}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center text-muted hover:text-primary text-sm font-medium transition-colors"
-          >
-            {company.website} <ExternalLink className="w-3 h-3 ml-1.5 opacity-50" />
-          </a>
-        </div>
-        <button
-          onClick={onGenerateInfographic}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-border hover:border-primary hover:text-primary text-muted text-sm font-semibold rounded-lg shadow-sm transition-all"
-        >
-          <FileText className="w-4 h-4" />
-          Generate Infographic
-        </button>
-      </div>
+    <div className="h-full overflow-y-auto bg-background p-4 sm:p-6 lg:p-8">
+      <div className="max-w-5xl mx-auto space-y-6">
+        <section className="bg-white border border-border/70 rounded-2xl shadow-soft p-6 space-y-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-text">{company.name}</h1>
+              <a
+                href={company.website}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center text-muted hover:text-primary text-sm font-medium transition-colors"
+              >
+                {company.website} <ExternalLink className="w-3 h-3 ml-1.5" />
+              </a>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                className={cn(
+                  'px-3 py-1 rounded-full text-xs font-semibold border',
+                  score === null ? 'text-muted border-border' : fitColor,
+                )}
+              >
+                {score === null ? 'Fit N/A' : `${fitLabel} (${score}/10)`}
+              </span>
+              <button
+                onClick={onGenerateInfographic}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-primary-hover transition"
+              >
+                <FileText className="w-4 h-4" />
+                Generate Infographic
+              </button>
+            </div>
+          </div>
 
-      <div className="grid gap-6 max-w-4xl mx-auto">
-        {/* Summary */}
-        <SectionCard title="Executive Summary" icon={null}>
-          <p className="text-text text-base leading-relaxed">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border/70 pt-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-primarySoft text-primary">
+                <Globe className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted">Headquarters</p>
+                <p className="text-sm text-text">
+                  {raw_json.hq_location || <span className="text-muted">Not available</span>}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-primarySoft text-primary">
+                <Users className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted">
+                  Estimated headcount
+                </p>
+                <p className="text-sm text-text">
+                  {raw_json.estimated_headcount || <span className="text-muted">Not available</span>}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <SectionCard title="Executive Summary">
+          <p className="text-sm leading-relaxed text-text">
             {company.summary || <span className="text-muted italic">Not available</span>}
           </p>
         </SectionCard>
 
-        {/* Fit Score Analysis */}
-        <SectionCard title="Acquisition Fit Analysis" icon={BarChart3}>
-           <div className="flex gap-6 items-start">
-              <div className="flex-shrink-0 text-center">
-                 <div className="text-5xl font-bold text-text mb-2">
-                    {company.acquisition_fit_score ?? '-'}<span className="text-xl text-muted font-normal">/10</span>
-                 </div>
-                 <span className={cn("px-3 py-1 rounded-full text-xs font-bold uppercase", fitColor)}>
-                    {fitLabel}
-                 </span>
+        <SectionCard title="Acquisition Fit" icon={BarChart3}>
+          <div className="flex flex-col gap-4 md:flex-row md:items-start">
+            <div className="flex items-center gap-3">
+              <div className="text-4xl font-bold text-text">
+                {score ?? '-'}
+                <span className="text-base text-muted font-normal"> /10</span>
               </div>
-              <div className="flex-1 pt-1 border-l border-border pl-6">
-                <p className="text-text leading-relaxed">
-                   {raw_json.acquisition_fit_reason || 'No detailed fit analysis provided.'}
-                </p>
-              </div>
-           </div>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm leading-relaxed text-text">
+                {raw_json.acquisition_fit_reason || 'No detailed fit analysis provided.'}
+              </p>
+            </div>
+          </div>
         </SectionCard>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Product Market */}
           <SectionCard title="Product & Market" icon={Building2}>
-             <dl className="space-y-4">
-                <div>
-                   <dt className="text-xs font-medium text-muted mb-1">Product Offering</dt>
-                   <dd className="text-text font-medium text-sm leading-relaxed">{raw_json.product_offering || <span className="text-muted">Not available</span>}</dd>
-                </div>
-                <div>
-                   <dt className="text-xs font-medium text-muted mb-1">Customer Segment</dt>
-                   <dd className="text-text font-medium text-sm">{raw_json.customer_segment || <span className="text-muted">Not available</span>}</dd>
-                </div>
-                <div>
-                   <dt className="text-xs font-medium text-muted mb-1">Pricing Model</dt>
-                   <dd className="text-text font-medium text-sm">{raw_json.pricing_model || <span className="text-muted">Not available</span>}</dd>
-                </div>
-             </dl>
+            <div className="space-y-4">
+              <InfoField label="Product Offering" value={raw_json.product_offering} />
+              <InfoField label="Customer Segment" value={raw_json.customer_segment} />
+              <InfoField label="Pricing Model" value={raw_json.pricing_model} />
+            </div>
           </SectionCard>
 
-          {/* Operations */}
           <SectionCard title="Operations" icon={Users}>
-             <dl className="space-y-4">
-                <div>
-                   <dt className="text-xs font-medium text-muted mb-1">Headquarters</dt>
-                   <dd className="text-text font-medium text-sm flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-muted" /> {raw_json.hq_location || <span className="text-muted">Not available</span>}
-                   </dd>
-                </div>
-                <div>
-                   <dt className="text-xs font-medium text-muted mb-1">Estimated Headcount</dt>
-                   <dd className="text-text font-medium text-sm">{raw_json.estimated_headcount || <span className="text-muted">Not available</span>}</dd>
-                </div>
-                <div>
-                   <dt className="text-xs font-medium text-muted mb-1">Tech Stack</dt>
-                   <dd className="text-text font-medium text-sm">
-                      {raw_json.tech_stack || <span className="text-muted">Not available</span>}
-                   </dd>
-                </div>
-             </dl>
+            <div className="space-y-4">
+              <InfoField label="Headquarters" value={raw_json.hq_location} />
+              <InfoField label="Estimated Headcount" value={raw_json.estimated_headcount} />
+              <InfoField label="Tech Stack" value={raw_json.tech_stack} />
+            </div>
           </SectionCard>
         </div>
 
-        {/* Global Opportunities */}
-        <SectionCard title="Global Opportunities" icon={Wallet}>
-          <p className="text-text text-sm leading-relaxed">
-            {raw_json.global_opportunities || <span className="text-muted">No specific opportunities identified.</span>}
+        <SectionCard title="Contacts" icon={Mail}>
+          <p className="text-sm text-muted">
+            Executive contact and email coming soon. Once available, Zerpha will surface primary deal
+            contacts here for quick outreach.
           </p>
         </SectionCard>
       </div>
