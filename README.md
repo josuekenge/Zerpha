@@ -2,6 +2,23 @@
 
 The backend is a Node.js/Express API written in TypeScript. It talks directly to Supabase using `@supabase/supabase-js` and relies on SQL migrations stored in `supabase/migrations`. Prisma is **not** used anywhere in this project.
 
+### ⚠️ Security: Environment Variables & Secrets
+
+**IMPORTANT:** All secrets (API keys, service account credentials, database URLs) must ONLY exist in:
+- Local `.env` files (ignored by Git)
+- Your deployment environment (Vercel, Railway, etc.)
+
+**NEVER commit `.env` files or credential JSON files to Git.**
+
+The repository `.gitignore` is configured to block:
+- `.env`, `.env.local`, `.env.*`
+- `*.service-account.json`, `*credentials*.json`, `*-key.json`
+
+If you accidentally commit a secret:
+1. Immediately rotate/delete the key in the provider (GCP, Supabase, etc.)
+2. Remove the file from Git tracking (see below)
+3. Consider using `git filter-repo` or BFG to scrub history if already pushed
+
 ### Migrations Setup
 
 All schema changes live in `supabase/migrations/0001_initial_schema.sql`. This file already defines the required tables:
@@ -12,7 +29,7 @@ All schema changes live in `supabase/migrations/0001_initial_schema.sql`. This f
 
 To apply them to your Supabase project:
 
-1. Install the Supabase CLI if you haven’t already:
+1. Install the Supabase CLI if you haven't already:
    ```bash
    npm install -g supabase
    ```
