@@ -1,0 +1,714 @@
+1. Product Overview
+Name: Zerpha
+ Type: AI powered Vertical SaaS Market Intelligence Dashboard
+Goal
+ Given a user search like “CRM” or “logistics” or “home healthcare”, Zerpha:
+Finds up to 5 relevant SaaS companies in that niche
+
+
+Prefer vertical SaaS companies
+
+
+If no clear vertical SaaS exists, general SaaS in that niche is acceptable
+
+
+Scrapes and analyzes their websites
+
+
+Extracts structured insights using Claude
+
+
+Displays them in a dashboard similar in spirit to Apollo, but simpler
+
+
+Lets the user export a slide deck style PDF for a chosen company using Gemini plus Google Slides
+
+
+Target user: Analyst, tech lead, or M&A oriented engineer who wants a fast high level view of SaaS companies in a market.
+
+2. Final Tech Stack
+Frontend
+React
+
+
+TypeScript
+
+
+Tailwind CSS
+
+
+HTML and basic CSS, handled through Tailwind utility classes
+
+
+The frontend talks only to your backend, never directly to AI APIs.
+Backend
+Node.js
+
+
+Express.js
+
+
+TypeScript
+
+
+Database
+Supabase (Postgres as managed DB, Supabase JS client in backend)
+
+
+External APIs
+Claude API
+
+
+Model: Claude 3.5 Sonnet
+
+
+Use cases:
+
+
+Discover up to 5 SaaS companies for a given niche
+
+
+Prefer vertical SaaS
+
+
+Fallback to general SaaS in that niche if needed
+
+
+Extract structured insights from scraped HTML into JSON
+
+
+Gemini API
+
+
+Model: Gemini 2.0 Pro
+
+
+Use case:
+
+
+Generate structured slide deck content from the company JSON
+
+
+Google Slides API
+
+
+Use case:
+
+
+Create a slide deck programmatically based on Gemini output
+
+
+Google Drive or Slides export API
+
+
+Use case:
+
+
+Export the slide deck to a PDF
+
+
+Provide a downloadable PDF for the user
+
+
+Supabase API
+
+
+Use case:
+
+
+Store searches, company data, and report metadata
+
+
+ChatGPT API is optional, not required for MVP.
+
+3. Main User Flow
+User opens Zerpha
+
+
+User types a query in the search bar, for example “CRM” or “logistics software”
+
+
+Backend sends the query to Claude to find up to 5 relevant SaaS companies
+
+
+First tries vertical SaaS
+
+
+If not possible, general SaaS in that niche is accepted
+
+
+For each company, backend:
+
+
+Scrapes key pages using fetch
+
+
+Sends combined text to Claude for structured extraction
+
+
+Saves the extracted JSON in Supabase
+
+
+Frontend receives a list of companies and displays them in a dashboard table
+
+
+User clicks one company to open the detail panel
+
+
+User can click “Export as slide deck PDF”
+
+
+Backend uses the stored JSON, calls Gemini for slide content, then Google Slides and Drive APIs to generate and return a PDF
+
+
+User downloads the PDF slide deck
+
+
+
+4. Functional Requirements
+4.1 Search and Company Discovery
+Search bar accepts any string input
+
+
+Example: “CRM”, “fleet management”, “home healthcare”
+
+
+Backend sends a discovery request to Claude
+
+
+Claude discovery behavior in backend:
+Input: user query string plus a hidden instruction such as
+
+
+“Return up to 5 relevant SaaS companies for this niche, prefer vertical SaaS, if none are available return general SaaS companies in this niche instead.”
+
+
+Claude returns an array of JSON objects:
+
+
+[
+  {
+    "name": "Example SaaS",
+    "website": "https://example.com",
+    "reason": "Vertical SaaS for home healthcare"
+  }
+]
+
+Maximum companies: 5
+
+
+4.2 Scraping
+For each company website, scraperService will:
+
+
+Use fetch to retrieve HTML for:
+
+
+Homepage
+
+
+Product or solutions page if link is easy to find
+
+
+Pricing or how it works page if possible
+
+
+Combine relevant text into a single string or chunked segments
+
+
+Scraping depth: Medium
+
+
+Timeouts:
+
+
+10 seconds per page request
+
+
+If a page fails or times out, skip that page and proceed with others
+
+
+4.3 Structured Extraction with Claude
+extractionService
+
+
+Input: combined scraped text
+
+
+Model: Claude 3.5 Sonnet
+
+
+Output: strict JSON using a fixed schema
+
+
+JSON schema per company:
+name
+
+
+website
+
+
+summary
+
+
+product_offering
+
+
+customer_segment
+
+
+tech_stack
+
+
+estimated_headcount
+
+
+hq_location
+
+
+pricing_model
+
+
+strengths (list of strings)
+
+
+risks (list)
+
+
+opportunities (list)
+
+
+acquisition_fit_score (number 0 to 10)
+
+
+acquisition_fit_reason
+
+
+top_competitors (list)
+
+
+Additionally, for the entire search, a separate Claude call generates:
+global_opportunities, a short text describing the top market opportunities in this vertical SaaS or SaaS niche
+
+
+Reliability details:
+Claude calls use try catch
+
+
+If JSON is invalid, call Claude again asking only for corrected JSON
+
+
+One retry only
+
+
+If extraction fails, mark company status as “failed” and exclude from UI or show as failed
+
+
+4.4 Dashboard UI
+Layout style: Apollo vibes, but simpler and focused on your content.
+Key components:
+Top search bar
+
+
+Text input
+
+
+Search button
+
+
+Global insights section
+
+
+Shows global_opportunities for the niche
+
+
+Generated by Claude
+
+
+Companies table
+
+
+Columns:
+
+
+Name
+
+
+Website
+
+
+Short summary
+
+
+Acquisition fit score
+
+
+Row click selects company
+
+
+Details panel for selected company
+
+
+Name and website
+
+
+Summary
+
+
+Product offering
+
+
+Customer segment
+
+
+Tech stack
+
+
+Strengths
+
+
+Risks
+
+
+Opportunities
+
+
+Acquisition fit score and reason
+
+
+Top competitors
+
+
+Button: “Export as slide deck PDF”
+
+
+No logos for MVP, you can add them later.
+4.5 Export to Slide Deck PDF
+Trigger: user clicks “Export as slide deck PDF” in the detail panel for a specific company
+
+
+Backend uses reportService:
+
+
+Steps:
+Load company JSON from Supabase
+
+
+Call Gemini 2.0 Pro with prompt:
+
+
+Generate a slide deck structure and content for this company, including overview, product, customers, market position, strengths, risks, opportunities, and acquisition fit
+
+
+Gemini returns structured slide data, for example:
+
+
+deck_title
+
+
+slides: list with title and bullet points
+
+
+Call Google Slides API to:
+
+
+Create a new slide deck using a simple template or base theme
+
+
+Insert Gemini generated content into the slides
+
+
+Call Google Drive or Slides export API to export the slide deck as a PDF
+
+
+Save the PDF URL or file reference in Supabase reports table
+
+
+Return the PDF URL to frontend for download
+
+
+Export scope:
+Export is per company, one at a time
+
+
+
+5. Non Functional Requirements
+Response time:
+
+
+Total flow per search can take up to 3 minutes, with loading indicators
+
+
+Companies processed:
+
+
+Maximum 5 per search
+
+
+Parallelism:
+
+
+For simplicity and reliability, process 1 or 2 companies in parallel
+
+
+Rate limit:
+
+
+MVP, single user, no strict rate limit, but backend should handle one search at a time per client
+
+
+Error handling:
+
+
+If a company fails at any step, skip and mark failed
+
+
+Never crash the whole search
+
+
+
+6. Data Model and Supabase Plan
+Use Supabase as managed Postgres.
+Tables
+searches
+
+
+id
+
+
+query_text
+
+
+created_at
+
+
+companies
+
+
+id
+
+
+search_id (foreign key to searches.id)
+
+
+name
+
+
+website
+
+
+vertical_query (niche interpreted)
+
+
+raw_json (extracted JSON)
+
+
+acquisition_fit_score
+
+
+created_at
+
+
+reports
+
+
+id
+
+
+company_id (foreign key)
+
+
+pdf_url or storage key
+
+
+created_at
+
+
+Supabase usage
+Backend only, use Supabase JS client
+
+
+On search:
+
+
+Create searches row
+
+
+After each successful extraction, create companies row
+
+
+On export:
+
+
+After PDF is generated, create reports row
+
+
+
+7. Backend Architecture
+Routes
+POST /api/search
+
+
+Body: { query: string }
+
+
+Steps:
+
+
+Insert search in searches
+
+
+Use Claude discovery to get up to 5 SaaS companies
+
+
+For each company: scrape, extract, save JSON in companies
+
+
+Generate global_opportunities with Claude
+
+
+Return: list of companies plus global_opportunities
+
+
+GET /api/search/:searchId
+
+
+Return existing companies and global_opportunities from DB
+
+
+No new AI calls
+
+
+POST /api/export-report
+
+
+Body: { companyId: string }
+
+
+Steps:
+
+
+Load company JSON from DB
+
+
+Call Gemini to generate slide content
+
+
+Call Google Slides and Drive APIs to create deck and export to PDF
+
+
+Save PDF info in reports
+
+
+Return PDF URL
+
+
+Service modules
+discoveryService.ts
+
+
+Uses Claude to discover SaaS companies
+
+
+scraperService.ts
+
+
+Uses fetch to get HTML for each company
+
+
+extractionService.ts
+
+
+Uses Claude for JSON extraction
+
+
+reportService.ts
+
+
+Uses Gemini and Google Slides plus Drive for slide deck PDF
+
+
+dbService.ts or Supabase client wrapper
+
+
+
+8. Frontend Architecture
+React with TypeScript
+
+
+Tailwind for styling
+
+
+Pages and components:
+
+
+SearchPage
+
+
+Search bar
+
+
+Global insights box
+
+
+Companies table
+
+
+Detail panel
+
+
+CompanyDetailPanel
+
+
+Shows all extracted fields
+
+
+“Export as slide deck PDF” button
+
+
+State management
+
+
+Use React Query or simple hooks to call /api/search and /api/export-report
+
+
+
+9. AI Use Summary
+Claude 3.5 Sonnet
+
+
+Company discovery for each user query
+
+
+Structured extraction from scraped HTML
+
+
+Gemini 2.0 Pro
+
+
+Slide deck content generation
+
+
+Google Slides and Drive APIs
+
+
+Slide deck creation
+
+
+PDF export
+
+
+Supabase
+
+
+Search histories
+
+
+Company data
+
+
+Report metadata
+
+
+Everything is AI first, user only sees a clean dashboard and export button.
+
