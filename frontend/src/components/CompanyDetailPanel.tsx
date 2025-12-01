@@ -61,7 +61,7 @@ export function CompanyDetailPanel({ company, onGenerateInfographic }: CompanyDe
         {/* Summary */}
         <SectionCard title="Executive Summary" icon={null}>
           <p className="text-text text-base leading-relaxed">
-            {raw_json.summary || <span className="text-muted italic">Not available</span>}
+            {company.summary || <span className="text-muted italic">Not available</span>}
           </p>
         </SectionCard>
 

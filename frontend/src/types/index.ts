@@ -18,6 +18,7 @@ export interface Company {
   website: string;
   vertical_query: string;
   acquisition_fit_score: number | null;
+  summary: string | null;
   raw_json: CompanyRawJson;
   status?: string;
 }

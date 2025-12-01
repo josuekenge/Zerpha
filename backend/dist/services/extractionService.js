@@ -9,7 +9,7 @@ const anthropic = new Anthropic({
 export const companyExtractionSchema = z.object({
     name: z.string().min(1),
     website: z.string().url(),
-    summary: z.string().min(1).optional().default('Summary not available'),
+    summary: z.string().min(1),
     product_offering: z.string().min(1).optional().default('N/A'),
     customer_segment: z.string().min(1).optional().default('N/A'),
     tech_stack: z.string().min(1).optional().default('N/A'),
@@ -29,6 +29,7 @@ Given scraped website content, produce a JSON object describing the company usin
 Rules:
 - Respond with JSON only, no prose.
 - Provide thoughtful, evidence-based insights.
+- The "summary" field must be a concise 2-4 sentence executive summary written for M&A analysts.
 - If data is missing, infer cautiously or use "Unknown".
 - acquisition_fit_score must be a number between 0 and 10.`;
 function buildExtractionPrompt(companyName, website, content) {
@@ -42,7 +43,7 @@ Output JSON matching exactly this schema:
 {
   "name": "string",
   "website": "https://example.com",
-  "summary": "string",
+  "summary": "2-4 sentence executive summary for M&A analysts describing what the company does and why it matters",
   "product_offering": "string",
   "customer_segment": "string",
   "tech_stack": "string",

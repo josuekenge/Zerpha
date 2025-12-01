@@ -80,6 +80,7 @@ searchRouter.post('/search', async (req, res, next) => {
             const acquisitionFitScore = Number.isFinite(numericScore) ? Math.round(numericScore) : null;
             const extractedStatus = company.extracted?.status;
             const status = extractedStatus ?? company.status ?? 'success';
+            const summary = company.extracted?.summary ?? null;
             return {
                 search_id: searchInsert.id,
                 name: company.extracted?.name ?? company.name,
@@ -87,6 +88,7 @@ searchRouter.post('/search', async (req, res, next) => {
                 vertical_query: query,
                 raw_json: company,
                 acquisition_fit_score: acquisitionFitScore,
+                summary,
                 status,
             };
         });
