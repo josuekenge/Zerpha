@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Request, type Response, type NextFunction } from 'express';
 import { z } from 'zod';
 
 import { supabase } from '../config/supabase.js';
@@ -6,10 +6,12 @@ import { discoverCompanies } from '../services/discoveryService.js';
 import { scrapeCompanySite } from '../services/scraperService.js';
 import {
   extractCompanyInsights,
-  type ExtractedCompany,
 } from '../services/extractionService.js';
 import { generateGlobalOpportunities } from '../services/insightsService.js';
 import { logger } from '../logger.js';
+import type { ExtractedCompany } from '../types/company.js';
+import { saveExtractedCompany } from '../services/companySaveService.js';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 
 const searchRequestSchema = z.object({
   query: z.string().min(2).max(200),
@@ -58,17 +60,32 @@ interface ProcessedCompany {
 
 export interface DatabaseCompany {
   id: string;
+  user_id: string;
   search_id: string;
   name: string;
   website: string;
   vertical_query: string | null;
   raw_json: Record<string, unknown> | null;
   acquisition_fit_score: number | null;
+  acquisition_fit_reason?: string | null;
   created_at: string;
   summary?: string | null;
   status?: ProcessedCompany['status'] | null;
   is_saved: boolean;
   saved_category?: string | null;
+  primary_industry?: string | null;
+  secondary_industry?: string | null;
+  product_offering?: string | null;
+  customer_segment?: string | null;
+  tech_stack?: unknown;
+  estimated_headcount?: string | null;
+  hq_location?: string | null;
+  pricing_model?: string | null;
+  strengths?: unknown;
+  risks?: unknown;
+  opportunities?: unknown;
+  top_competitors?: unknown;
+  has_summary?: boolean | null;
 }
 
 export type ApiCompany = Omit<
@@ -91,11 +108,18 @@ export function pickStringField(
 ): string | null {
   if (!source) return null;
   const value = source[key];
-  if (typeof value !== 'string') {
-    return null;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
   }
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
+  if (Array.isArray(value)) {
+    const joined = value
+      .map((item) => (typeof item === 'string' ? item.trim() : ''))
+      .filter((item) => item.length > 0)
+      .join(', ');
+    return joined.length > 0 ? joined : null;
+  }
+  return null;
 }
 
 function unwrapExtractedPayload(raw: Record<string, unknown> | null): Record<string, unknown> | null {
@@ -138,6 +162,9 @@ export function extractDomain(website: string): string {
 
 export function deriveCategory(company: ApiCompany): string {
   const primary =
+    company.saved_category ??
+    company.primary_industry ??
+    company.secondary_industry ??
     company.vertical_query ??
     pickStringField(company.raw_json, 'industry') ??
     pickStringField(company.raw_json, 'customer_segment');
@@ -172,6 +199,24 @@ export function transformCompanyForApi(dbCompany: DatabaseCompany): ApiCompany {
     normalizeStatus(extracted ? extracted['status'] : undefined) ??
     'success';
 
+  const primaryIndustry =
+    (typeof dbCompany.primary_industry === 'string' && dbCompany.primary_industry.trim().length > 0
+      ? dbCompany.primary_industry.trim()
+      : null) ??
+    pickStringField(hydratedRaw, 'primary_industry');
+
+  const secondaryIndustry =
+    (typeof dbCompany.secondary_industry === 'string' &&
+    dbCompany.secondary_industry.trim().length > 0
+      ? dbCompany.secondary_industry.trim()
+      : null) ??
+    pickStringField(hydratedRaw, 'secondary_industry');
+
+  const hasSummary =
+    typeof dbCompany.has_summary === 'boolean'
+      ? dbCompany.has_summary
+      : Boolean(summary && summary.length > 0);
+
   return {
     ...dbCompany,
     raw_json: hydratedRaw,
@@ -179,28 +224,47 @@ export function transformCompanyForApi(dbCompany: DatabaseCompany): ApiCompany {
     status,
     is_saved: Boolean(dbCompany.is_saved),
     saved_category: dbCompany.saved_category ?? null,
+    primary_industry: primaryIndustry ?? null,
+    secondary_industry: secondaryIndustry ?? null,
+    has_summary: hasSummary,
   };
 }
 
 export const searchRouter = Router();
 
-searchRouter.post('/search', async (req, res, next) => {
+searchRouter.post('/search', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) throw new Error('User not authenticated');
+
     const { query } = searchRequestSchema.parse(req.body);
+
+    logger.info({ query, userId: user.id }, '[search] received search request');
 
     const { data: searchInsert, error: searchError } = await supabase
       .from('searches')
-      .insert({ query_text: query })
+      .insert({ query_text: query, user_id: user.id })
       .select()
       .single();
 
     if (searchError || !searchInsert) {
+      logger.error({ err: searchError, query }, '[search] failed to insert search row');
       throw new Error(searchError?.message ?? 'Failed to create search');
     }
 
     const discovered = await discoverCompanies(query);
+    logger.info(
+      {
+        query,
+        searchId: searchInsert.id,
+        discoveredCount: discovered.length,
+        companies: discovered.map((company) => company.name),
+      },
+      '[search] discovery results',
+    );
 
     if (discovered.length === 0) {
+      logger.warn({ query, searchId: searchInsert.id }, '[search] no companies discovered');
       return res.status(200).json({
         searchId: searchInsert.id,
         global_opportunities: 'No companies found for this query yet.',
@@ -209,13 +273,24 @@ searchRouter.post('/search', async (req, res, next) => {
     }
 
     const processedCompanies: ProcessedCompany[] = [];
+    const failedCompanyRecords: Array<Record<string, unknown>> = [];
 
     const processCompany = async (company: (typeof discovered)[number]) => {
       try {
         const scrapeResult = await scrapeCompanySite(company.website);
 
         if (scrapeResult.pages.length === 0) {
-          throw new Error('No content could be scraped from the site');
+          const errorMessage = 'No content could be scraped from the site';
+          logger.warn(
+            {
+              company: company.name,
+              website: company.website,
+              searchId: searchInsert.id,
+              errors: scrapeResult.errors,
+            },
+            '[search] empty scrape result',
+          );
+          throw new Error(errorMessage);
         }
 
         const combinedText = scrapeResult.pages
@@ -227,6 +302,25 @@ searchRouter.post('/search', async (req, res, next) => {
           companyName: company.name,
           website: company.website,
           combinedText,
+        });
+        logger.info(
+          {
+            company: company.name,
+            website: company.website,
+            searchId: searchInsert.id,
+            acquisitionFitScore: extracted.acquisition_fit_score,
+            primaryIndustry: extracted.primary_industry,
+            hasSummary: Boolean(extracted.summary),
+          },
+          '[search] extraction successful',
+        );
+
+        await saveExtractedCompany({
+          userId: user.id,
+          searchId: searchInsert.id,
+          verticalQuery: query,
+          extracted,
+          reason: company.reason,
         });
 
         processedCompanies.push({
@@ -245,11 +339,41 @@ searchRouter.post('/search', async (req, res, next) => {
           reason: company.reason,
         });
 
+        failedCompanyRecords.push({
+          user_id: user.id,
+          search_id: searchInsert.id,
+          name: company.name,
+          website: company.website,
+          vertical_query: query,
+          raw_json: {
+            reason: company.reason,
+            error: (error as Error).message,
+          },
+          acquisition_fit_score: null,
+          acquisition_fit_reason: null,
+          summary: null,
+          status: 'failed',
+          primary_industry: null,
+          secondary_industry: null,
+          product_offering: null,
+          customer_segment: null,
+          tech_stack: null,
+          estimated_headcount: null,
+          hq_location: null,
+          pricing_model: null,
+          strengths: null,
+          risks: null,
+          opportunities: null,
+          top_competitors: null,
+          has_summary: false,
+        });
+
         logger.error(
           {
             err: error,
             companyName: company.name,
             website: company.website,
+            searchId: searchInsert.id,
           },
           'Failed to process company during search',
         );
@@ -262,53 +386,18 @@ searchRouter.post('/search', async (req, res, next) => {
       await Promise.all(batch.map((company) => processCompany(company)));
     }
 
-    const companyRecords = processedCompanies.map((company) => {
-      const rawScore = company.extracted?.acquisition_fit_score;
-      const numericScore =
-        typeof rawScore === 'number'
-          ? rawScore
-          : typeof rawScore === 'string'
-            ? Number(rawScore)
-            : NaN;
-      const acquisitionFitScore = Number.isFinite(numericScore) ? Math.round(numericScore) : null;
-      const extractedSummary = company.extracted?.summary?.trim() ?? '';
-      const summary = extractedSummary.length > 0 ? extractedSummary : null;
-      const status = company.status ?? 'success';
-      const rawJsonPayload = company.extracted
-        ? ({ ...company.extracted, reason: company.reason } as Record<string, unknown>)
-        : (company as unknown as Record<string, unknown>);
-
-      return {
-        search_id: searchInsert.id,
-        name: company.extracted?.name ?? company.name,
-        website: company.extracted?.website ?? company.website,
-        vertical_query: query,
-        raw_json: rawJsonPayload,
-        acquisition_fit_score: acquisitionFitScore,
-        summary,
-        status,
-      };
-    });
-
-    if (companyRecords.length > 0) {
-      const { data: insertedRows, error: insertError } = await supabase
-        .from('companies')
-        .insert(companyRecords);
+    if (failedCompanyRecords.length > 0) {
+      const { error: insertError } = await supabase.from('companies').insert(failedCompanyRecords);
 
       if (insertError) {
         logger.error(
           { err: insertError, searchId: searchInsert.id },
-          'Failed to persist companies',
+          'Failed to persist failed company records',
         );
       } else {
-        const insertedRowsArray = (insertedRows ?? []) as unknown[];
-        const insertedCount =
-          Array.isArray(insertedRowsArray) && insertedRowsArray.length > 0
-            ? insertedRowsArray.length
-            : companyRecords.length;
         logger.info(
-          { searchId: searchInsert.id, insertedCount },
-          'Persisted companies for search',
+          { searchId: searchInsert.id, insertedCount: failedCompanyRecords.length },
+          'Persisted failed company records',
         );
       }
     }
@@ -333,11 +422,19 @@ searchRouter.post('/search', async (req, res, next) => {
       .order('created_at', { ascending: true });
 
     if (selectError) {
+      logger.error({ err: selectError, searchId: searchInsert.id }, '[search] select failed');
       throw new Error(selectError.message);
     }
 
     const companiesWithSummary = (companyRows ?? []).map((row) =>
       transformCompanyForApi(row as DatabaseCompany),
+    );
+    logger.info(
+      {
+        searchId: searchInsert.id,
+        returnedCompanies: companiesWithSummary.length,
+      },
+      '[search] returning companies',
     );
 
     res.status(200).json({
@@ -346,18 +443,23 @@ searchRouter.post('/search', async (req, res, next) => {
       companies: companiesWithSummary,
     });
   } catch (error) {
+    logger.error({ err: error }, '[search] unhandled error');
     next(error);
   }
 });
 
-searchRouter.get('/search/:searchId', async (req, res, next) => {
+searchRouter.get('/search/:searchId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) throw new Error('User not authenticated');
+
     const { searchId } = searchIdParamSchema.parse(req.params);
 
     const { data: searchRow, error: searchError } = await supabase
       .from('searches')
       .select('*')
       .eq('id', searchId)
+      .eq('user_id', user.id)
       .single();
 
     if (searchError || !searchRow) {
@@ -368,6 +470,7 @@ searchRouter.get('/search/:searchId', async (req, res, next) => {
       .from('companies')
       .select('*')
       .eq('search_id', searchId)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: true });
 
     if (companyError) {
@@ -388,11 +491,15 @@ searchRouter.get('/search/:searchId', async (req, res, next) => {
   }
 });
 
-searchRouter.get('/search-history', async (_req, res, next) => {
+searchRouter.get('/search-history', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) throw new Error('User not authenticated');
+
     const { data: searchRows, error: searchError } = await supabase
       .from('searches')
       .select('id, query_text, created_at')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50);
 
@@ -408,7 +515,8 @@ searchRouter.get('/search-history', async (_req, res, next) => {
       const { data: companyRows, error: companyError } = await supabase
         .from('companies')
         .select('search_id')
-        .in('search_id', searchIds);
+        .in('search_id', searchIds)
+        .eq('user_id', user.id);
 
       if (companyError) {
         logger.error({ err: companyError }, 'Failed to aggregate company counts');

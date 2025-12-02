@@ -1,12 +1,29 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Search, List, Loader2, Check, Bookmark } from 'lucide-react';
+import { 
+  Search, 
+  Loader2, 
+  Check, 
+  Download, 
+  Trash2, 
+  ChevronDown,
+  Zap,
+  ChevronsUpDown,
+  Building2,
+  History,
+  Table2,
+  LayoutGrid
+} from 'lucide-react';
 
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
-import { CompanyListItem } from './components/CompanyListItem';
 import { CompanyDetailPanel } from './components/CompanyDetailPanel';
 import { LoadingOverlay } from './components/LoadingOverlay';
-import { DetailSkeleton, ResultListSkeleton } from './components/Skeletons';
+import { ResultListSkeleton } from './components/Skeletons';
 import { InfographicModal } from './components/InfographicModal';
+import { LandingPage } from './components/LandingPage';
+import { LoginPage } from './components/LoginPage';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { useAuth, signOut } from './lib/auth';
 import {
   exportInfographic,
   fetchSavedCompanies,
@@ -21,12 +38,12 @@ import { cn } from './lib/utils';
 
 type WorkspaceView = 'search' | 'companies' | 'history';
 type FitFilter = 'all' | 'high' | 'medium' | 'low';
-
-const NAV_LINKS: { label: string; value: WorkspaceView }[] = [
-  { label: 'Search', value: 'search' },
-  { label: 'Companies', value: 'companies' },
-  { label: 'Search history', value: 'history' },
-];
+type IndustryCarrier = {
+  primary_industry?: string | null;
+  secondary_industry?: string | null;
+  primaryIndustry?: string | null;
+  secondaryIndustry?: string | null;
+};
 
 const QUICK_FILTERS = [
   'logistics SaaS in North America',
@@ -34,14 +51,30 @@ const QUICK_FILTERS = [
   'construction project management',
 ];
 
-const DEFAULT_CATEGORY = 'General';
+const INDUSTRIES = [
+  "AI",
+  "Logistics",
+  "Healthcare",
+  "Fintech",
+  "Retail",
+  "Real Estate",
+  "Transportation",
+  "HR Tech",
+  "Cybersecurity",
+  "EdTech",
+  "Marketing",
+  "Sales",
+  "Productivity",
+  "Communication",
+  "Customer Support",
+  "DevTools",
+  "Vertical SaaS",
+  "Marketplace",
+  "E Commerce",
+  "Hardware Enabled SaaS"
+];
 
-const fitFilterRanges: Record<FitFilter, { minScore?: number; maxScore?: number }> = {
-  all: {},
-  high: { minScore: 8 },
-  medium: { minScore: 5, maxScore: 7 },
-  low: { maxScore: 4 },
-};
+const DEFAULT_CATEGORY = 'General';
 
 const formatDate = (value?: string | null) => {
   if (!value) return '—';
@@ -68,9 +101,12 @@ const savedCompanyToCompany = (saved: SavedCompany): Company => ({
   is_saved: saved.is_saved,
   saved_category: saved.saved_category,
   created_at: saved.created_at ?? undefined,
+  primary_industry: saved.primary_industry,
+  secondary_industry: saved.secondary_industry,
 });
 
-function App() {
+export function WorkspaceApp() {
+  const navigate = useNavigate();
   const [activeView, setActiveView] = useState<WorkspaceView>('search');
 
   // Search state
@@ -84,23 +120,20 @@ function App() {
   // Workspace state
   const [workspaceCompanies, setWorkspaceCompanies] = useState<SavedCompany[]>([]);
   const [workspaceLoading, setWorkspaceLoading] = useState(false);
-  const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   const [workspaceCategory, setWorkspaceCategory] = useState<string>('all');
   const [workspaceFitFilter, setWorkspaceFitFilter] = useState<FitFilter>('all');
+  const [industryFilter, setIndustryFilter] = useState<string>('all');
   const [workspaceCategories, setWorkspaceCategories] = useState<string[]>([]);
   const [selectedWorkspaceCompanyId, setSelectedWorkspaceCompanyId] = useState<string | null>(
     null,
   );
+  const [shortlistSearchQuery, setShortlistSearchQuery] = useState('');
 
   // History state
   const [historyItems, setHistoryItems] = useState<SearchHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyError, setHistoryError] = useState<string | null>(null);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [historyCompanies, setHistoryCompanies] = useState<Company[]>([]);
-  const [historyCompaniesLoading, setHistoryCompaniesLoading] = useState(false);
-  const [historyCompaniesError, setHistoryCompaniesError] = useState<string | null>(null);
-  const [selectedHistoryCompanyId, setSelectedHistoryCompanyId] = useState<string | null>(null);
 
   // Infographic modal
   const [isInfographicOpen, setIsInfographicOpen] = useState(false);
@@ -113,6 +146,16 @@ function App() {
   const [savingMap, setSavingMap] = useState<Record<string, boolean>>({});
   const toastTimeout = useRef<number | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const viewMeta = useMemo(() => {
+    if (activeView === 'companies') {
+      return { title: 'Shortlist', subtitle: 'Saved Companies' };
+    }
+    if (activeView === 'history') {
+      return { title: 'Past Searches', subtitle: 'History' };
+    }
+    return { title: 'Market Discovery', subtitle: 'New Search' };
+  }, [activeView]);
 
   const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     if (toastTimeout.current) {
@@ -131,25 +174,27 @@ function App() {
     [],
   );
 
-  const loadWorkspaceCompanies = useCallback(
-    async (options?: { category?: string; fit?: FitFilter; autoSelectId?: string }) => {
-      const categoryValue = options?.category ?? workspaceCategory;
-      const fitValue = options?.fit ?? workspaceFitFilter;
-      const range = fitFilterRanges[fitValue];
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Failed to sign out', error);
+    }
+  };
 
+  // Load workspace companies - now client-side filtering for fit score
+  const loadWorkspaceCompanies = useCallback(
+    async (options?: { category?: string; autoSelectId?: string }) => {
+      const categoryValue = options?.category ?? workspaceCategory;
+      
       const queryParams: Record<string, string> = {};
       if (categoryValue !== 'all') {
         queryParams.category = categoryValue;
       }
-      if (range.minScore !== undefined) {
-        queryParams.minScore = String(range.minScore);
-      }
-      if (range.maxScore !== undefined) {
-        queryParams.maxScore = String(range.maxScore);
-      }
+      // Removed backend fit score params (minScore/maxScore) to support client-side filtering
 
       setWorkspaceLoading(true);
-      setWorkspaceError(null);
       try {
         const result = await fetchSavedCompanies(queryParams);
         setWorkspaceCompanies(result);
@@ -163,17 +208,19 @@ function App() {
           nextSelected = options.autoSelectId;
         } else if (result.length > 0) {
           nextSelected = result[0].id;
+        } else {
+          // If no auto select and result exists, we don't auto select first anymore to respect requirement 4
+          nextSelected = null;
         }
         
         setSelectedWorkspaceCompanyId(nextSelected);
       } catch (error) {
         console.error(error);
-        setWorkspaceError('Unable to load saved companies.');
       } finally {
         setWorkspaceLoading(false);
       }
     },
-    [workspaceCategory, workspaceFitFilter],
+    [workspaceCategory], // Removed workspaceFitFilter from dependencies
   );
 
   // Initial load of workspace
@@ -181,16 +228,129 @@ function App() {
     loadWorkspaceCompanies();
   }, [loadWorkspaceCompanies]);
 
+const normalizeIndustry = (value?: string | null): string | null => {
+  if (!value || typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+const getCompanyIndustryValues = (
+  company?: IndustryCarrier | null,
+): { primary: string | null; secondary: string | null } => {
+  if (!company) {
+    return { primary: null, secondary: null };
+  }
+
+  const primary = company.primary_industry ?? company.primaryIndustry ?? null;
+  const secondary = company.secondary_industry ?? company.secondaryIndustry ?? null;
+
+  return {
+    primary: normalizeIndustry(primary),
+    secondary: normalizeIndustry(secondary),
+  };
+};
+
+const matchesFitFilter = (
+  score: number | null | undefined,
+  filter: FitFilter,
+): boolean => {
+  if (filter === 'all') {
+    return true;
+  }
+
+  if (!Number.isFinite(score)) {
+    return false;
+  }
+
+  const numericScore = Number(score);
+  if (filter === 'high') {
+    return numericScore >= 8;
+  }
+  if (filter === 'medium') {
+    return numericScore >= 5 && numericScore < 8;
+  }
+  if (filter === 'low') {
+    return numericScore >= 0 && numericScore < 5;
+  }
+
+  return true;
+};
+
+const matchesIndustryFilter = (
+  company: IndustryCarrier | null | undefined,
+  filter: string,
+): boolean => {
+  if (!filter || filter.trim().toLowerCase() === 'all') {
+    return true;
+  }
+
+  const normalizedFilter = filter.trim().toLowerCase();
+  const { primary, secondary } = getCompanyIndustryValues(company);
+
+  if (!primary && !secondary) {
+    return false;
+  }
+
+  const normalizedPrimary = primary?.toLowerCase();
+  const normalizedSecondary = secondary?.toLowerCase();
+
+  const matchesPrimary =
+    normalizedPrimary === normalizedFilter ||
+    (normalizedPrimary && normalizedPrimary.includes(normalizedFilter));
+
+  const matchesSecondary =
+    normalizedSecondary === normalizedFilter ||
+    (normalizedSecondary && normalizedSecondary.includes(normalizedFilter));
+
+  return Boolean(matchesPrimary || matchesSecondary);
+};
+
+  const filteredWorkspaceCompanies = useMemo(() => {
+    if (workspaceCompanies.length === 0) {
+      return [];
+    }
+
+    return workspaceCompanies.filter((company) => {
+      // Apply Search Filter
+      if (shortlistSearchQuery.trim()) {
+        const q = shortlistSearchQuery.trim().toLowerCase();
+        const name = company.name.toLowerCase();
+        const domain = company.domain.toLowerCase();
+        const summary = company.summary?.toLowerCase() ?? '';
+        const primaryIndustry = company.primary_industry?.toLowerCase() ?? '';
+        
+        if (
+          !name.includes(q) && 
+          !domain.includes(q) && 
+          !summary.includes(q) &&
+          !primaryIndustry.includes(q)
+        ) {
+          return false;
+        }
+      }
+
+      // Apply Fit Filter
+      const scoreMatches = matchesFitFilter(company.fitScore ?? null, workspaceFitFilter);
+      if (!scoreMatches) {
+        return false;
+      }
+
+      // Apply Industry Filter
+      const industryMatches = matchesIndustryFilter(company, industryFilter);
+      return industryMatches;
+    });
+  }, [workspaceCompanies, workspaceFitFilter, industryFilter, shortlistSearchQuery]);
+
   // Initial load of history
   const loadSearchHistory = useCallback(async () => {
     setHistoryLoading(true);
-    setHistoryError(null);
     try {
       const items = await fetchSearchHistory();
       setHistoryItems(items);
     } catch (error) {
       console.error(error);
-      setHistoryError('Unable to load search history.');
     } finally {
       setHistoryLoading(false);
     }
@@ -200,6 +360,18 @@ function App() {
     loadSearchHistory();
   }, [loadSearchHistory]);
 
+  const handleClearSearchData = () => {
+    setQuery('');
+    setSearchCompaniesList([]);
+    setSelectedSearchCompanyId(null);
+    setHasSearched(false);
+    setSearchError(null);
+    // Also clear selected items in other views to ensure a truly fresh feel
+    setSelectedWorkspaceCompanyId(null);
+    setSelectedHistoryId(null);
+    setHistoryCompanies([]);
+  };
+
   const executeSearch = async (nextQuery?: string) => {
     const targetQuery = typeof nextQuery === 'string' ? nextQuery : query;
     const normalizedQuery = targetQuery.trim();
@@ -208,7 +380,7 @@ function App() {
     if (typeof nextQuery === 'string') {
       setQuery(nextQuery);
     }
-
+    
     setIsSearching(true);
     setSearchError(null);
     try {
@@ -227,7 +399,7 @@ function App() {
   const handleQuickFilter = (value: string) => {
     void executeSearch(value);
   };
-
+    
   const runInfographic = async (companyId: string) => {
     setInfographicLoading(true);
     setInfographicError(null);
@@ -276,8 +448,13 @@ function App() {
       const saved = await saveCompany(companyId, category);
       updateCompanySavedState(saved.id, true, saved.saved_category ?? category);
       showToast('Company saved to workspace');
-      // Refresh workspace without changing view
-      await loadWorkspaceCompanies({ autoSelectId: saved.id });
+      // Only auto-select if we are already in the workspace view to avoid jumping
+      if (activeView === 'companies') {
+         await loadWorkspaceCompanies({ autoSelectId: saved.id });
+      } else {
+         // Just reload in background
+         await loadWorkspaceCompanies();
+      }
     } catch (error) {
       console.error(error);
       showToast('Unable to save company', 'error');
@@ -297,6 +474,12 @@ function App() {
       await unsaveCompany(companyId);
       updateCompanySavedState(companyId, false, null);
       showToast('Company removed from workspace');
+      
+      // Clear selection if the unsaved company was selected
+      if (selectedWorkspaceCompanyId === companyId) {
+        setSelectedWorkspaceCompanyId(null);
+      }
+      
       await loadWorkspaceCompanies();
     } catch (error) {
       console.error(error);
@@ -313,25 +496,12 @@ function App() {
   const handleHistoryRowClick = async (item: SearchHistoryItem) => {
     setSelectedHistoryId(item.id);
     setHistoryCompanies([]);
-    setHistoryCompaniesLoading(true);
-    setHistoryCompaniesError(null);
     try {
       const response = await fetchSearchById(item.id);
       setHistoryCompanies(response.companies);
-      setSelectedHistoryCompanyId(response.companies[0]?.id ?? null);
     } catch (error) {
       console.error(error);
-      setHistoryCompaniesError('Unable to load companies for this search.');
-    } finally {
-      setHistoryCompaniesLoading(false);
     }
-  };
-
-  const navigateToWorkspaceFromHistory = (companyId: string) => {
-    setWorkspaceCategory('all');
-    setWorkspaceFitFilter('all');
-    setActiveView('companies');
-    void loadWorkspaceCompanies({ category: 'all', fit: 'all', autoSelectId: companyId });
   };
 
   const selectedSearchCompany = searchCompaniesList.find(
@@ -345,46 +515,12 @@ function App() {
     ? savedCompanyToCompany(workspaceSelection)
     : null;
 
-  const historySelection = historyCompanies.find(
-    (c) => c.id === selectedHistoryCompanyId,
-  );
-
-  const workspaceCategoryPills = [
-    { label: 'All companies', value: 'all' },
-    ...workspaceCategories.map((category) => ({
-      label: category,
-      value: category,
-    })),
-  ];
-
   const workspaceFitFilters: { label: string; value: FitFilter }[] = [
     { label: 'All Scores', value: 'all' },
-    { label: 'High (8-10)', value: 'high' },
-    { label: 'Medium (5-7)', value: 'medium' },
-    { label: 'Low (0-4)', value: 'low' },
+    { label: 'High (> 8.0)', value: 'high' },
+    { label: 'Medium (> 6.0)', value: 'medium' },
+    { label: 'Low (< 6.0)', value: 'low' },
   ];
-
-  // Helper to render the search empty state, replacing any undefined variable usage
-  const renderSearchEmptyState = () => {
-    if (isSearching && searchCompaniesList.length === 0) {
-      return <DetailSkeleton />;
-    }
-    if (hasSearched && !isSearching && searchCompaniesList.length === 0) {
-      return (
-        <div className="h-full flex items-center justify-center text-center text-muted px-6">
-          No companies matched this search. Try a different vertical or tweak your filters.
-        </div>
-      );
-    }
-    if (!hasSearched && searchCompaniesList.length === 0) {
-      return (
-        <div className="h-full flex items-center justify-center text-center text-muted px-6">
-          Results will appear here after you run a search.
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <Layout>
@@ -395,15 +531,15 @@ function App() {
           className={cn(
             'fixed top-20 right-6 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-card animate-in slide-in-from-right',
             toast.type === 'success'
-              ? 'bg-white border border-success/30 text-success'
-              : 'bg-white border border-danger/30 text-danger',
+              ? 'bg-white border border-green-200 text-green-700'
+              : 'bg-white border border-red-200 text-red-700',
           )}
         >
           {toast.message}
         </div>
       )}
-
-      <InfographicModal
+      
+      <InfographicModal 
         isOpen={isInfographicOpen}
         onClose={() => setIsInfographicOpen(false)}
         isLoading={infographicLoading}
@@ -412,474 +548,563 @@ function App() {
         onRetry={retryInfographic}
       />
 
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-background">
-        <aside className="w-full md:w-[320px] flex-shrink-0 border-b md:border-b-0 md:border-r border-border bg-white flex flex-col">
-          <div className="px-6 py-5 border-b border-border">
-            <p className="text-xs font-semibold text-muted uppercase tracking-widest">
-              Workspace
-            </p>
-            <p className="mt-2 text-lg font-bold text-text">Zerpha Intelligence</p>
+      {/* Sidebar */}
+      <aside className="w-72 flex-shrink-0 border-r border-slate-200 bg-slate-50/50 flex flex-col h-full">
+        {/* Brand */}
+        <div className="h-16 flex items-center px-5 border-b border-slate-100 flex-shrink-0">
+          <div className="flex items-center gap-2.5 text-slate-900">
+            <div className="w-5 h-5 bg-indigo-600 rounded flex items-center justify-center text-white">
+              <Zap className="w-3 h-3 fill-current" />
+            </div>
+            <span className="font-semibold tracking-tight text-sm">Zerpha</span>
           </div>
-          <div className="px-6 py-5 border-b border-border space-y-1">
-            {NAV_LINKS.map((link) => (
-              <button
-                key={link.value}
-                onClick={() => setActiveView(link.value)}
-                className={cn(
-                  'w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition',
-                  activeView === link.value
-                    ? 'bg-primarySoft text-primary'
-                    : 'text-muted hover:bg-background',
-                )}
-              >
-                <span>{link.label}</span>
-                {activeView === link.value && (
-                  <span className="text-[10px] font-semibold uppercase tracking-widest">Now</span>
-                )}
-              </button>
-            ))}
+          <span className="mx-2 text-slate-300">/</span>
+          <span className="text-slate-500 text-sm font-medium">Scouting</span>
+        </div>
+
+        <div className="p-4 flex-1 overflow-y-auto space-y-8">
+          
+          {/* Workspace */}
+          <div>
+            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3 block px-2">Workspace</label>
+            <button className="w-full flex items-center justify-between px-2 py-1.5 text-sm font-medium text-slate-700 hover:bg-white hover:shadow-sm rounded-md transition-all border border-transparent hover:border-slate-200">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-slate-200 rounded-full flex items-center justify-center text-xs text-slate-600">Z</div>
+                Zerpha Intelligence
+              </div>
+              <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400" />
+            </button>
           </div>
 
+          {/* Search */}
           {activeView === 'search' && (
-            <div className="px-6 py-5 border-b border-border">
-              <div className="flex items-center justify-between mb-3 text-xs font-semibold text-muted uppercase tracking-widest">
-                <span>Score filters</span>
-                <span>{searchCompaniesList.length}</span>
+             <div className="relative group">
+              <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Search vertical..." 
+                 value={query} 
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && void executeSearch()}
+                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all" 
+              />
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div>
+            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 block px-2">Menu</label>
+            <nav className="space-y-0.5">
+              <button 
+                onClick={() => setActiveView('search')}
+                className={cn(
+                  "w-full flex items-center gap-2.5 px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                  activeView === 'search' 
+                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100" 
+                    : "text-slate-600 hover:bg-slate-100"
+                )}
+              >
+                <Search className={cn("w-4 h-4", activeView === 'search' ? "text-indigo-600" : "text-slate-400")} />
+                New Search
+              </button>
+
+              <button 
+                onClick={() => setActiveView('companies')}
+                className={cn(
+                  "w-full flex items-center gap-2.5 px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                  activeView === 'companies' 
+                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100" 
+                    : "text-slate-600 hover:bg-slate-100"
+                )}
+              >
+                <Building2 className={cn("w-4 h-4", activeView === 'companies' ? "text-indigo-600" : "text-slate-400")} />
+                Companies
+                {activeView === 'companies' && <span className="ml-auto text-[10px] font-semibold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">NOW</span>}
+              </button>
+
+              <button 
+                onClick={() => setActiveView('history')}
+                className={cn(
+                  "w-full flex items-center gap-2.5 px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                  activeView === 'history' 
+                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100" 
+                    : "text-slate-600 hover:bg-slate-100"
+                )}
+              >
+                <History className={cn("w-4 h-4", activeView === 'history' ? "text-indigo-600" : "text-slate-400")} />
+                Search history
+              </button>
+            </nav>
+          </div>
+
+          {/* View Toggle (Only visible in Companies view) */}
+          {activeView === 'companies' && (
+            <div>
+              <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 block px-2">View</label>
+              <div className="flex p-0.5 bg-slate-100 rounded-md border border-slate-200 mb-4">
+                <button className="flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium bg-white text-slate-900 rounded shadow-sm border border-slate-100">
+                  <Table2 className="w-3.5 h-3.5" /> Table
+                </button>
+                <button className="flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 cursor-not-allowed opacity-50">
+                  <LayoutGrid className="w-3.5 h-3.5" /> Cards
+                </button>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {['All Scores', 'High Fit', 'Medium'].map((label, index) => (
-                  <span
-                    key={label}
-                    className={cn(
-                      'px-3 py-1 rounded-full text-xs font-semibold border',
-                      index === 0
-                        ? 'bg-primary text-white border-primary'
-                        : 'bg-white text-muted border-border',
-                    )}
-                  >
-                    {label}
-                  </span>
+                 </div>
+               )}
+
+          {/* Filters (Only visible in Companies view) */}
+          {activeView === 'companies' && (
+            <div className="space-y-4">
+              <label className="text-xs font-medium text-slate-400 uppercase tracking-wider px-2">Filters</label>
+              
+              <div className="px-2 space-y-3">
+                <div>
+                  <span className="text-xs font-medium text-slate-500 mb-1.5 block">Fit Score</span>
+                  <div className="relative">
+                    <select 
+                      value={workspaceFitFilter}
+                      onChange={(e) => setWorkspaceFitFilter(e.target.value as FitFilter)}
+                      className="w-full appearance-none bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    >
+                      {workspaceFitFilters.map((filter) => (
+                        <option key={filter.value} value={filter.value}>
+                          {filter.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-xs font-medium text-slate-500 mb-1.5 block">Industry</span>
+                  <div className="relative z-50">
+                    <select 
+                      value={industryFilter}
+                      onChange={(e) => setIndustryFilter(e.target.value)}
+                      className="w-full appearance-none bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      <option value="all">All Industries</option>
+                      {INDUSTRIES.map((industry) => (
+                        <option key={industry} value={industry}>
+                          {industry}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+             </div>
+          </div>
+        </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-slate-200 flex-shrink-0">
+          <p className="text-xs text-slate-400 leading-relaxed px-2">
+            {activeView === 'companies' 
+              ? "Select a row to view detailed insights." 
+              : activeView === 'search' 
+                ? "Enter a query to start scouting." 
+                : "Select a past search to review results."}
+          </p>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden">
+        <header className="h-16 flex items-center justify-between px-8 border-b border-slate-200 flex-shrink-0 bg-white/80">
+          <div>
+            <div className="text-xs text-slate-500 mb-0.5 font-medium">{viewMeta.subtitle}</div>
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">{viewMeta.title}</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            {activeView === 'search' && (hasSearched || query) && (
+              <button
+                onClick={handleClearSearchData}
+                className="px-3.5 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-red-50 hover:text-red-700 hover:border-red-200 shadow-sm transition-all flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" /> Clear Data
+              </button>
+            )}
+            {activeView === 'companies' && (
+              <button
+                onClick={() => openInfographicModal(selectedWorkspaceCompanyId)}
+                disabled={!selectedWorkspaceCompanyId}
+                className="px-3.5 py-1.5 text-sm font-medium text-white bg-slate-900 border border-transparent rounded-md hover:bg-slate-800 shadow-sm transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download className="w-4 h-4" /> Export selection
+              </button>
+            )}
+            <button
+              onClick={handleLogout}
+              className="px-3.5 py-1.5 text-sm font-medium text-white bg-indigo-600 border border-indigo-600 rounded-md hover:bg-indigo-500 shadow-sm transition-all"
+            >
+              Logout
+            </button>
+          </div>
+        </header>
+        <div className="flex-1 flex flex-col min-h-0">
+        {activeView === 'search' && (
+            <div className="flex-1 overflow-auto px-8 py-6">
+               {!hasSearched && !isSearching && searchCompaniesList.length === 0 && (
+                  <div className="h-full flex flex-col items-center justify-center max-w-2xl mx-auto text-center">
+                    <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
+                      <Search className="w-8 h-8 text-indigo-600" />
+              </div>
+                    <h3 className="text-lg font-medium text-slate-900 mb-2">Start a new market scan</h3>
+                    <p className="text-slate-500 mb-8">Enter a vertical description in the sidebar search to discover and analyze companies with AI.</p>
+                    
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {QUICK_FILTERS.map(filter => (
+                  <button 
+                          key={filter}
+                          onClick={() => handleQuickFilter(filter)}
+                          className="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-600 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-sm transition-all"
+                        >
+                          {filter}
+                  </button>
                 ))}
               </div>
             </div>
-          )}
+               )}
 
-          {activeView === 'companies' && (
-            <div className="px-6 py-5 border-b border-border space-y-5">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted mb-2">
-                  View
-                </p>
-                <div className="flex gap-2">
-                  <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-white flex items-center gap-2">
-                    <List className="w-3.5 h-3.5" />
-                    Table
-                  </button>
-                  <button className="px-3 py-1.5 rounded-lg text-xs font-semibold text-muted border border-border opacity-50 cursor-not-allowed">
-                    Cards
-                  </button>
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted mb-2">
-                  Fit Score
-                </p>
-                <div className="space-y-2">
-                  {workspaceFitFilters.map((filter) => (
-                    <label
-                      key={filter.value}
-                      className={cn(
-                        'flex items-center gap-2 text-sm font-medium cursor-pointer',
-                        workspaceFitFilter === filter.value ? 'text-text' : 'text-muted',
-                      )}
-                    >
-                      <input
-                        type="radio"
-                        name="fit-filter"
-                        value={filter.value}
-                        checked={workspaceFitFilter === filter.value}
-                        onChange={() => setWorkspaceFitFilter(filter.value)}
-                        className="accent-primary"
-                      />
-                      {filter.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeView === 'history' && (
-            <div className="px-6 py-5 border-b border-border text-sm text-muted">
-              {selectedHistoryId
-                ? 'Saved companies for the selected search appear in the main panel.'
-                : 'Select a search to load its companies and mark favorites.'}
-            </div>
-          )}
-
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2 bg-background/40">
-            {activeView === 'search' ? (
-              searchCompaniesList.length === 0 ? (
-                isSearching ? (
-                  <ResultListSkeleton />
-                ) : (
-                  <div className="text-sm text-muted px-2 py-3">
-                    {hasSearched
-                      ? 'No companies found. Refine your filters.'
-                      : 'Run a search to populate this list.'}
-                  </div>
-                )
-              ) : (
-                searchCompaniesList.map((company) => (
-                  <CompanyListItem
+               {(hasSearched || isSearching || searchCompaniesList.length > 0) && (
+                  <div className="flex h-full gap-6">
+                     <div className="flex-1 flex flex-col min-h-0 border border-slate-200 rounded-lg overflow-hidden">
+                        <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                           <span className="text-sm font-medium text-slate-700">Results ({searchCompaniesList.length})</span>
+                           {searchError && <span className="text-xs text-red-600">{searchError}</span>}
+                        </div>
+                        <div className="flex-1 overflow-auto bg-white">
+                           {isSearching ? (
+                              <div className="p-4"><ResultListSkeleton /></div>
+                           ) : searchCompaniesList.length === 0 ? (
+                              <div className="p-8 text-center text-slate-500 text-sm">No results found.</div>
+                           ) : (
+                             <table className="w-full text-left border-collapse">
+                               <thead className="sticky top-0 bg-white z-10 shadow-sm">
+                                 <tr>
+                                    <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Name</th>
+                                    <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Fit</th>
+                                    <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Action</th>
+                                 </tr>
+                               </thead>
+                               <tbody className="divide-y divide-slate-100">
+                                  {searchCompaniesList.map(company => (
+                                    <tr 
                     key={company.id}
-                    company={company}
-                    isSelected={company.id === selectedSearchCompanyId}
-                    onClick={() => setSelectedSearchCompanyId(company.id)}
-                    onSave={() => handleSaveCompany(company.id)}
-                    isSaving={savingMap[company.id]}
-                  />
-                ))
-              )
-            ) : activeView === 'companies' ? (
-              workspaceCompanies.length === 0 ? (
-                workspaceLoading ? (
-                  <ResultListSkeleton />
-                ) : (
-                  <div className="text-sm text-muted px-2 py-3">
-                    Save a company from search or history to populate this list.
-                  </div>
-                )
-              ) : (
-                <div className="text-sm text-muted px-2 py-3">
-                  Select a row from the table to view its details.
-                </div>
-              )
-            ) : historyItems.length === 0 ? (
-              historyLoading ? (
-                <ResultListSkeleton />
-              ) : (
-                <div className="text-sm text-muted px-2 py-3">
-                  Searches will appear here once you run them.
-                </div>
-              )
-            ) : (
-              historyItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleHistoryRowClick(item)}
-                  className={cn(
-                    'w-full rounded-xl border px-3 py-2 text-left',
-                    selectedHistoryId === item.id
-                      ? 'border-primary bg-primarySoft/50'
-                      : 'border-border hover:border-primary/30',
-                  )}
-                >
-                  <p className="text-sm font-semibold text-text">{item.query}</p>
-                  <p className="text-xs text-muted">
-                    {formatDate(item.created_at)} · {item.company_count} companies
-                  </p>
-                </button>
-              ))
-            )}
+                                      onClick={() => setSelectedSearchCompanyId(company.id)}
+                                      className={cn(
+                                        "group cursor-pointer hover:bg-slate-50 transition-colors",
+                                        selectedSearchCompanyId === company.id ? "bg-indigo-50/50" : ""
+                                      )}
+                                    >
+                                      <td className="py-3 px-4">
+                                        <div className="font-medium text-slate-900">{company.name}</div>
+                                        <div className="text-xs text-slate-500">{company.website}</div>
+                                      </td>
+                                      <td className="py-3 px-4 text-right">
+                                         <span className={cn(
+                                           "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+                                           (company.acquisition_fit_score ?? 0) >= 8 ? "bg-green-100 text-green-800" :
+                                           (company.acquisition_fit_score ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
+                                           "bg-slate-100 text-slate-600"
+                                         )}>
+                                           {company.acquisition_fit_score ?? '-'}
+                                         </span>
+                                      </td>
+                                      <td className="py-3 px-4 text-right">
+                                         <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleSaveCompany(company.id);
+                                            }}
+                                            disabled={savingMap[company.id]}
+                                            className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
+                                         >
+                                            {savingMap[company.id] ? 'Saved' : 'Save'}
+                                         </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                               </tbody>
+                             </table>
+              )}
+            </div>
           </div>
-        </aside>
 
-        <main className="flex-1 flex flex-col">
-          {activeView === 'search' && (
-            <>
-              <div className="border-b border-border bg-white px-4 sm:px-8 py-6 space-y-4">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted">
-                      Search
-                    </p>
-                    <h2 className="text-lg font-semibold text-text">
-                      Use Zerpha AI to find the right vertical SaaS companies
-                    </h2>
+                     {/* Detail View for Search */}
+                     {selectedSearchCompany && (
+                        <aside className="w-[400px] flex-shrink-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
+                           <div className="flex-1 overflow-y-auto">
+                <CompanyDetailPanel 
+                               company={selectedSearchCompany} 
+                             />
+                           </div>
+                        </aside>
+                     )}
                   </div>
-                  <div className="w-full lg:max-w-xl">
-                    <div className="flex items-center gap-2 bg-background border border-border rounded-xl px-4 py-2.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
-                      <Search className="w-4 h-4 text-muted flex-shrink-0" />
-                      <input
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && void executeSearch()}
-                        placeholder="Example: logistics SaaS in North America"
-                        className="flex-1 bg-transparent text-sm text-text placeholder:text-muted focus:outline-none"
-                      />
-                      <button
-                        onClick={() => void executeSearch()}
-                        disabled={isSearching}
-                        className="px-4 py-1.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition disabled:opacity-60"
-                      >
-                        {isSearching ? 'Searching...' : 'Search'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
+               )}
+            </div>
+        )}
 
-                <div className="flex flex-wrap gap-2">
-                  {QUICK_FILTERS.map((filter) => (
-                    <button
-                      key={filter}
-                      onClick={() => handleQuickFilter(filter)}
-                      className="px-3 py-1.5 rounded-full border border-border text-xs font-medium text-muted hover:border-primary hover:text-primary transition"
-                    >
-                      {filter}
-                    </button>
-                  ))}
-                </div>
-
-                {searchError && (
-                  <div className="rounded-lg border border-danger/30 bg-danger/5 text-danger text-sm px-4 py-2">
-                    {searchError}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                {selectedSearchCompany ? (
-                  <CompanyDetailPanel
-                    company={selectedSearchCompany}
-                    onGenerateInfographic={() => openInfographicModal(selectedSearchCompany.id)}
-                  />
-                ) : (
-                  renderSearchEmptyState()
-                )}
-              </div>
-            </>
-          )}
-
-          {activeView === 'companies' && (
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="border-b border-border bg-white px-4 sm:px-8 py-5 space-y-4">
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted">
-                      Saved companies
-                    </p>
-                    <h2 className="text-lg font-semibold text-text">
-                      Operate like Apollo with your Zerpha shortlist
-                    </h2>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => openInfographicModal(selectedWorkspaceCompanyId)}
-                      disabled={!selectedWorkspaceCompanyId}
-                      className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold disabled:opacity-50"
-                    >
-                      Export selection
-                    </button>
-                    {selectedWorkspaceCompanyId && (
-                      <button
-                        onClick={() => handleUnsaveCompany(selectedWorkspaceCompanyId)}
-                        className="px-4 py-2 rounded-lg border border-border text-sm font-semibold text-muted hover:text-danger hover:border-danger/50"
-                      >
-                        Unsave
-                      </button>
+        {activeView === 'companies' && (
+          <div className="flex-1 flex flex-col min-h-0">
+            {/* Filters / Tabs */}
+            <div className="px-8 pt-6 pb-4 space-y-4">
+              <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto">
+                <button 
+                   onClick={() => setWorkspaceCategory('all')}
+                   className={cn(
+                     "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                     workspaceCategory === 'all' ? "text-indigo-600 border-indigo-600" : "text-slate-500 border-transparent hover:text-slate-700"
+                   )}
+                >
+                  All Companies
+                </button>
+                {workspaceCategories.map(cat => (
+                   <button 
+                    key={cat}
+                    onClick={() => setWorkspaceCategory(cat)}
+                    className={cn(
+                      "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap capitalize",
+                      workspaceCategory === cat ? "text-indigo-600 border-indigo-600" : "text-slate-500 border-transparent hover:text-slate-700"
                     )}
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {workspaceCategoryPills.map((pill) => (
-                    <button
-                      key={pill.value}
-                      onClick={() => setWorkspaceCategory(pill.value)}
-                      className={cn(
-                        'px-3 py-1.5 rounded-full text-xs font-semibold border capitalize',
-                        workspaceCategory === pill.value
-                          ? 'bg-primary text-white border-primary'
-                          : 'text-muted border-border',
-                      )}
-                    >
-                      {pill.label}
-                    </button>
-                  ))}
-                </div>
-
-                {workspaceError && (
-                  <div className="rounded-lg border border-danger/30 bg-danger/5 text-danger text-sm px-4 py-2">
-                    {workspaceError}
-                  </div>
-                )}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
 
-              <div className="flex-1 overflow-hidden flex flex-col">
-                <div className="flex-1 overflow-auto">
+              {/* Client-side Search Bar under Tabs */}
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Filter shortlist by name, domain..."
+                  value={shortlistSearchQuery}
+                  onChange={(e) => setShortlistSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Table Container */}
+            <div className="flex-1 overflow-hidden px-8 py-4">
+              <div className="flex h-full overflow-hidden">
+                <div className={cn(
+                  "border-r border-slate-200 bg-white overflow-y-auto flex flex-col transition-all duration-300",
+                  selectedWorkspaceCompanyId ? "w-[45%]" : "w-full border-r-0"
+                )}>
                   {workspaceLoading ? (
-                    <div className="flex items-center justify-center h-full">
-                      <Loader2 className="w-6 h-6 text-primary animate-spin" />
-                    </div>
-                  ) : workspaceCompanies.length === 0 ? (
-                    <div className="h-full flex items-center justify-center text-muted text-sm">
-                      No saved companies yet. Save one from search or history to get started.
-                    </div>
+                     <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 text-indigo-600 animate-spin" /></div>
+                  ) : filteredWorkspaceCompanies.length === 0 ? (
+                     <div className="p-8 text-center text-slate-500 text-sm bg-slate-50 rounded-lg border border-slate-100 border-dashed">
+                       {workspaceCompanies.length > 0 ? "No companies match the selected filters." : "No saved companies yet."}
+                     </div>
                   ) : (
-                    <table className="min-w-full text-sm text-left">
-                      <thead>
-                        <tr className="text-xs uppercase tracking-widest text-muted border-b border-border/70">
-                          <th className="py-3 px-4">Name</th>
-                          <th className="py-3 px-4">Domain</th>
-                          <th className="py-3 px-4">Vertical</th>
-                          <th className="py-3 px-4">Fit</th>
-                          <th className="py-3 px-4">Headcount</th>
-                          <th className="py-3 px-4">Location</th>
-                          <th className="py-3 px-4">Saved Category</th>
-                          <th className="py-3 px-4">Created</th>
+                    <table className="w-full text-left border-collapse">
+                      <thead className="sticky top-0 bg-white z-10">
+                        <tr>
+                          <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-8 pl-2">
+                            <div className="w-4 h-4 rounded border border-slate-300 bg-white"></div>
+                          </th>
+                          <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-1/3">Name</th>
+                          <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-1/3 hidden sm:table-cell">Domain</th>
+                          <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right hidden md:table-cell">Fit Score</th>
+                          <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right w-10"></th>
                         </tr>
                       </thead>
-                      <tbody>
-                        {workspaceCompanies.map((company) => (
-                          <tr
+                      <tbody className="text-sm divide-y divide-slate-100">
+                        {filteredWorkspaceCompanies.map(company => (
+                          <tr 
                             key={company.id}
-                            onClick={() => setSelectedWorkspaceCompanyId(company.id)}
+                            onClick={() => {
+                              if (selectedWorkspaceCompanyId === company.id) {
+                                setSelectedWorkspaceCompanyId(null);
+                              } else {
+                                setSelectedWorkspaceCompanyId(company.id);
+                              }
+                            }}
                             className={cn(
-                              'border-b border-border/40 cursor-pointer hover:bg-primarySoft/30',
-                              selectedWorkspaceCompanyId === company.id && 'bg-primarySoft/70',
+                              "group hover:bg-slate-50 transition-colors cursor-pointer",
+                              selectedWorkspaceCompanyId === company.id ? "bg-indigo-50/30" : ""
                             )}
                           >
-                            <td className="py-3 px-4 font-semibold text-text">{company.name}</td>
-                            <td className="py-3 px-4 text-muted">{company.domain}</td>
-                            <td className="py-3 px-4 text-muted capitalize">{company.category}</td>
-                            <td className="py-3 px-4 text-text">
-                              {company.fitScore ?? '—'}
-                              {company.fit_band && (
-                                <span className="text-xs uppercase tracking-widest text-muted ml-1">
-                                  ({company.fit_band})
-                                </span>
-                              )}
+                            <td className={cn(
+                              "py-3 pr-4 pl-4 border-l-2", 
+                              selectedWorkspaceCompanyId === company.id ? "border-indigo-600" : "border-transparent"
+                            )}>
+                               <div className={cn(
+                                 "w-4 h-4 rounded border flex items-center justify-center",
+                                 selectedWorkspaceCompanyId === company.id ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 bg-white"
+                               )}>
+                                 {selectedWorkspaceCompanyId === company.id && <Check className="w-3 h-3" />}
+                               </div>
                             </td>
-                            <td className="py-3 px-4 text-muted">{company.headcount ?? '—'}</td>
-                            <td className="py-3 px-4 text-muted">{company.headquarters ?? '—'}</td>
-                            <td className="py-3 px-4 text-muted">
-                              {company.saved_category ?? DEFAULT_CATEGORY}
+                            <td className="py-3 pr-4 font-medium text-slate-900">
+                              <div className="truncate max-w-[180px]">{company.name}</div>
                             </td>
-                            <td className="py-3 px-4 text-muted">{formatDate(company.created_at)}</td>
+                            <td className="py-3 pr-4 hidden sm:table-cell">
+                               <a 
+                                 href={normalizeWebsite(company.domain)} 
+                                 target="_blank" 
+                                 rel="noreferrer" 
+                                 onClick={(e) => e.stopPropagation()}
+                                 className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 w-fit truncate max-w-[150px]"
+                               >
+                                 {company.domain} 
+                               </a>
+                            </td>
+                            <td className="py-3 pr-4 text-right font-medium hidden md:table-cell">
+                               <span className={cn(
+                                 "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+                                 (company.fitScore ?? 0) >= 8 ? "bg-green-100 text-green-800" :
+                                 (company.fitScore ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
+                                 (company.fitScore ?? 0) > 0 ? "bg-red-100 text-red-800" : "text-slate-400"
+                               )}>
+                                 {company.fitScore ?? '—'}
+                               </span>
+                            </td>
+                            <td className="py-3 pr-4 text-right">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleUnsaveCompany(company.id);
+                                }}
+                                className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                title="Remove from shortlist"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   )}
                 </div>
-                <div className="border-t border-border bg-white p-4 sm:p-6 overflow-y-auto">
-                  {workspaceSelectionDetail ? (
-                    <CompanyDetailPanel
-                      company={workspaceSelectionDetail}
-                      onGenerateInfographic={() => openInfographicModal(workspaceSelectionDetail.id)}
-                    />
-                  ) : (
-                    <p className="text-sm text-muted">
-                      Select a saved company to review its executive summary and metrics.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
 
-          {activeView === 'history' && (
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="border-b border-border bg-white px-4 sm:px-8 py-5">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted">
-                  Search history
-                </p>
-                <h2 className="text-lg font-semibold text-text">
-                  Review past discovery runs and save promising targets
-                </h2>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
-                <section className="bg-white rounded-2xl border border-border shadow-soft p-4 sm:p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-text uppercase tracking-widest">
-                      Companies
-                    </h3>
-                    <span className="text-xs text-muted">{historyCompanies.length} results</span>
+                {selectedWorkspaceCompanyId && workspaceSelectionDetail && (
+                  <div className="w-[55%] max-w-[600px] bg-white overflow-y-auto border-l border-slate-200 shadow-xl shadow-slate-200/50 z-20 h-full animate-in slide-in-from-right duration-300">
+                    <CompanyDetailPanel company={workspaceSelectionDetail} />
                   </div>
-                  {historyCompaniesLoading ? (
-                    <ResultListSkeleton />
-                  ) : historyCompaniesError ? (
-                    <p className="text-sm text-danger">{historyCompaniesError}</p>
-                  ) : historyCompanies.length === 0 ? (
-                    <p className="text-sm text-muted">
-                      Select a search from the sidebar to load its companies.
-                    </p>
-                  ) : (
-                    <div className="grid gap-3">
-                      {historyCompanies.map((company) => {
-                        const isSelected = selectedHistoryCompanyId === company.id;
-                        return (
-                          <div
-                            key={company.id}
-                            className={cn(
-                              'rounded-xl border p-4 transition',
-                              isSelected
-                                ? 'border-primary bg-primarySoft/50'
-                                : 'border-border hover:border-primary/30',
-                            )}
-                          >
-                            <div className="flex items-center justify-between gap-3">
-                              <div
-                                className="cursor-pointer"
-                                onClick={() => setSelectedHistoryCompanyId(company.id)}
-                              >
-                                <p className="text-sm font-semibold text-text">{company.name}</p>
-                                <p className="text-xs text-muted">
-                                  {company.website ? company.website.replace(/^https?:\/\//, '') : '—'}
-                                </p>
-                              </div>
-                              <div className="flex gap-2">
-                                {company.is_saved ? (
-                                  <button
-                                    className="px-3 py-1 rounded-full text-xs font-semibold bg-success/10 text-success flex items-center gap-1"
-                                    onClick={() => navigateToWorkspaceFromHistory(company.id)}
-                                  >
-                                    <Check className="w-3.5 h-3.5" />
-                                    View
-                                  </button>
-                                ) : (
-                                  <button
-                                    className="px-3 py-1 rounded-full text-xs font-semibold bg-primary text-white flex items-center gap-1"
-                                    onClick={() => handleSaveCompany(company.id)}
-                                    disabled={savingMap[company.id]}
-                                  >
-                                    <Bookmark className="w-3.5 h-3.5" />
-                                    {savingMap[company.id] ? 'Saving' : 'Save'}
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                            <div className="mt-2 text-xs text-muted flex flex-wrap gap-4">
-                              <span>Fit: {company.acquisition_fit_score ?? '—'}</span>
-                              <span>
-                                Saved category: {company.saved_category ?? 'Not saved yet'}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </section>
-                <section className="bg-white rounded-2xl border border-border shadow-soft p-4 sm:p-6">
-                  {historySelection ? (
-                    <CompanyDetailPanel
-                      company={historySelection}
-                      onGenerateInfographic={() => openInfographicModal(historySelection.id)}
-                    />
-                  ) : (
-                    <p className="text-sm text-muted">
-                      Select a company above to inspect the full executive summary and metrics.
-                    </p>
-                  )}
-                </section>
-              </div>
+             )}
+          </div>
             </div>
-          )}
-        </main>
-      </div>
+          </div>
+        )}
+
+        {activeView === 'history' && (
+            <div className="flex-1 overflow-auto p-8">
+                {historyLoading ? (
+                  <div className="flex justify-center"><Loader2 className="w-6 h-6 text-indigo-600 animate-spin" /></div>
+                ) : historyItems.length === 0 ? (
+                   <div className="text-center text-slate-500">No search history yet.</div>
+                ) : (
+                   <div className="grid gap-4 max-w-3xl">
+                      {historyItems.map(item => (
+                        <div 
+                          key={item.id}
+                          onClick={() => handleHistoryRowClick(item)}
+                          className={cn(
+                            "p-4 bg-white border rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer flex justify-between items-center",
+                            selectedHistoryId === item.id ? "border-indigo-500 ring-1 ring-indigo-500" : "border-slate-200"
+                          )}
+                        >
+                           <div>
+                             <h3 className="font-medium text-slate-900">{item.query}</h3>
+                             <p className="text-xs text-slate-500 mt-1">{formatDate(item.created_at)}</p>
+                           </div>
+                           <div className="flex items-center gap-4">
+                              <span className="text-sm font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded">{item.company_count} results</span>
+                              <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">View</button>
+                           </div>
+                        </div>
+                      ))}
+
+                      {selectedHistoryId && historyCompanies.length > 0 && (
+                         <div className="mt-8 border-t border-slate-200 pt-8 animate-in fade-in slide-in-from-bottom-4">
+                            <h3 className="text-lg font-semibold text-slate-900 mb-4">Results for selected search</h3>
+                             <table className="w-full text-left border-collapse bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                               <thead className="bg-slate-50 border-b border-slate-200">
+                                 <tr>
+                                   <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Name</th>
+                                   <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Domain</th>
+                                   <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase text-right">Fit</th>
+                                   <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase text-right">Action</th>
+                                 </tr>
+                               </thead>
+                               <tbody className="divide-y divide-slate-100">
+                                 {historyCompanies.map(company => (
+                                   <tr key={company.id} className="hover:bg-slate-50">
+                                     <td className="py-3 px-4 font-medium text-slate-900">{company.name}</td>
+                                     <td className="py-3 px-4 text-slate-500 text-sm">{company.website}</td>
+                                     <td className="py-3 px-4 text-right">{company.acquisition_fit_score}</td>
+                                     <td className="py-3 px-4 text-right">
+                                       {company.is_saved ? (
+                                          <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">Saved</span>
+                                       ) : (
+                                          <button 
+                                            onClick={() => handleSaveCompany(company.id)}
+                                            disabled={savingMap[company.id]}
+                                            className="text-xs font-medium text-white bg-indigo-600 px-2 py-1 rounded hover:bg-indigo-700"
+                                          >
+                                            Save
+                                          </button>
+                                       )}
+                                     </td>
+                                   </tr>
+                                 ))}
+                               </tbody>
+                             </table>
+                         </div>
+                      )}
+                   </div>
+                )}
+            </div>
+        )}
+        </div>
+      </main>
+
+      {/* Removed duplicate detail panel logic - it's now handled inside the activeView === 'companies' block above */}
+
     </Layout>
+  );
+}
+
+function App() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto mb-4" />
+          <p className="text-sm text-slate-600">Loading your workspace...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route
+        path="/login"
+        element={user ? <Navigate to="/workspace" replace /> : <LoginPage />}
+      />
+      <Route
+        path="/workspace"
+        element={
+          <ProtectedRoute>
+            <WorkspaceApp />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

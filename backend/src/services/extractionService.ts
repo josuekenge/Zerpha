@@ -2,6 +2,11 @@ import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 
 import { env } from '../config/env.js';
+import {
+  allowedIndustries,
+  type ExtractedCompany,
+  type Industry,
+} from '../types/company.js';
 
 const CLAUDE_MODEL = 'claude-sonnet-4-5';
 const EXTRACTION_MAX_TOKENS = 4096;
@@ -10,61 +15,93 @@ const anthropic = new Anthropic({
   apiKey: env.CLAUDE_API_KEY,
 });
 
+const industryEnum = z.enum(allowedIndustries);
+
+const stringArrayField = z.preprocess((value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === 'string' ? item.trim() : ''))
+      .filter((item) => item.length > 0);
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed ? [trimmed] : [];
+  }
+
+  return [];
+}, z.array(z.string()));
+
+const optionalStringField = (fallback: string) =>
+  z.preprocess(
+    (value) => (typeof value === 'string' ? value.trim() : undefined),
+    z.string().min(1).catch(fallback),
+  );
+
 export const companyExtractionSchema = z.object({
-  name: z.string().min(1),
-  website: z.string().url(),
-  summary: z.string().optional().default(''),
-  product_offering: z.string().min(1).optional().default('N/A'),
-  customer_segment: z.string().min(1).optional().default('N/A'),
-  tech_stack: z.string().min(1).optional().default('N/A'),
-  estimated_headcount: z.string().min(1).optional().default('N/A'),
-  hq_location: z.string().min(1).optional().default('N/A'),
-  pricing_model: z.string().min(1).optional().default('N/A'),
-  strengths: z.array(z.string()).default([]),
-  risks: z.array(z.string()).default([]),
-  opportunities: z.array(z.string()).default([]),
-  acquisition_fit_score: z.number().min(0).max(10).optional().default(0),
-  acquisition_fit_reason: z.string().min(1).optional().default('Not specified'),
-  top_competitors: z.array(z.string()).default([]),
+  name: z.string().min(1, 'Company name is required'),
+  website: z.string().url('website must be a valid URL'),
+  summary: optionalStringField('Unknown'),
+  product_offering: optionalStringField('Unknown'),
+  customer_segment: optionalStringField('Unknown'),
+  tech_stack: stringArrayField,
+  estimated_headcount: optionalStringField('Unknown'),
+  hq_location: optionalStringField('Unknown'),
+  pricing_model: optionalStringField('Unknown'),
+  strengths: stringArrayField,
+  risks: stringArrayField,
+  opportunities: stringArrayField,
+  acquisition_fit_score: z.number().min(0).max(10),
+  acquisition_fit_reason: optionalStringField('No rationale provided'),
+  top_competitors: stringArrayField,
+  primary_industry: industryEnum,
+  secondary_industry: industryEnum.nullable(),
 });
 
-export type ExtractedCompany = z.infer<typeof companyExtractionSchema>;
+const systemPrompt = `You are Zerpha, an M&A and SaaS market analysis assistant. You analyze scraped SaaS company webpages and respond ONLY with strict JSON that matches the required schema. Never add commentary, code fences, or prose outside the JSON object.`;
 
-const systemPrompt = `You are Zerpha, an AI analyst specialized in SaaS company intelligence.
-Given scraped website content, produce a JSON object describing the company using the required schema.
-
-Rules:
-- Respond with JSON only, no prose.
-- Provide thoughtful, evidence-based insights.
-- The "summary" field must be a concise 2-4 sentence executive summary written for M&A analysts.
-- If data is missing, infer cautiously or use "Unknown".
-- acquisition_fit_score must be a number between 0 and 10.`;
+const allowedIndustryList = allowedIndustries.map((industry) => `- "${industry}"`).join('\n');
 
 function buildExtractionPrompt(companyName: string, website: string, content: string): string {
-  return `Company: ${companyName}
+  return `Analyze the following scraped content for a SaaS company. Produce a single JSON object that strictly matches the schema below. Do not include explanations or markdown, just valid JSON.
+
+Required schema:
+{
+  "name": string,
+  "website": string,
+  "summary": string (2-4 sentence executive summary for M&A analysts),
+  "product_offering": string,
+  "customer_segment": string,
+  "tech_stack": string[],
+  "estimated_headcount": string,
+  "hq_location": string,
+  "pricing_model": string,
+  "strengths": string[],
+  "risks": string[],
+  "opportunities": string[],
+  "acquisition_fit_score": number (0-10, one decimal max),
+  "acquisition_fit_reason": string,
+  "top_competitors": string[],
+  "primary_industry": string from allowed list,
+  "secondary_industry": string from allowed list or null
+}
+
+Allowed industries:
+${allowedIndustryList}
+
+Scoring guidance:
+- 0-3 = poor fit or unclear model.
+- 4-6 = moderate fit with potential but not top-tier.
+- 7-8 = strong strategic target with clear differentiation.
+- 9-10 = exceptional fit with rare upside.
+
+Always justify the acquisition_fit_score with 3-6 sentences covering positives and risks. Use "Unknown" when data is missing. Never invent customers or metrics you cannot infer from the text. tech_stack, strengths, risks, opportunities, and top_competitors must be arrays of strings (deduplicate and keep concise).
+
+Company: ${companyName}
 Website: ${website}
 
 Scraped content:
-"""${content}"""
-
-Output JSON matching exactly this schema:
-{
-  "name": "string",
-  "website": "https://example.com",
-  "summary": "2-4 sentence executive summary for M&A analysts describing what the company does and why it matters",
-  "product_offering": "string",
-  "customer_segment": "string",
-  "tech_stack": "string",
-  "estimated_headcount": "string",
-  "hq_location": "string",
-  "pricing_model": "string",
-  "strengths": ["string"],
-  "risks": ["string"],
-  "opportunities": ["string"],
-  "acquisition_fit_score": 0-10 number,
-  "acquisition_fit_reason": "string",
-  "top_competitors": ["string"]
-}`;
+"""${content}"""`;
 }
 
 async function requestExtraction(prompt: string): Promise<string> {

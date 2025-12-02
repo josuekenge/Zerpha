@@ -17,7 +17,7 @@ const slideDefinitionSchema = z.object({
     .array(
       z.object({
         title: z.string().min(1),
-        bullets: z.array(z.string().min(1)).min(1),
+        bullets: z.array(z.string().min(1)).min(3).max(6),
       }),
     )
     .min(1),
@@ -43,17 +43,18 @@ export type InfographicPage = {
 };
 
 export const infographicSchema = z.object({
-  title: z.string(),
-  subtitle: z.string(),
+  title: z.string().min(1),
+  subtitle: z.string().min(1),
   key_metrics: z
     .array(
       z.object({
-        label: z.string(),
-        value: z.string(),
+        label: z.string().min(1),
+        value: z.string().min(1),
       }),
     )
-    .default([]),
-  bullets: z.array(z.string()).min(3).max(10),
+    .min(3)
+    .max(6),
+  bullets: z.array(z.string().min(1)).min(4).max(8),
 });
 
 function sanitizeText(raw?: string | (() => string)): string {
@@ -114,6 +115,39 @@ function parseSlideDefinition(text: string): SlideDeckDefinition {
     logger.warn({ err: error }, 'Gemini slide JSON failed validation');
     throw error;
   }
+}
+
+function sanitizeCompanyJson(input: unknown, maxLength = 800): unknown {
+  if (Array.isArray(input)) {
+    return input
+      .map((item) => sanitizeCompanyJson(item, maxLength))
+      .filter((item) => item !== null && item !== undefined);
+  }
+
+  if (input && typeof input === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(input)) {
+      const sanitizedValue = sanitizeCompanyJson(value, maxLength);
+      if (sanitizedValue !== null && sanitizedValue !== undefined && sanitizedValue !== '') {
+        result[key] = sanitizedValue;
+      }
+    }
+    return result;
+  }
+
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return null;
+    }
+    return trimmed.length > maxLength ? `${trimmed.slice(0, maxLength)}…` : trimmed;
+  }
+
+  if (typeof input === 'number' || typeof input === 'boolean') {
+    return input;
+  }
+
+  return null;
 }
 
 async function callGemini(prompt: string): Promise<string> {
@@ -220,17 +254,65 @@ ${attemptInstruction ? `${attemptInstruction}\n` : ''}Company JSON:
 ${companyJsonBlock}`;
 }
 
+const INFOGRAPHIC_PROMPT = `
+You are an M&A presentation assistant. You must output ONE valid JSON object that matches this schema exactly:
+{
+  "title": string,
+  "subtitle": string,
+  "key_metrics": [
+    { "label": string, "value": string },
+    ...
+  ],
+  "bullets": [
+    string,
+    ...
+  ]
+}
+Rules:
+- Output JSON only. No prose, no markdown, no code fences, no comments.
+- "key_metrics" must contain 3-6 entries, each with concise values suitable for a slide.
+- "bullets" must contain 4-8 concise insights for M&A readers.
+- Every string must be trimmed, no newlines.
+- The top-level object must match the schema exactly.
+- Do not include null or undefined values.
+
+Example:
+{
+  "title": "Acme Health | AI Claims Optimization",
+  "subtitle": "AI-driven claims automation for regional payers",
+  "key_metrics": [
+    { "label": "ARR", "value": "$42M" },
+    { "label": "Customers", "value": "85 payers" },
+    { "label": "Net Retention", "value": "128%" }
+  ],
+  "bullets": [
+    "Specializes in automating mid-market payer claims workflows",
+    "20% average reduction in administrative cost per claim",
+    "Strong expansion motion across existing payers",
+    "Product roadmap adds generative AI for appeals automation"
+  ]
+}
+`;
+
+function buildInfographicPrompt(companyJson: unknown): string {
+  return `${INFOGRAPHIC_PROMPT}
+Company JSON:
+${JSON.stringify(companyJson, null, 2)}`;
+}
+
 export async function generateGeminiSlidesFromCompanyJson(
   companyJson: unknown,
 ): Promise<SlideDeckDefinition> {
+  const sanitized = sanitizeCompanyJson(companyJson);
   const maxAttempts = 3;
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const prompt = buildSlideDeckPrompt(companyJson, attempt);
+    const prompt = buildSlideDeckPrompt(sanitized, attempt);
 
     try {
       const responseText = await callGemini(prompt);
+      logger.debug({ attempt, responsePreview: responseText.slice(0, 200) }, '[gemini] slide raw');
       return parseSlideDefinition(responseText);
     } catch (error) {
       lastError = error;
@@ -257,37 +339,13 @@ export async function generateGeminiSlidesFromCompanyJson(
   throw new Error('Gemini failed to produce valid slide deck JSON');
 }
 
-function buildInfographicPrompt(companyJson: unknown): string {
-  const typeDef = `type InfographicPage = {
-  title: string;
-  subtitle: string;
-  key_metrics: { label: string; value: string }[];
-  bullets: string[];
-};`;
-
-  return `
-You are generating a one page M&A target infographic.
-
-Given the following company JSON, output a single InfographicPage object that matches this TypeScript type exactly.
-
-Requirements:
-- Output valid JSON only, no prose, no markdown, no backticks.
-- Root must be the InfographicPage object.
-- title is the company name plus a short descriptor.
-- subtitle is one concise sentence about why this company is interesting.
-- key_metrics should include 3 to 6 important metrics for an M&A analyst.
-- bullets should contain 4 to 8 concise bullets with the main insights.
-
-Company JSON:
-${JSON.stringify(companyJson, null, 2)}
-`.trim();
-}
-
 export async function generateGeminiInfographicFromCompanyJson(
   companyJson: unknown,
 ): Promise<InfographicPage> {
-  const prompt = buildInfographicPrompt(companyJson);
+  const sanitized = sanitizeCompanyJson(companyJson);
+  const prompt = buildInfographicPrompt(sanitized);
   const raw = await callGeminiInfographicWithRetry(prompt);
+  logger.debug({ responsePreview: raw.slice(0, 200) }, '[gemini] infographic raw response');
   const cleaned = cleanGeminiJson(raw);
 
   let parsed: unknown;
@@ -301,7 +359,9 @@ export async function generateGeminiInfographicFromCompanyJson(
   }
 
   try {
-    return infographicSchema.parse(parsed);
+    const validated = infographicSchema.parse(parsed);
+    logger.debug({ infographic: validated }, '[gemini] infographic parsed');
+    return validated;
   } catch (error) {
     logger.warn({ err: error }, 'Gemini infographic JSON failed validation');
     throw new Error('Gemini failed to produce infographic JSON');

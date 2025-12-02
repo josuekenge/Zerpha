@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 
 import { env } from '../config/env.js';
+import { logger } from '../logger.js';
 
 const CLAUDE_MODEL = 'claude-sonnet-4-5';
 const DISCOVERY_MAX_TOKENS = 1024;
@@ -44,6 +45,8 @@ function extractJsonPayload(content: string): string {
 }
 
 export async function discoverCompanies(query: string): Promise<DiscoveredCompany[]> {
+  logger.info({ query }, '[discovery] initiating company discovery');
+
   const message = await anthropic.messages.create({
     model: CLAUDE_MODEL,
     max_tokens: DISCOVERY_MAX_TOKENS,
@@ -52,36 +55,50 @@ export async function discoverCompanies(query: string): Promise<DiscoveredCompan
     messages: [
       {
         role: 'user',
-        content: `User market query: "${query}"
-
-Return JSON like:
-[
-  {
-    "name": "Example Vertical SaaS",
-    "website": "https://example.com",
-    "reason": "Vertical SaaS for home healthcare scheduling"
-  }
-]`,
+        content: `Return ONLY a JSON array (no prose, no markdown) of 1-${MAX_COMPANIES} SaaS companies that match this market query: "${query}". Each object must contain "name", "website", and "reason".`,
       },
     ],
   });
 
   const textChunks = message.content
-    .map((block) => (block.type === 'text' ? block.text : ''))
+    .map((block) => {
+      if (block.type === 'text') {
+        return block.text;
+      }
+      if ('text' in block) {
+        return (block as { text?: string }).text ?? '';
+      }
+      return '';
+    })
     .filter(Boolean)
     .join('\n');
 
   if (!textChunks) {
-    throw new Error('Claude returned an empty response for discovery');
+    const errorMessage = 'Claude returned an empty response for discovery';
+    logger.error({ query }, `[discovery] ${errorMessage}`);
+    throw new Error(errorMessage);
   }
 
   const rawJson = extractJsonPayload(textChunks);
+  logger.debug({ query, rawJson }, '[discovery] raw response payload');
 
   try {
     const parsed = JSON.parse(rawJson);
-    const companies = discoverySchema.parse(parsed);
-    return companies.slice(0, MAX_COMPANIES);
+    const companies = discoverySchema.parse(parsed).slice(0, MAX_COMPANIES);
+    logger.info(
+      {
+        query,
+        companyCount: companies.length,
+        companies: companies.map((company) => company.name),
+      },
+      '[discovery] parsed companies',
+    );
+    return companies;
   } catch (error) {
+    logger.error(
+      { query, rawJson, err: error },
+      '[discovery] failed to parse Claude discovery response',
+    );
     throw new Error(`Failed to parse Claude discovery response: ${(error as Error).message}`);
   }
 }

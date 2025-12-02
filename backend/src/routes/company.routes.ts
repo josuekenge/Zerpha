@@ -1,8 +1,9 @@
-import { Router } from 'express';
+import { Router, type Request, type Response, type NextFunction } from 'express';
 import { z } from 'zod';
 
 import { supabase } from '../config/supabase.js';
 import { logger } from '../logger.js';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import {
   savedCompanySchema,
   type DatabaseCompany,
@@ -31,8 +32,11 @@ const saveCompanyBodySchema = z.object({
 
 export const companyRouter = Router();
 
-companyRouter.get('/companies', async (req, res, next) => {
+companyRouter.get('/companies', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) throw new Error('User not authenticated');
+
     const normalizedQuery = {
       category:
         typeof req.query.category === 'string' && req.query.category.trim().length > 0
@@ -58,6 +62,7 @@ companyRouter.get('/companies', async (req, res, next) => {
       .from('companies')
       .select('*')
       .eq('is_saved', true)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (parsedQuery.category) {
@@ -93,8 +98,11 @@ companyRouter.get('/companies', async (req, res, next) => {
   }
 });
 
-companyRouter.post('/companies/:companyId/save', async (req, res, next) => {
+companyRouter.post('/companies/:companyId/save', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) throw new Error('User not authenticated');
+
     const { companyId } = companyIdParamSchema.parse(req.params);
     const { category } = saveCompanyBodySchema.parse(req.body ?? {});
 
@@ -107,6 +115,7 @@ companyRouter.post('/companies/:companyId/save', async (req, res, next) => {
       .from('companies')
       .update(updates)
       .eq('id', companyId)
+      .eq('user_id', user.id)
       .select('*')
       .single();
 
@@ -126,14 +135,18 @@ companyRouter.post('/companies/:companyId/save', async (req, res, next) => {
   }
 });
 
-companyRouter.post('/companies/:companyId/unsave', async (req, res, next) => {
+companyRouter.post('/companies/:companyId/unsave', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) throw new Error('User not authenticated');
+
     const { companyId } = companyIdParamSchema.parse(req.params);
 
     const { data, error } = await supabase
       .from('companies')
       .update({ is_saved: false, saved_category: null })
       .eq('id', companyId)
+      .eq('user_id', user.id)
       .select('*')
       .single();
 

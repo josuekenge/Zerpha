@@ -1,3 +1,4 @@
+import { supabase } from '../lib/supabase';
 import {
   SearchResponse,
   InfographicReportResult,
@@ -6,6 +7,34 @@ import {
 } from '../types';
 
 const API_BASE_URL = 'http://localhost:3001';
+
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  
+  if (!token) {
+    return {
+      'Content-Type': 'application/json',
+    };
+  }
+
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  };
+}
+
+async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const headers = await getAuthHeaders();
+  
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...headers,
+      ...options.headers,
+    },
+  });
+}
 
 async function parseJson<T>(response: Response): Promise<T> {
   const data = await response.json();
@@ -30,11 +59,8 @@ async function handleResponse<T>(response: Response, defaultMessage: string): Pr
 }
 
 export async function searchCompanies(query: string): Promise<SearchResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/search`, {
+  const response = await authenticatedFetch(`${API_BASE_URL}/api/search`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ query }),
   });
 
@@ -42,11 +68,8 @@ export async function searchCompanies(query: string): Promise<SearchResponse> {
 }
 
 export async function exportInfographic(companyId: string): Promise<InfographicReportResult> {
-  const response = await fetch(`${API_BASE_URL}/api/export-report`, {
+  const response = await authenticatedFetch(`${API_BASE_URL}/api/export-report`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ companyId }),
   });
 
@@ -59,12 +82,12 @@ export async function exportInfographic(companyId: string): Promise<InfographicR
 }
 
 export async function fetchSearchHistory(): Promise<SearchHistoryItem[]> {
-  const response = await fetch(`${API_BASE_URL}/api/search-history`);
+  const response = await authenticatedFetch(`${API_BASE_URL}/api/search-history`);
   return handleResponse<SearchHistoryItem[]>(response, 'Failed to load search history');
 }
 
 export async function fetchSearchById(searchId: string): Promise<SearchResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/search/${searchId}`);
+  const response = await authenticatedFetch(`${API_BASE_URL}/api/search/${searchId}`);
   return handleResponse<SearchResponse>(response, 'Failed to load saved search');
 }
 
@@ -91,16 +114,13 @@ export async function fetchSavedCompanies(params: SavedCompanyQuery = {}): Promi
     url.searchParams.set('maxScore', String(params.maxScore));
   }
 
-  const response = await fetch(url.toString());
+  const response = await authenticatedFetch(url.toString());
   return handleResponse<SavedCompany[]>(response, 'Failed to load companies');
 }
 
 export async function saveCompany(companyId: string, category?: string): Promise<SavedCompany> {
-  const response = await fetch(`${API_BASE_URL}/api/companies/${companyId}/save`, {
+  const response = await authenticatedFetch(`${API_BASE_URL}/api/companies/${companyId}/save`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ category }),
   });
 
@@ -108,7 +128,7 @@ export async function saveCompany(companyId: string, category?: string): Promise
 }
 
 export async function unsaveCompany(companyId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/companies/${companyId}/unsave`, {
+  const response = await authenticatedFetch(`${API_BASE_URL}/api/companies/${companyId}/unsave`, {
     method: 'POST',
   });
 

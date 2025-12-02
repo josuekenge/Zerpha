@@ -24,6 +24,8 @@ export interface Company {
   is_saved?: boolean;
   saved_category?: string | null;
   created_at?: string;
+  primary_industry?: string;
+  secondary_industry?: string;
 }
 
 export interface SearchResponse {
@@ -57,6 +59,8 @@ export interface SavedCompany {
   saved_category: string | null;
   created_at: string | null;
   raw_json: CompanyRawJson;
+  primary_industry?: string;
+  secondary_industry?: string;
 }
 
 export interface InfographicPage {
