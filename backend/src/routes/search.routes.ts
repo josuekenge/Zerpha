@@ -11,9 +11,7 @@ import { generateGlobalOpportunities } from '../services/insightsService.js';
 import { logger } from '../logger.js';
 import type { ExtractedCompany } from '../types/company.js';
 import { saveExtractedCompany } from '../services/companySaveService.js';
-import { runEmailScraper } from '../services/apifyService.js';
-import { mapEmailsToPeople } from '../utils/peopleMapper.js';
-import { insertPeople } from '../services/peopleService.js';
+import { scrapePeople } from '../services/apifyService.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 
 const searchRequestSchema = z.object({
@@ -244,39 +242,69 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
 
     logger.info({ query, userId: user.id }, '[search] received search request');
 
-    const enrichCompanyPeople = async (companyId: string, website: string, userId: string) => {
+    const enrichCompanyPeople = async (companyId: string, companyName: string, website: string, userId: string) => {
+      console.log("ENRICH PEOPLE CALLED FOR", companyName);
+      console.log("DEBUG: companyId =", companyId, "userId =", userId, "website =", website);
+      
       try {
-        const domain = extractDomain(website);
-        if (!domain) {
-          logger.debug({ companyId, website }, '[people] could not extract domain');
-          return;
-        }
-
-        logger.info({ companyId, domain }, '[people] starting email scraper');
-        const apifyResults = await runEmailScraper([domain]);
-
-        if (!Array.isArray(apifyResults) || apifyResults.length === 0) {
-          logger.debug({ companyId, domain }, '[people] no emails found by Apify');
-          return;
+        logger.info({ companyId, companyName, website }, '[people] starting website-contacts scraper');
+        
+        // Use the scrapePeople function with the full website URL
+        const people = await scrapePeople(website);
+        
+        console.log('People scraped for', companyName, people);
+        
+        if (!Array.isArray(people) || people.length === 0) {
+          console.log("DEBUG: No people returned from scrapePeople for", companyName);
+          logger.debug({ companyId, companyName, website }, '[people] no contacts found by Apify');
+          return [];
         }
 
         logger.info(
-          { companyId, domain, emailCount: apifyResults.length },
-          '[people] received emails from Apify',
+          { companyId, companyName, contactCount: people.length },
+          '[people] received contacts from Apify website-contacts',
         );
 
-        const mappedPeople = mapEmailsToPeople(apifyResults);
-        if (mappedPeople.length === 0) {
-          logger.debug({ companyId, domain }, '[people] no valid people after mapping');
-          return;
+        // Insert each person directly into public.people
+        for (const p of people) {
+          // Skip entries with no email and no phone
+          if (!p.email && !p.phone) continue;
+
+          console.log("INSERTING PERSON", p, "WITH USER", userId, "AND COMPANY", companyId);
+
+          const { data, error } = await supabase
+            .from('people')
+            .insert({
+              company_id: companyId,
+              first_name: p.first_name,
+              last_name: p.last_name,
+              full_name: p.first_name && p.last_name 
+                ? `${p.first_name} ${p.last_name}` 
+                : p.first_name || p.last_name || null,
+              email: p.email,
+              phone: p.phone,
+              role: p.role || 'Unknown',
+              source: 'apify-website-contacts',
+              user_id: userId,
+            })
+            .select();
+
+          console.log("SUPABASE INSERT RESULT", { data, error });
+
+          if (error) {
+            logger.warn({ err: error, email: p.email }, '[people] failed to insert person');
+          }
         }
 
-        await insertPeople(companyId, mappedPeople, userId);
+        logger.info({ companyId, companyName, insertedCount: people.length }, '[people] inserted people records');
+        return people;
       } catch (error) {
+        console.log("DEBUG: enrichCompanyPeople CAUGHT ERROR", error);
         logger.warn(
           { companyId, website, err: error },
           '[people] enrichment failed - continuing without people data',
         );
+        return [];
       }
     };
 
@@ -362,7 +390,7 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
           reason: company.reason,
         });
 
-        await enrichCompanyPeople(savedCompany.id, savedCompany.website, user.id);
+        await enrichCompanyPeople(savedCompany.id, savedCompany.name, savedCompany.website, user.id);
 
         processedCompanies.push({
           name: company.name,
@@ -528,6 +556,100 @@ searchRouter.get('/search/:searchId', requireAuth, async (req: Request, res: Res
       companies: companiesWithSummary,
     });
   } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/searches/:searchId/details
+ * Returns a search with all its companies and people for each company
+ */
+searchRouter.get('/searches/:searchId/details', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) throw new Error('User not authenticated');
+
+    const { searchId } = searchIdParamSchema.parse(req.params);
+
+    logger.info({ searchId, userId: user.id }, '[search] fetching search details with companies and people');
+
+    // Fetch the search row
+    const { data: searchRow, error: searchError } = await supabase
+      .from('searches')
+      .select('id, query_text, created_at')
+      .eq('id', searchId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (searchError || !searchRow) {
+      logger.warn({ searchId, userId: user.id, err: searchError }, '[search] search not found');
+      return res.status(404).json({ message: 'Search not found' });
+    }
+
+    // Fetch all companies for this search
+    const { data: companyRows, error: companyError } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('search_id', searchId)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
+
+    if (companyError) {
+      logger.error({ searchId, err: companyError }, '[search] failed to fetch companies');
+      throw new Error(companyError.message);
+    }
+
+    const companies = companyRows ?? [];
+    const companyIds = companies.map((c) => c.id);
+
+    // Fetch all people for these companies
+    let peopleByCompany: Record<string, any[]> = {};
+
+    if (companyIds.length > 0) {
+      const { data: peopleRows, error: peopleError } = await supabase
+        .from('people')
+        .select('id, company_id, full_name, first_name, last_name, role, email, phone, source, is_ceo, is_founder, is_executive')
+        .in('company_id', companyIds)
+        .eq('user_id', user.id)
+        .order('full_name', { ascending: true });
+
+      if (peopleError) {
+        logger.warn({ searchId, err: peopleError }, '[search] failed to fetch people - continuing without');
+      } else {
+        // Group people by company_id
+        for (const person of peopleRows ?? []) {
+          if (!peopleByCompany[person.company_id]) {
+            peopleByCompany[person.company_id] = [];
+          }
+          peopleByCompany[person.company_id].push(person);
+        }
+      }
+    }
+
+    // Transform companies and attach people
+    const companiesWithPeople = companies.map((row) => {
+      const transformed = transformCompanyForApi(row as DatabaseCompany);
+      return {
+        ...transformed,
+        people: peopleByCompany[row.id] ?? [],
+      };
+    });
+
+    logger.info(
+      { searchId, companyCount: companiesWithPeople.length },
+      '[search] returning search details',
+    );
+
+    res.json({
+      search: {
+        id: searchRow.id,
+        query: searchRow.query_text,
+        created_at: searchRow.created_at,
+      },
+      companies: companiesWithPeople,
+    });
+  } catch (error) {
+    logger.error({ err: error }, '[search] error fetching search details');
     next(error);
   }
 });

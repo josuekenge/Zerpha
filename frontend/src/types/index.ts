@@ -105,3 +105,35 @@ export interface Person {
   company_website?: string | null;
 }
 
+/** Person summary for search details (lighter weight) */
+export interface PersonSummary {
+  id: string;
+  company_id: string;
+  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  role: string | null;
+  email: string | null;
+  phone: string | null;
+  source: string | null;
+  is_ceo: boolean;
+  is_founder: boolean;
+  is_executive: boolean;
+}
+
+/** Company with embedded people for search details */
+export interface CompanyWithPeople extends Company {
+  people: PersonSummary[];
+}
+
+/** Full search details response */
+export interface SearchDetailsResponse {
+  search: {
+    id: string;
+    query: string;
+    created_at: string;
+    global_opportunities?: string;
+  };
+  companies: CompanyWithPeople[];
+}
+

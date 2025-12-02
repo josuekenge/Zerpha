@@ -4,6 +4,7 @@ import {
   InfographicReportResult,
   SearchHistoryItem,
   SavedCompany,
+  SearchDetailsResponse,
 } from '../types';
 
 const API_BASE_URL = 'http://localhost:3001';
@@ -89,6 +90,14 @@ export async function fetchSearchHistory(): Promise<SearchHistoryItem[]> {
 export async function fetchSearchById(searchId: string): Promise<SearchResponse> {
   const response = await authenticatedFetch(`${API_BASE_URL}/api/search/${searchId}`);
   return handleResponse<SearchResponse>(response, 'Failed to load saved search');
+}
+
+/**
+ * Fetch full search details including companies and their people
+ */
+export async function fetchSearchDetails(searchId: string): Promise<SearchDetailsResponse> {
+  const response = await authenticatedFetch(`${API_BASE_URL}/api/searches/${searchId}/details`);
+  return handleResponse<SearchDetailsResponse>(response, 'Failed to load search details');
 }
 
 export interface SavedCompanyQuery {

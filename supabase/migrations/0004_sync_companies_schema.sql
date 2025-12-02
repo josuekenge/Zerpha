@@ -28,3 +28,5 @@ update public.companies
   where summary is not null and btrim(summary) <> '';
 
 
+
+

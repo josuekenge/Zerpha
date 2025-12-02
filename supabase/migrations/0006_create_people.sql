@@ -29,3 +29,5 @@ create index if not exists people_company_id_idx on public.people(company_id);
 create index if not exists people_email_idx on public.people(email);
 create index if not exists people_full_name_idx on public.people(full_name);
 
+
+

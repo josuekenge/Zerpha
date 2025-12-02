@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import type { Person } from '../types/people.js';
+import type { ScrapedPerson } from '../services/apifyService.js';
 
 function safeString(value: unknown): string | null {
   if (typeof value !== 'string') {
@@ -23,13 +24,62 @@ function splitName(fullName: string | null): [string | null, string | null] {
   return [first, last];
 }
 
-export function mapEmailsToPeople(apifyEmails: any[]): Person[] {
-  if (!Array.isArray(apifyEmails)) {
+/**
+ * Map Apify results to Person format.
+ * Handles both the old email scraper format and the new website-contacts ScrapedPerson format.
+ */
+export function mapEmailsToPeople(apifyResults: any[]): Person[] {
+  if (!Array.isArray(apifyResults)) {
     return [];
   }
 
-  return apifyEmails
+  return apifyResults
     .map((entry) => {
+      // Handle ScrapedPerson format from website-contacts
+      if ('sourcePage' in entry) {
+        const scrapedEntry = entry as ScrapedPerson;
+        const email = safeString(scrapedEntry.email);
+        const phone = safeString(scrapedEntry.phone);
+        
+        // Skip entries with no email and no phone
+        if (!email && !phone) {
+          return null;
+        }
+
+        const fullName = safeString(scrapedEntry.name);
+        const [firstName, lastName] = splitName(fullName);
+
+        const person: Person = {
+          id: randomUUID(),
+          company_id: '',
+          full_name: fullName,
+          first_name: firstName,
+          last_name: lastName,
+          role: 'Unknown',
+          seniority: null,
+          department: null,
+          email,
+          phone,
+          linkedin_url: null,
+          twitter_url: null,
+          source: 'apify-website-contacts',
+          confidence_score: null,
+          created_at: new Date().toISOString(),
+          location_city: null,
+          location_country: null,
+          work_history: null,
+          skills: null,
+          tags: null,
+          notes: scrapedEntry.sourcePage ? `Source: ${scrapedEntry.sourcePage}` : null,
+          is_ceo: false,
+          is_founder: false,
+          is_executive: false,
+        };
+
+        return person;
+      }
+
+      // Handle old email scraper format
       const fullName =
         safeString(entry.fullName) ??
         safeString(entry.name) ??

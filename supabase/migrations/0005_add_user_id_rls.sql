@@ -48,3 +48,5 @@ create policy "Users can delete their own companies"
   on public.companies for delete
   using (auth.uid() = user_id);
 
+
+

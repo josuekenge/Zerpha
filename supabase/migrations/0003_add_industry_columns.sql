@@ -4,3 +4,5 @@ alter table public.companies
   add column if not exists secondary_industry text;
 
 
+
+

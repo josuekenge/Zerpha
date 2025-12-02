@@ -35,11 +35,12 @@ import {
   fetchSavedCompanies,
   fetchSearchById,
   fetchSearchHistory,
+  fetchSearchDetails,
   saveCompany,
   searchCompanies,
   unsaveCompany,
 } from './api/client';
-import { Company, InfographicPage, Person, SavedCompany, SearchHistoryItem } from './types';
+import { Company, CompanyWithPeople, InfographicPage, Person, PersonSummary, SavedCompany, SearchHistoryItem } from './types';
 import { getAllPeople } from './api/people';
 import { cn } from './lib/utils';
 
@@ -140,7 +141,10 @@ export function WorkspaceApp() {
   const [historyItems, setHistoryItems] = useState<SearchHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
-  const [historyCompanies, setHistoryCompanies] = useState<Company[]>([]);
+  const [historyCompanies, setHistoryCompanies] = useState<CompanyWithPeople[]>([]);
+  const [historyDetailsLoading, setHistoryDetailsLoading] = useState(false);
+  const [selectedHistoryCompanyId, setSelectedHistoryCompanyId] = useState<string | null>(null);
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
 
   // People state
   const [allPeople, setAllPeople] = useState<Person[]>([]);
@@ -412,6 +416,34 @@ const matchesIndustryFilter = (
 
   const selectedPerson = allPeople.find((p) => p.id === selectedPersonId);
 
+  // History computed values
+  const filteredHistoryCompanies = useMemo(() => {
+    if (!historySearchQuery.trim()) return historyCompanies;
+    const q = historySearchQuery.toLowerCase();
+    return historyCompanies.filter((c) => {
+      const name = c.name?.toLowerCase() ?? '';
+      const website = c.website?.toLowerCase() ?? '';
+      const industry = c.primary_industry?.toLowerCase() ?? '';
+      return name.includes(q) || website.includes(q) || industry.includes(q);
+    });
+  }, [historyCompanies, historySearchQuery]);
+
+  const selectedHistoryCompany = historyCompanies.find((c) => c.id === selectedHistoryCompanyId);
+  const selectedHistoryCompanyAsCompany: Company | null = selectedHistoryCompany ? {
+    id: selectedHistoryCompany.id,
+    name: selectedHistoryCompany.name,
+    website: selectedHistoryCompany.website,
+    vertical_query: selectedHistoryCompany.vertical_query,
+    acquisition_fit_score: selectedHistoryCompany.acquisition_fit_score,
+    summary: selectedHistoryCompany.summary,
+    raw_json: selectedHistoryCompany.raw_json,
+    is_saved: selectedHistoryCompany.is_saved,
+    saved_category: selectedHistoryCompany.saved_category,
+    created_at: selectedHistoryCompany.created_at,
+    primary_industry: selectedHistoryCompany.primary_industry,
+    secondary_industry: selectedHistoryCompany.secondary_industry,
+  } : null;
+
   const handleClearSearchData = () => {
     setQuery('');
     setSearchCompaniesList([]);
@@ -547,12 +579,20 @@ const matchesIndustryFilter = (
 
   const handleHistoryRowClick = async (item: SearchHistoryItem) => {
     setSelectedHistoryId(item.id);
+    setSelectedHistoryCompanyId(null);
     setHistoryCompanies([]);
+    setHistoryDetailsLoading(true);
     try {
-      const response = await fetchSearchById(item.id);
+      const response = await fetchSearchDetails(item.id);
       setHistoryCompanies(response.companies);
+      // Auto-select first company if available
+      if (response.companies.length > 0) {
+        setSelectedHistoryCompanyId(response.companies[0].id);
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Failed to load search details:', error);
+    } finally {
+      setHistoryDetailsLoading(false);
     }
   };
 
@@ -1062,73 +1102,221 @@ const matchesIndustryFilter = (
         )}
 
         {activeView === 'history' && (
-            <div className="flex-1 overflow-auto p-8">
+          <div className="flex-1 flex min-h-0">
+            {/* Left Panel: Search History List */}
+            <div className="w-64 border-r border-slate-200 bg-slate-50 flex flex-col overflow-hidden">
+              <div className="p-4 border-b border-slate-200">
+                <h3 className="text-sm font-semibold text-slate-700">Past Searches</h3>
+              </div>
+              <div className="flex-1 overflow-y-auto">
                 {historyLoading ? (
-                  <div className="flex justify-center"><Loader2 className="w-6 h-6 text-indigo-600 animate-spin" /></div>
+                  <div className="p-4 flex justify-center">
+                    <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
+                  </div>
                 ) : historyItems.length === 0 ? (
-                   <div className="text-center text-slate-500">No search history yet.</div>
+                  <div className="p-4 text-center text-sm text-slate-500">No search history yet.</div>
                 ) : (
-                   <div className="grid gap-4 max-w-3xl">
-                      {historyItems.map(item => (
-                        <div 
-                          key={item.id}
-                          onClick={() => handleHistoryRowClick(item)}
-                          className={cn(
-                            "p-4 bg-white border rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer flex justify-between items-center",
-                            selectedHistoryId === item.id ? "border-indigo-500 ring-1 ring-indigo-500" : "border-slate-200"
-                          )}
-                        >
-                           <div>
-                             <h3 className="font-medium text-slate-900">{item.query}</h3>
-                             <p className="text-xs text-slate-500 mt-1">{formatDate(item.created_at)}</p>
-                           </div>
-                           <div className="flex items-center gap-4">
-                              <span className="text-sm font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded">{item.company_count} results</span>
-                              <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">View</button>
-                           </div>
+                  <div className="divide-y divide-slate-200">
+                    {historyItems.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleHistoryRowClick(item)}
+                        className={cn(
+                          "w-full text-left p-3 hover:bg-white transition-colors",
+                          selectedHistoryId === item.id ? "bg-white border-l-2 border-indigo-600" : ""
+                        )}
+                      >
+                        <p className="text-sm font-medium text-slate-900 truncate">{item.query}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-slate-500">{formatDate(item.created_at)}</span>
+                          <span className="text-xs bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
+                            {item.company_count}
+                          </span>
                         </div>
-                      ))}
-
-                      {selectedHistoryId && historyCompanies.length > 0 && (
-                         <div className="mt-8 border-t border-slate-200 pt-8 animate-in fade-in slide-in-from-bottom-4">
-                            <h3 className="text-lg font-semibold text-slate-900 mb-4">Results for selected search</h3>
-                             <table className="w-full text-left border-collapse bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
-                               <thead className="bg-slate-50 border-b border-slate-200">
-                                 <tr>
-                                   <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Name</th>
-                                   <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Domain</th>
-                                   <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase text-right">Fit</th>
-                                   <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase text-right">Action</th>
-                                 </tr>
-                               </thead>
-                               <tbody className="divide-y divide-slate-100">
-                                 {historyCompanies.map(company => (
-                                   <tr key={company.id} className="hover:bg-slate-50">
-                                     <td className="py-3 px-4 font-medium text-slate-900">{company.name}</td>
-                                     <td className="py-3 px-4 text-slate-500 text-sm">{company.website}</td>
-                                     <td className="py-3 px-4 text-right">{company.acquisition_fit_score}</td>
-                                     <td className="py-3 px-4 text-right">
-                                       {company.is_saved ? (
-                                          <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">Saved</span>
-                                       ) : (
-                                          <button 
-                                            onClick={() => handleSaveCompany(company.id)}
-                                            disabled={savingMap[company.id]}
-                                            className="text-xs font-medium text-white bg-indigo-600 px-2 py-1 rounded hover:bg-indigo-700"
-                                          >
-                                            Save
-                                          </button>
-                                       )}
-                                     </td>
-                                   </tr>
-                                 ))}
-                               </tbody>
-                             </table>
-                         </div>
-                      )}
-                   </div>
+                      </button>
+                    ))}
+                  </div>
                 )}
+              </div>
             </div>
+
+            {/* Middle Panel: Companies for Selected Search */}
+            <div className={cn(
+              "flex flex-col overflow-hidden transition-all duration-300 border-r border-slate-200",
+              selectedHistoryCompanyId ? "w-[35%]" : "flex-1"
+            )}>
+              {!selectedHistoryId ? (
+                <div className="flex-1 flex items-center justify-center text-slate-500 text-sm">
+                  Select a search from the left to view companies
+                </div>
+              ) : historyDetailsLoading ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
+                </div>
+              ) : (
+                <>
+                  <div className="p-4 border-b border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-slate-700">
+                        Companies ({filteredHistoryCompanies.length})
+                      </h3>
+                    </div>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Filter companies..."
+                        value={historySearchQuery}
+                        onChange={(e) => setHistorySearchQuery(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    {filteredHistoryCompanies.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-slate-500">
+                        {historyCompanies.length > 0 ? "No companies match your filter." : "No companies found for this search."}
+                      </div>
+                    ) : (
+                      <table className="w-full text-left border-collapse">
+                        <thead className="sticky top-0 bg-white z-10">
+                          <tr>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Company</th>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Fit</th>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-center">People</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {filteredHistoryCompanies.map((company) => (
+                            <tr
+                              key={company.id}
+                              onClick={() => setSelectedHistoryCompanyId(company.id)}
+                              className={cn(
+                                "cursor-pointer hover:bg-slate-50 transition-colors",
+                                selectedHistoryCompanyId === company.id ? "bg-indigo-50" : ""
+                              )}
+                            >
+                              <td className="py-3 px-4">
+                                <div className="font-medium text-slate-900">{company.name}</div>
+                                <div className="text-xs text-slate-500 truncate max-w-[200px]">{company.website}</div>
+                              </td>
+                              <td className="py-3 px-4 text-right">
+                                <span className={cn(
+                                  "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+                                  (company.acquisition_fit_score ?? 0) >= 8 ? "bg-green-100 text-green-800" :
+                                  (company.acquisition_fit_score ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
+                                  "bg-slate-100 text-slate-600"
+                                )}>
+                                  {company.acquisition_fit_score ?? '-'}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <span className="inline-flex items-center gap-1 text-xs text-slate-600">
+                                  <Users className="w-3.5 h-3.5" />
+                                  {company.people?.length ?? 0}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Right Panel: Company Detail + People */}
+            {selectedHistoryCompanyId && selectedHistoryCompany && (
+              <div className="flex-1 bg-white overflow-y-auto animate-in slide-in-from-right duration-300">
+                {/* Company Details */}
+                <div className="border-b border-slate-200">
+                  <CompanyDetailPanel company={selectedHistoryCompanyAsCompany!} />
+                </div>
+
+                {/* People Section */}
+                <div className="p-6">
+                  <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-slate-400" />
+                    Contacts ({selectedHistoryCompany.people?.length ?? 0})
+                  </h3>
+
+                  {(!selectedHistoryCompany.people || selectedHistoryCompany.people.length === 0) ? (
+                    <div className="text-sm text-slate-500 bg-slate-50 rounded-lg p-4 border border-slate-100 border-dashed">
+                      No contacts found for this company yet.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {selectedHistoryCompany.people.map((person) => {
+                        const displayName = person.full_name 
+                          || (person.first_name && person.last_name ? `${person.first_name} ${person.last_name}` : null)
+                          || person.first_name 
+                          || person.last_name 
+                          || 'Unknown';
+                        const isHighlighted = person.is_ceo || person.is_founder || person.is_executive;
+
+                        return (
+                          <div
+                            key={person.id}
+                            className={cn(
+                              "p-4 rounded-lg border transition-colors",
+                              isHighlighted ? "bg-amber-50/50 border-amber-200" : "bg-white border-slate-200"
+                            )}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className={cn(
+                                    "font-medium text-slate-900",
+                                    isHighlighted && "font-bold"
+                                  )}>
+                                    {displayName}
+                                  </span>
+                                  {person.is_ceo && (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 rounded">CEO</span>
+                                  )}
+                                  {person.is_founder && (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-purple-100 text-purple-700 rounded">Founder</span>
+                                  )}
+                                  {person.is_executive && !person.is_ceo && (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 rounded">Exec</span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-slate-600 mt-0.5">{person.role || 'Unknown Role'}</p>
+                              </div>
+                              {person.source && (
+                                <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded capitalize">
+                                  {person.source}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                              {person.email && (
+                                <a
+                                  href={`mailto:${person.email}`}
+                                  className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800"
+                                >
+                                  <Mail className="w-4 h-4" />
+                                  <span className="truncate max-w-[200px]">{person.email}</span>
+                                </a>
+                              )}
+                              {person.phone && (
+                                <span className="flex items-center gap-1.5 text-slate-600">
+                                  <Phone className="w-4 h-4" />
+                                  {person.phone}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* People View */}

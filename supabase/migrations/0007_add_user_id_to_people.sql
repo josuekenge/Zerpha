@@ -38,3 +38,5 @@ create policy "Service role has full access to people"
   on public.people for all
   using (auth.jwt() ->> 'role' = 'service_role');
 
+
+
