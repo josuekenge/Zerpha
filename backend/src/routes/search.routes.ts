@@ -11,6 +11,9 @@ import { generateGlobalOpportunities } from '../services/insightsService.js';
 import { logger } from '../logger.js';
 import type { ExtractedCompany } from '../types/company.js';
 import { saveExtractedCompany } from '../services/companySaveService.js';
+import { runEmailScraper } from '../services/apifyService.js';
+import { mapEmailsToPeople } from '../utils/peopleMapper.js';
+import { insertPeople } from '../services/peopleService.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 
 const searchRequestSchema = z.object({
@@ -241,6 +244,42 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
 
     logger.info({ query, userId: user.id }, '[search] received search request');
 
+    const enrichCompanyPeople = async (companyId: string, website: string, userId: string) => {
+      try {
+        const domain = extractDomain(website);
+        if (!domain) {
+          logger.debug({ companyId, website }, '[people] could not extract domain');
+          return;
+        }
+
+        logger.info({ companyId, domain }, '[people] starting email scraper');
+        const apifyResults = await runEmailScraper([domain]);
+
+        if (!Array.isArray(apifyResults) || apifyResults.length === 0) {
+          logger.debug({ companyId, domain }, '[people] no emails found by Apify');
+          return;
+        }
+
+        logger.info(
+          { companyId, domain, emailCount: apifyResults.length },
+          '[people] received emails from Apify',
+        );
+
+        const mappedPeople = mapEmailsToPeople(apifyResults);
+        if (mappedPeople.length === 0) {
+          logger.debug({ companyId, domain }, '[people] no valid people after mapping');
+          return;
+        }
+
+        await insertPeople(companyId, mappedPeople, userId);
+      } catch (error) {
+        logger.warn(
+          { companyId, website, err: error },
+          '[people] enrichment failed - continuing without people data',
+        );
+      }
+    };
+
     const { data: searchInsert, error: searchError } = await supabase
       .from('searches')
       .insert({ query_text: query, user_id: user.id })
@@ -315,13 +354,15 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
           '[search] extraction successful',
         );
 
-        await saveExtractedCompany({
+        const savedCompany = await saveExtractedCompany({
           userId: user.id,
           searchId: searchInsert.id,
           verticalQuery: query,
           extracted,
           reason: company.reason,
         });
+
+        await enrichCompanyPeople(savedCompany.id, savedCompany.website, user.id);
 
         processedCompanies.push({
           name: company.name,

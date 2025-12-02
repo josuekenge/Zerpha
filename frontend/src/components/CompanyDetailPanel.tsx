@@ -1,14 +1,18 @@
-import { Company } from '../types';
+import { Company, Person } from '../types';
 import {
   ExternalLink,
   Download,
   Loader2,
   FileText,
   Target,
+  Users,
+  Mail,
+  Phone,
 } from 'lucide-react';
 import { cn, downloadInfographicPdf } from '../lib/utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { exportInfographic } from '../api/client';
+import { getPeopleByCompanyId } from '../api/people';
 
 interface CompanyDetailPanelProps {
   company: Company;
@@ -18,6 +22,8 @@ interface CompanyDetailPanelProps {
 export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
   const { raw_json } = company;
   const [isExporting, setIsExporting] = useState(false);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [peopleLoading, setPeopleLoading] = useState(false);
 
   const handleExport = async () => {
     if (isExporting) return;
@@ -31,6 +37,31 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
       setIsExporting(false);
     }
   };
+
+  useEffect(() => {
+    let isActive = true;
+    setPeople([]);
+    setPeopleLoading(true);
+
+    getPeopleByCompanyId(company.id)
+      .then((results) => {
+        if (isActive) {
+          setPeople(results);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load people', error);
+      })
+      .finally(() => {
+        if (isActive) {
+          setPeopleLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [company.id]);
 
   const score = company.acquisition_fit_score ?? null;
   let fitLabel = 'Low Fit';
@@ -172,6 +203,90 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
                     </div>
                 </div>
             </div>
+        </section>
+
+        {/* Section: People */}
+        <section className="border border-slate-200 rounded-lg overflow-hidden">
+          <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <Users className="w-4 h-4 text-slate-400" />
+              People
+            </h3>
+          </div>
+
+          <div className="p-4">
+            {peopleLoading ? (
+              <div className="flex items-center gap-2 text-slate-500 text-sm">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Fetching decision makers…
+              </div>
+            ) : people.length === 0 ? (
+              <p className="text-sm text-slate-500">
+                No contacts found for this company.
+              </p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {people.map((person) => {
+                  const isHighlighted = person.is_ceo || person.is_founder || person.is_executive;
+                  const badges: string[] = [];
+                  if (person.is_ceo) badges.push('CEO');
+                  if (person.is_founder) badges.push('Founder');
+                  if (person.is_executive && !person.is_ceo) badges.push('Executive');
+
+                  return (
+                    <li
+                      key={person.id}
+                      className={cn(
+                        "py-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between",
+                        isHighlighted && "bg-amber-50/50 -mx-4 px-4 rounded-lg"
+                      )}
+                    >
+                      <div>
+                        <p className={cn(
+                          "text-sm text-slate-900",
+                          isHighlighted ? "font-bold" : "font-semibold"
+                        )}>
+                          {person.full_name || 'Unknown contact'}
+                          {badges.length > 0 && (
+                            <span className="ml-2 inline-flex gap-1">
+                              {badges.map((badge) => (
+                                <span
+                                  key={badge}
+                                  className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 rounded"
+                                >
+                                  {badge}
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {person.role || 'Unknown role'}
+                        </p>
+                      </div>
+                    <div className="text-sm text-slate-600 space-y-1">
+                      {person.email && (
+                        <a
+                          href={`mailto:${person.email}`}
+                          className="flex items-center gap-1 hover:text-indigo-600 transition-colors"
+                        >
+                          <Mail className="w-4 h-4" />
+                          {person.email}
+                        </a>
+                      )}
+                      {person.phone && (
+                        <div className="flex items-center gap-1">
+                          <Phone className="w-4 h-4" />
+                          {person.phone}
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
         </section>
 
         {/* Key Info */}
