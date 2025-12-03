@@ -1,4 +1,4 @@
-const FETCH_TIMEOUT_MS = 10_000;
+const FETCH_TIMEOUT_MS = 8_000; // Reduced from 10s for faster failures
 const USER_AGENT =
   'Mozilla/5.0 (compatible; ZerphaBot/1.0; +https://zerpha.app/market-intel)';
 
@@ -96,11 +96,34 @@ function findLinkByKeywords(links: LinkCandidate[], keywords: string[]): string 
   return null;
 }
 
+/**
+ * Fetch a secondary page (product/pricing) with error handling.
+ * Returns null on failure instead of throwing.
+ */
+async function fetchSecondaryPage(
+  url: string,
+  type: PageType,
+): Promise<{ page: ScrapedPage; error: null } | { page: null; error: string }> {
+  try {
+    const html = await fetchHtml(url);
+    return {
+      page: { type, url, html, text: stripHtml(html) },
+      error: null,
+    };
+  } catch (error) {
+    return {
+      page: null,
+      error: `${type} page failed (${url}): ${(error as Error).message}`,
+    };
+  }
+}
+
 export async function scrapeCompanySite(baseUrl: string): Promise<ScrapeResult> {
   const pages: ScrapedPage[] = [];
   const errors: string[] = [];
 
   try {
+    // Fetch homepage first (required)
     const homepageHtml = await fetchHtml(baseUrl);
     pages.push({
       type: 'home',
@@ -110,34 +133,28 @@ export async function scrapeCompanySite(baseUrl: string): Promise<ScrapeResult> 
     });
 
     const links = extractLinks(homepageHtml, baseUrl);
-
     const productUrl = findLinkByKeywords(links, productKeywords);
+    const pricingUrl = findLinkByKeywords(links, pricingKeywords);
+
+    // Fetch product and pricing pages CONCURRENTLY
+    const secondaryFetches: Promise<{ page: ScrapedPage | null; error: string | null }>[] = [];
+    
     if (productUrl) {
-      try {
-        const productHtml = await fetchHtml(productUrl);
-        pages.push({
-          type: 'product',
-          url: productUrl,
-          html: productHtml,
-          text: stripHtml(productHtml),
-        });
-      } catch (error) {
-        errors.push(`Product page failed (${productUrl}): ${(error as Error).message}`);
-      }
+      secondaryFetches.push(fetchSecondaryPage(productUrl, 'product'));
+    }
+    if (pricingUrl) {
+      secondaryFetches.push(fetchSecondaryPage(pricingUrl, 'pricing'));
     }
 
-    const pricingUrl = findLinkByKeywords(links, pricingKeywords);
-    if (pricingUrl) {
-      try {
-        const pricingHtml = await fetchHtml(pricingUrl);
-        pages.push({
-          type: 'pricing',
-          url: pricingUrl,
-          html: pricingHtml,
-          text: stripHtml(pricingHtml),
-        });
-      } catch (error) {
-        errors.push(`Pricing page failed (${pricingUrl}): ${(error as Error).message}`);
+    if (secondaryFetches.length > 0) {
+      const results = await Promise.all(secondaryFetches);
+      for (const result of results) {
+        if (result.page) {
+          pages.push(result.page);
+        }
+        if (result.error) {
+          errors.push(result.error);
+        }
       }
     }
   } catch (error) {

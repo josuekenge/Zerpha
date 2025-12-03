@@ -13,6 +13,7 @@ import type { ExtractedCompany } from '../types/company.js';
 import { saveExtractedCompany } from '../services/companySaveService.js';
 import { scrapePeople } from '../services/apifyService.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
+import { getCachedExtraction, setCachedExtraction, normalizeDomain } from '../services/cacheService.js';
 
 const searchRequestSchema = z.object({
   query: z.string().min(2).max(200),
@@ -234,6 +235,8 @@ export function transformCompanyForApi(dbCompany: DatabaseCompany): ApiCompany {
 export const searchRouter = Router();
 
 searchRouter.post('/search', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  const searchStartTime = Date.now();
+  
   try {
     const user = (req as AuthenticatedRequest).user;
     if (!user) throw new Error('User not authenticated');
@@ -344,32 +347,55 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
 
     const processCompany = async (company: (typeof discovered)[number]) => {
       try {
-        const scrapeResult = await scrapeCompanySite(company.website);
+        // Check cache first for this domain
+        const cachedExtraction = getCachedExtraction(company.website);
+        let extracted: ExtractedCompany;
 
-        if (scrapeResult.pages.length === 0) {
-          const errorMessage = 'No content could be scraped from the site';
-          logger.warn(
-            {
-              company: company.name,
-              website: company.website,
-              searchId: searchInsert.id,
-              errors: scrapeResult.errors,
-            },
-            '[search] empty scrape result',
+        if (cachedExtraction) {
+          logger.info(
+            { company: company.name, website: company.website },
+            '[search] using cached extraction',
           );
-          throw new Error(errorMessage);
+          // Use cached data but update name/website to match current company
+          extracted = {
+            ...cachedExtraction,
+            name: company.name,
+            website: company.website,
+          };
+        } else {
+          // No cache - scrape and extract
+          const scrapeResult = await scrapeCompanySite(company.website);
+
+          if (scrapeResult.pages.length === 0) {
+            const errorMessage = 'No content could be scraped from the site';
+            logger.warn(
+              {
+                company: company.name,
+                website: company.website,
+                searchId: searchInsert.id,
+                errors: scrapeResult.errors,
+              },
+              '[search] empty scrape result',
+            );
+            throw new Error(errorMessage);
+          }
+
+          // Truncate content more aggressively for faster Claude calls
+          const combinedText = scrapeResult.pages
+            .map((page) => `[${page.type.toUpperCase()}]\n${page.text}`)
+            .join('\n\n')
+            .slice(0, 15_000); // Reduced from 20k to 15k
+
+          extracted = await extractCompanyInsights({
+            companyName: company.name,
+            website: company.website,
+            combinedText,
+          });
+
+          // Cache the extraction for future use
+          setCachedExtraction(company.website, extracted);
         }
 
-        const combinedText = scrapeResult.pages
-          .map((page) => `[${page.type.toUpperCase()}]\n${page.text}`)
-          .join('\n\n')
-          .slice(0, 20_000);
-
-        const extracted = await extractCompanyInsights({
-          companyName: company.name,
-          website: company.website,
-          combinedText,
-        });
         logger.info(
           {
             company: company.name,
@@ -378,6 +404,7 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
             acquisitionFitScore: extracted.acquisition_fit_score,
             primaryIndustry: extracted.primary_industry,
             hasSummary: Boolean(extracted.summary),
+            cached: Boolean(cachedExtraction),
           },
           '[search] extraction successful',
         );
@@ -456,34 +483,44 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
       await Promise.all(batch.map((company) => processCompany(company)));
     }
 
+    // Batch insert failed companies (non-blocking)
     if (failedCompanyRecords.length > 0) {
-      const { error: insertError } = await supabase.from('companies').insert(failedCompanyRecords);
-
-      if (insertError) {
-        logger.error(
-          { err: insertError, searchId: searchInsert.id },
-          'Failed to persist failed company records',
-        );
-      } else {
-        logger.info(
-          { searchId: searchInsert.id, insertedCount: failedCompanyRecords.length },
-          'Persisted failed company records',
-        );
-      }
+      void supabase.from('companies').insert(failedCompanyRecords).then(({ error: insertError }) => {
+        if (insertError) {
+          logger.error(
+            { err: insertError, searchId: searchInsert.id },
+            'Failed to persist failed company records',
+          );
+        } else {
+          logger.info(
+            { searchId: searchInsert.id, insertedCount: failedCompanyRecords.length },
+            'Persisted failed company records',
+          );
+        }
+      });
     }
 
-    const globalOpportunities = await generateGlobalOpportunities({
-      query,
-      companies: processedCompanies.map((company) => ({
-        name: company.name,
-        reason: company.reason,
-      })),
-    });
+    // Generate global opportunities in background - don't block response
+    void (async () => {
+      try {
+        const globalOpportunities = await generateGlobalOpportunities({
+          query,
+          companies: processedCompanies.map((company) => ({
+            name: company.name,
+            reason: company.reason,
+          })),
+        });
 
-    await supabase
-      .from('searches')
-      .update({ global_opportunities: globalOpportunities })
-      .eq('id', searchInsert.id);
+        await supabase
+          .from('searches')
+          .update({ global_opportunities: globalOpportunities })
+          .eq('id', searchInsert.id);
+        
+        logger.info({ searchId: searchInsert.id }, '[search] global opportunities saved');
+      } catch (err) {
+        logger.error({ err, searchId: searchInsert.id }, '[search] failed to generate global opportunities');
+      }
+    })();
 
     const { data: companyRows, error: selectError } = await supabase
       .from('companies')
@@ -499,17 +536,39 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
     const companiesWithSummary = (companyRows ?? []).map((row) =>
       transformCompanyForApi(row as DatabaseCompany),
     );
+
+    const totalDurationMs = Date.now() - searchStartTime;
+    
     logger.info(
       {
         searchId: searchInsert.id,
         returnedCompanies: companiesWithSummary.length,
+        totalDurationMs,
+        durationSec: (totalDurationMs / 1000).toFixed(2),
       },
       '[search] returning companies',
     );
 
+    // Log sample company structure for verification
+    if (companiesWithSummary.length > 0) {
+      const sample = companiesWithSummary[0];
+      logger.debug(
+        {
+          sampleCompany: {
+            name: sample.name,
+            hasSummary: Boolean(sample.summary),
+            hasAcquisitionFitScore: typeof sample.acquisition_fit_score === 'number',
+            hasRawJson: Boolean(sample.raw_json),
+            rawJsonKeys: sample.raw_json ? Object.keys(sample.raw_json) : [],
+          },
+        },
+        '[search] sample company structure',
+      );
+    }
+
     res.status(200).json({
       searchId: searchInsert.id,
-      global_opportunities: globalOpportunities,
+      global_opportunities: 'Generating insights...', // Placeholder - will be updated async
       companies: companiesWithSummary,
     });
   } catch (error) {
