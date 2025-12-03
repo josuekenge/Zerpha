@@ -19,6 +19,7 @@ import {
   MapPin,
   ExternalLink
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from './components/Layout';
@@ -122,9 +123,6 @@ export function WorkspaceApp() {
     navigate(`/workspace?view=${activeView}`, { replace: true });
   }, [activeView, navigate]);
 
-  const displayName = user?.email ? `Hi ${user.email.split('@')[0]}` : 'Zerpha Intelligence';
-  const displayInitial = user?.email ? user.email.charAt(0).toUpperCase() : 'Z';
-
   // Search state
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -139,11 +137,12 @@ export function WorkspaceApp() {
   const [workspaceCategory, setWorkspaceCategory] = useState<string>('all');
   const [workspaceFitFilter, setWorkspaceFitFilter] = useState<FitFilter>('all');
   const [industryFilter, setIndustryFilter] = useState<string>('all');
-  const [workspaceCategories, setWorkspaceCategories] = useState<string[]>([]);
+  const [locationFilter, setLocationFilter] = useState<string>('');
   const [selectedWorkspaceCompanyId, setSelectedWorkspaceCompanyId] = useState<string | null>(
     null,
   );
   const [shortlistSearchQuery, setShortlistSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
 
   // History state
   const [historyItems, setHistoryItems] = useState<SearchHistoryItem[]>([]);
@@ -207,22 +206,11 @@ export function WorkspaceApp() {
   // Load workspace companies - now client-side filtering for fit score
   const loadWorkspaceCompanies = useCallback(
     async (options?: { category?: string; autoSelectId?: string }) => {
-      const categoryValue = options?.category ?? workspaceCategory;
-
-      const queryParams: Record<string, string> = {};
-      if (categoryValue !== 'all') {
-        queryParams.category = categoryValue;
-      }
-      // Removed backend fit score params (minScore/maxScore) to support client-side filtering
-
+      // Always load all companies and filter client-side by industry
       setWorkspaceLoading(true);
       try {
-        const result = await fetchSavedCompanies(queryParams);
+        const result = await fetchSavedCompanies({}); // No backend filtering
         setWorkspaceCompanies(result);
-        const categories = Array.from(
-          new Set(result.map((company) => company.saved_category ?? DEFAULT_CATEGORY)),
-        ).filter(cat => cat !== 'Fintech' && cat !== 'Communication'); // Exclude Fintech and Communication
-        setWorkspaceCategories(categories);
 
         let nextSelected: string | null = null;
         if (options?.autoSelectId && result.some((c) => c.id === options.autoSelectId)) {
@@ -338,6 +326,34 @@ export function WorkspaceApp() {
     }
 
     return workspaceCompanies.filter((company) => {
+      // Apply Category Filter (by primary industry)
+      if (workspaceCategory !== 'all') {
+        const companyIndustry = company.primary_industry?.trim();
+        if (!companyIndustry || companyIndustry.toLowerCase() !== workspaceCategory.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // Apply Industry Filter (from dropdown)
+      if (industryFilter && industryFilter !== 'all') {
+        const companyIndustry = company.primary_industry?.toLowerCase() || '';
+        const filterIndustry = industryFilter.toLowerCase();
+        if (!companyIndustry.includes(filterIndustry) && companyIndustry !== filterIndustry) {
+          return false;
+        }
+      }
+
+      // Apply Location Filter
+      if (locationFilter.trim()) {
+        const location = locationFilter.toLowerCase();
+        const headquarters = (company.headquarters || '').toLowerCase();
+        const rawJson = JSON.stringify(company.raw_json || {}).toLowerCase();
+
+        if (!headquarters.includes(location) && !rawJson.includes(location)) {
+          return false;
+        }
+      }
+
       // Apply Search Filter
       if (shortlistSearchQuery.trim()) {
         const q = shortlistSearchQuery.trim().toLowerCase();
@@ -362,11 +378,9 @@ export function WorkspaceApp() {
         return false;
       }
 
-      // Apply Industry Filter
-      const industryMatches = matchesIndustryFilter(company, industryFilter);
-      return industryMatches;
+      return true;
     });
-  }, [workspaceCompanies, workspaceFitFilter, industryFilter, shortlistSearchQuery]);
+  }, [workspaceCompanies, workspaceCategory, workspaceFitFilter, industryFilter, locationFilter, shortlistSearchQuery]);
 
   // Initial load of history
   const loadSearchHistory = useCallback(async () => {
@@ -546,8 +560,15 @@ export function WorkspaceApp() {
     if (savingMap[companyId]) return;
     setSavingMap((prev) => ({ ...prev, [companyId]: true }));
     try {
-      const saved = await saveCompany(companyId, category);
-      updateCompanySavedState(saved.id, true, saved.saved_category ?? category);
+      // Find the company in search results or history to get its industry
+      const company = searchCompaniesList.find(c => c.id === companyId) ||
+        historyCompanies.find(c => c.id === companyId);
+
+      // Use company's primary industry if available, otherwise use the provided category
+      const industryCategory = company?.primary_industry || category;
+
+      const saved = await saveCompany(companyId, industryCategory);
+      updateCompanySavedState(saved.id, true, saved.saved_category ?? industryCategory);
       showToast('Company saved to workspace');
       // Only auto-select if we are already in the workspace view to avoid jumping
       if (activeView === 'companies') {
@@ -633,25 +654,45 @@ export function WorkspaceApp() {
 
   // Global Context Generation
   const generateGlobalContext = () => {
+    let context = '';
+
     if (activeView === 'search' && searchCompaniesList.length > 0) {
       const listSummary = searchCompaniesList.slice(0, 30).map((c, i) =>
         `${i + 1}. ${c.name} (${c.primary_industry || 'N/A'}) - Score: ${c.acquisition_fit_score || 'N/A'}\n   Summary: ${(c.summary || '').slice(0, 100)}...`
       ).join('\n');
-      return `User is viewing Search Results for "${query}".\nTop 30 Companies:\n${listSummary}`;
+      context += `User is viewing Search Results for "${query}".\nTop 30 Companies:\n${listSummary}`;
     }
 
     if (activeView === 'companies' && workspaceCompanies.length > 0) {
       const listSummary = workspaceCompanies.slice(0, 30).map((c, i) =>
         `${i + 1}. ${c.name} (${c.primary_industry || 'N/A'}) - Score: ${c.fitScore || 'N/A'}\n   Summary: ${(c.summary || '').slice(0, 100)}...`
       ).join('\n');
-      return `User is viewing their Saved Workspace.\nSaved Companies:\n${listSummary}`;
+      context += `User is viewing their Saved Workspace.\nSaved Companies:\n${listSummary}`;
     }
 
-    if (activeView === 'history' && selectedHistoryCompanyAsCompany) {
-      return `User is viewing history for company: ${selectedHistoryCompanyAsCompany.name}.\nDetails: ${JSON.stringify(selectedHistoryCompanyAsCompany)}`;
+    if (activeView === 'history' && historyItems.length > 0) {
+      const historySummary = historyItems.slice(0, 10).map((h, i) =>
+        `${i + 1}. Search: "${h.query}" (${new Date(h.created_at).toLocaleDateString()})`
+      ).join('\n');
+      context += `\n\nSearch History (last 10):\n${historySummary}`;
+
+      if (selectedHistoryCompanyAsCompany) {
+        context += `\n\nCurrently viewing: ${selectedHistoryCompanyAsCompany.name}\nDetails: ${JSON.stringify(selectedHistoryCompanyAsCompany)}`;
+      }
     }
 
-    return "User is in the main dashboard. No specific list or company is currently active.";
+    // Add people data
+    if (activeView === 'people' && allPeople.length > 0) {
+      const peopleSummary = allPeople.slice(0, 30).map((p, i) =>
+        `${i + 1}. ${p.full_name || 'Unknown'} - ${p.role || 'N/A'} at ${p.company_name || 'N/A'}\n   Email: ${p.email || 'N/A'}`
+      ).join('\n');
+      context += `User is viewing their People/Contacts.\nTop 30 People:\n${peopleSummary}`;
+    }
+
+    // Include total counts for user awareness
+    context += `\n\nTOTAL DATA AVAILABLE:\n- Saved Companies: ${workspaceCompanies.length}\n- People/Contacts: ${allPeople.length}\n- Search History: ${historyItems.length} searches`;
+
+    return context || "User is in the main dashboard. No specific list or company is currently active.";
   };
 
   const chatContext = useMemo(() => generateGlobalContext(), [activeView, searchCompaniesList, workspaceCompanies, query, selectedHistoryCompanyAsCompany]);
@@ -689,8 +730,8 @@ export function WorkspaceApp() {
         {/* Brand */}
         <div className="h-16 flex items-center px-6 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-center gap-3 text-slate-900">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
-              <Zap className="w-4 h-4 fill-current" />
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 p-1.5">
+              <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
             </div>
             <div className="flex flex-col">
               <span className="font-bold tracking-tight text-sm leading-none">Zerpha</span>
@@ -792,10 +833,26 @@ export function WorkspaceApp() {
             <div>
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block px-3">View</label>
               <div className="flex p-1 bg-slate-100 rounded-lg border border-slate-200 mb-4 mx-1">
-                <button className="flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium bg-white text-slate-900 rounded shadow-sm border border-slate-200">
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded transition-all",
+                    viewMode === 'table'
+                      ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                      : "text-slate-500 hover:text-slate-700"
+                  )}
+                >
                   <Table2 className="w-3.5 h-3.5" /> Table
                 </button>
-                <button className="flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 cursor-not-allowed opacity-50">
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded transition-all",
+                    viewMode === 'cards'
+                      ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                      : "text-slate-500 hover:text-slate-700"
+                  )}
+                >
                   <LayoutGrid className="w-3.5 h-3.5" /> Cards
                 </button>
               </div>
@@ -842,6 +899,19 @@ export function WorkspaceApp() {
                       ))}
                     </select>
                     <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-xs font-medium text-slate-500 mb-1.5 block px-2">Location</span>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="City, State, Province..."
+                      value={locationFilter}
+                      onChange={(e) => setLocationFilter(e.target.value)}
+                      className="w-full bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-3 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
                   </div>
                 </div>
               </div>
@@ -1062,38 +1132,60 @@ export function WorkspaceApp() {
 
           {activeView === 'companies' && (
             <div className="flex-1 flex flex-col min-h-0">
-              {/* Filters / Tabs */}
-              <div className="px-8 pt-6 pb-4 space-y-4">
-                <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto">
-                  <button
-                    onClick={() => setWorkspaceCategory('all')}
-                    className={cn(
-                      "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
-                      workspaceCategory === 'all' ? "text-indigo-600 border-indigo-600" : "text-slate-500 border-transparent hover:text-slate-700"
-                    )}
-                  >
-                    All Companies
-                  </button>
-                  {workspaceCategories.map(cat => (
+              {/* Header */}
+              <div className="px-8 pt-6 pb-4">
+                {/* Top Row: All Companies Tab and View Toggle */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-1 border-b border-slate-200">
                     <button
-                      key={cat}
-                      onClick={() => setWorkspaceCategory(cat)}
+                      onClick={() => setWorkspaceCategory('all')}
                       className={cn(
-                        "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap capitalize",
-                        workspaceCategory === cat ? "text-indigo-600 border-indigo-600" : "text-slate-500 border-transparent hover:text-slate-700"
+                        "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                        "text-indigo-600 border-indigo-600"
                       )}
                     >
-                      {cat}
+                      All Companies
                     </button>
-                  ))}
+                  </div>
+
+                  {/* View Toggle - Top Right */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">View</span>
+                    <div className="inline-flex bg-slate-100 rounded-lg p-1">
+                      <button
+                        onClick={() => setViewMode('table')}
+                        className={cn(
+                          "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
+                          viewMode === 'table'
+                            ? "bg-white text-indigo-600 shadow-sm"
+                            : "text-slate-600 hover:text-slate-900"
+                        )}
+                      >
+                        <Table2 className="w-3.5 h-3.5" />
+                        Table
+                      </button>
+                      <button
+                        onClick={() => setViewMode('cards')}
+                        className={cn(
+                          "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
+                          viewMode === 'cards'
+                            ? "bg-white text-indigo-600 shadow-sm"
+                            : "text-slate-600 hover:text-slate-900"
+                        )}
+                      >
+                        <LayoutGrid className="w-3.5 h-3.5" />
+                        Cards
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Client-side Search Bar under Tabs */}
+                {/* Search Bar */}
                 <div className="relative max-w-md">
                   <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
                   <input
                     type="text"
-                    placeholder="Filter shortlist by name, domain..."
+                    placeholder="Filter by name, domain..."
                     value={shortlistSearchQuery}
                     onChange={(e) => setShortlistSearchQuery(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all"
@@ -1114,7 +1206,89 @@ export function WorkspaceApp() {
                       <div className="p-8 text-center text-slate-500 text-sm bg-slate-50 rounded-lg border border-slate-100 border-dashed">
                         {workspaceCompanies.length > 0 ? "No companies match the selected filters." : "No saved companies yet."}
                       </div>
+                    ) : viewMode === 'cards' ? (
+                      /* Card View */
+                      <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto">
+                        {filteredWorkspaceCompanies.map(company => (
+                          <motion.div
+                            key={company.id}
+                            whileHover={{ y: -4 }}
+                            onClick={() => {
+                              if (selectedWorkspaceCompanyId === company.id) {
+                                setSelectedWorkspaceCompanyId(null);
+                              } else {
+                                setSelectedWorkspaceCompanyId(company.id);
+                              }
+                            }}
+                            className={cn(
+                              "group relative bg-white rounded-xl border-2 p-5 cursor-pointer transition-all duration-200",
+                              selectedWorkspaceCompanyId === company.id
+                                ? "border-indigo-600 shadow-lg shadow-indigo-600/20 bg-gradient-to-br from-indigo-50 to-violet-50"
+                                : "border-slate-200 hover:border-indigo-300 hover:shadow-md"
+                            )}
+                          >
+                            {/* Selected Indicator */}
+                            {selectedWorkspaceCompanyId === company.id && (
+                              <div className="absolute top-3 right-3 w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center">
+                                <Check className="w-4 h-4 text-white" />
+                              </div>
+                            )}
+
+                            {/* Company Name */}
+                            <h3 className="font-semibold text-slate-900 mb-2 pr-8 truncate text-base">
+                              {company.name}
+                            </h3>
+
+                            {/* Domain */}
+                            <a
+                              href={normalizeWebsite(company.domain)}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-xs text-indigo-600 hover:text-indigo-800 mb-3 block truncate"
+                            >
+                              {company.domain}
+                            </a>
+
+                            {/* Summary */}
+                            {company.summary && (
+                              <p className="text-xs text-slate-600 mb-4 line-clamp-3 leading-relaxed">
+                                {company.summary}
+                              </p>
+                            )}
+
+                            {/* Metadata Row */}
+                            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                              {/* Fit Score */}
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-slate-500">Score:</span>
+                                <span className={cn(
+                                  "inline-flex items-center px-2 py-1 rounded text-xs font-medium",
+                                  (company.fitScore ?? 0) >= 8 ? "bg-green-100 text-green-800" :
+                                    (company.fitScore ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
+                                      (company.fitScore ?? 0) > 0 ? "bg-red-100 text-red-800" : "text-slate-400"
+                                )}>
+                                  {company.fitScore ?? '—'}
+                                </span>
+                              </div>
+
+                              {/* Delete Button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleUnsaveCompany(company.id);
+                                }}
+                                className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                title="Remove from shortlist"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
                     ) : (
+                      /* Table View */
                       <table className="w-full text-left border-collapse">
                         <thead className="sticky top-0 bg-white z-10">
                           <tr>

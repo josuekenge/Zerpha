@@ -68,10 +68,17 @@ export function ChatWidget({ context, mode = 'floating', className }: ChatWidget
         e.preventDefault();
         if ((!inputValue.trim() && selectedFiles.length === 0) || isTyping) return;
 
+        // Build user message content with file information
+        let userContent = inputValue.trim();
+        if (selectedFiles.length > 0) {
+            const fileList = selectedFiles.map(f => f.name).join(', ');
+            userContent += `\n\n[I have attached ${selectedFiles.length} file(s): ${fileList}]`;
+        }
+
         const userMessage: Message = {
             id: Date.now().toString(),
             role: 'user',
-            content: inputValue.trim() + (selectedFiles.length > 0 ? `\n[Attached ${selectedFiles.length} file(s)]` : ''),
+            content: userContent,
             timestamp: new Date(),
         };
 
@@ -83,10 +90,14 @@ export function ChatWidget({ context, mode = 'floating', className }: ChatWidget
 
         try {
             const formData = new FormData();
-            formData.append('messages', JSON.stringify([...messages, userMessage].map(m => ({
-                role: m.role,
-                content: m.content
-            }))));
+
+            // Send all previous messages without file attachment text
+            const messagesToSend = [...messages, {
+                role: userMessage.role,
+                content: inputValue.trim() // Send clean message without file attachment text
+            }];
+
+            formData.append('messages', JSON.stringify(messagesToSend));
             if (context) formData.append('context', context);
 
             filesToSend.forEach(file => {
@@ -362,7 +373,6 @@ function ChatInterface({
                             onChange={(e) => setInputValue(e.target.value)}
                             placeholder="Ask anything..."
                             className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                            autoFocus={mode === 'floating'}
                         />
                         <button
                             type="submit"

@@ -63,21 +63,21 @@ export function LoginPage() {
 
       {/* Login Container */}
       <div className="w-full max-w-[400px] z-10 px-4">
-        
+
         {/* Brand Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 mb-6">
-            <Zap className="w-6 h-6 fill-current" />
+          <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 mb-6 p-2">
+            <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900 mb-2">Welcome back</h1>
           <p className="text-sm text-slate-500 text-center leading-relaxed">
-            Enter your credentials to access your<br/>scouting workspace.
+            Enter your credentials to access your<br />scouting workspace.
           </p>
         </div>
 
         {/* Card */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-xl shadow-slate-200/40 p-6 sm:p-8">
-          
+
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
               {error}
@@ -160,7 +160,7 @@ export function LoginPage() {
         {/* Footer */}
         <div className="mt-8 text-center space-y-4">
           <p className="text-xs text-slate-500">
-            Don't have an account? 
+            Don't have an account?
             <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors ml-1">Request access</a>
           </p>
           <div className="flex items-center justify-center gap-4 text-[10px] text-slate-400">
