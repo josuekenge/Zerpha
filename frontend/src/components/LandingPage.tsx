@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   LayoutGrid,
@@ -15,12 +16,30 @@ import {
   Rocket
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/auth';
+import { TypewriterEffect } from './TypewriterEffect';
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleEnterApp = () => {
-    navigate('/login');
+  const handleSearch = () => {
+    if (user) {
+      if (searchQuery.trim()) {
+        navigate(`/workspace?q=${encodeURIComponent(searchQuery)}`);
+      } else {
+        navigate('/workspace');
+      }
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleArrowClick = () => {
+    if (searchQuery.trim()) {
+      handleSearch();
+    }
   };
 
   const fadeInUp = {
@@ -48,10 +67,13 @@ export function LandingPage() {
       >
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/20">
-              <LayoutGrid className="h-6 w-6 stroke-[2]" />
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+              <Zap className="w-5 h-5 fill-current" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900">Zerpha</span>
+            <div className="flex flex-col">
+              <span className="font-bold tracking-tight text-xl leading-none text-slate-900">Zerpha</span>
+              <span className="text-slate-500 text-[10px] font-medium leading-none mt-1">Intelligence</span>
+            </div>
           </div>
           <div className="hidden md:flex items-center gap-10">
             <a href="#vision" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Vision</a>
@@ -59,13 +81,24 @@ export function LandingPage() {
             <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Pricing</a>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={handleEnterApp} className="hidden text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors sm:block">Sign in</button>
-            <button
-              onClick={handleEnterApp}
-              className="text-sm font-medium bg-indigo-600 text-white px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition-all hover:shadow-lg hover:shadow-indigo-600/25 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
-            >
-              Get Started
-            </button>
+            {user ? (
+              <button
+                onClick={() => navigate('/workspace')}
+                className="text-sm font-medium bg-indigo-600 text-white px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition-all hover:shadow-lg hover:shadow-indigo-600/25 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+              >
+                Go to Workspace
+              </button>
+            ) : (
+              <>
+                <button onClick={() => navigate('/login')} className="hidden text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors sm:block">Sign in</button>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="text-sm font-medium bg-indigo-600 text-white px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition-all hover:shadow-lg hover:shadow-indigo-600/25 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+                >
+                  Get Started
+                </button>
+              </>
+            )}
           </div>
         </div>
       </motion.nav>
@@ -97,7 +130,11 @@ export function LandingPage() {
               className="text-6xl font-bold tracking-tight text-slate-900 sm:text-8xl mb-6"
             >
               Build the Future of <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 animate-gradient-x">Vertical SaaS.</span>
+              <TypewriterEffect
+                words={["Vertical SaaS.", "Market Intelligence.", "Deal Sourcing.", "Private Equity."]}
+                className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 animate-gradient-x"
+                cursorClassName="bg-indigo-600"
+              />
             </motion.h1>
 
             <motion.p variants={fadeInUp} className="mt-8 text-xl leading-8 text-slate-600 max-w-2xl mx-auto font-medium">
@@ -114,16 +151,21 @@ export function LandingPage() {
                   </div>
                   <input
                     type="text"
-                    onFocus={handleEnterApp}
-                    className="block w-full rounded-xl border-0 py-5 pl-14 pr-20 text-slate-900 shadow-2xl shadow-indigo-900/10 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6 bg-white/95 backdrop-blur-xl transition-all font-medium cursor-pointer"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    className="block w-full rounded-xl border-0 py-5 pl-14 pr-20 text-slate-900 shadow-2xl shadow-indigo-900/10 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6 bg-white/95 backdrop-blur-xl transition-all font-medium"
                     placeholder='What market will you disrupt today?'
-                    readOnly
                   />
                   <div className="absolute inset-y-2 right-2 flex items-center">
                     <button
                       type="button"
-                      onClick={handleEnterApp}
-                      className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 transition-colors shadow-md"
+                      onClick={handleArrowClick}
+                      disabled={!searchQuery.trim()}
+                      className={`inline-flex items-center justify-center rounded-lg px-3 py-2 text-white transition-all shadow-md ${searchQuery.trim()
+                        ? 'bg-indigo-600 hover:bg-indigo-700 cursor-pointer'
+                        : 'bg-slate-300 cursor-not-allowed'
+                        }`}
                     >
                       <ArrowRight className="h-5 w-5" />
                     </button>
@@ -134,7 +176,7 @@ export function LandingPage() {
 
             <motion.div variants={fadeInUp} className="mt-12 flex items-center justify-center gap-x-8">
               <button
-                onClick={handleEnterApp}
+                onClick={handleSearch}
                 className="rounded-xl bg-indigo-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-600/25 hover:bg-indigo-500 hover:scale-105 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
                 Start Your Journey
@@ -400,7 +442,7 @@ export function LandingPage() {
                 <p className="mt-6 flex items-baseline gap-x-1">
                   <span className="text-4xl font-bold tracking-tight text-slate-900">Free</span>
                 </p>
-                <button onClick={handleEnterApp} className="mt-6 block w-full rounded-xl py-2.5 px-3 text-center text-sm font-bold leading-6 text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300 hover:bg-indigo-50 transition-all">Start Exploring</button>
+                <button onClick={handleSearch} className="mt-6 block w-full rounded-xl py-2.5 px-3 text-center text-sm font-bold leading-6 text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300 hover:bg-indigo-50 transition-all">Start Exploring</button>
                 <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-slate-600">
                   <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> 5-15 Search Results</li>
                   <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> Company Names & Summaries</li>
@@ -425,7 +467,7 @@ export function LandingPage() {
                   <span className="text-4xl font-bold tracking-tight text-slate-900">$29</span>
                   <span className="text-sm font-semibold leading-6 text-slate-600">/mo</span>
                 </p>
-                <button onClick={handleEnterApp} className="mt-6 block w-full rounded-xl bg-indigo-600 px-3 py-2.5 text-center text-sm font-bold leading-6 text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-all">Get Started</button>
+                <button onClick={handleSearch} className="mt-6 block w-full rounded-xl bg-indigo-600 px-3 py-2.5 text-center text-sm font-bold leading-6 text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-all">Get Started</button>
                 <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-slate-600">
                   <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> 25 Deep Dive Searches</li>
                   <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> Company Locations</li>
@@ -448,7 +490,7 @@ export function LandingPage() {
                   <span className="text-4xl font-bold tracking-tight text-slate-900">$60</span>
                   <span className="text-sm font-semibold leading-6 text-slate-600">/mo</span>
                 </p>
-                <button onClick={handleEnterApp} className="mt-6 block w-full rounded-xl py-2.5 px-3 text-center text-sm font-bold leading-6 text-slate-900 ring-1 ring-inset ring-slate-200 hover:ring-slate-300 hover:bg-slate-50 transition-all">Contact Sales</button>
+                <button onClick={handleSearch} className="mt-6 block w-full rounded-xl py-2.5 px-3 text-center text-sm font-bold leading-6 text-slate-900 ring-1 ring-inset ring-slate-200 hover:ring-slate-300 hover:bg-slate-50 transition-all">Contact Sales</button>
                 <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-slate-600">
                   <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> Phone Numbers & Contact Info</li>
                   <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> PDF Slide Export</li>

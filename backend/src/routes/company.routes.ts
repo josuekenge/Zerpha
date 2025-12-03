@@ -98,6 +98,52 @@ companyRouter.get('/companies', requireAuth, async (req: Request, res: Response,
   }
 });
 
+const createCompanyBodySchema = z.object({
+  name: z.string().min(1),
+  domain: z.string().optional(),
+  description: z.string().optional(),
+  headquarters: z.string().optional(),
+  linkedin_url: z.string().optional(),
+});
+
+companyRouter.post('/companies', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) throw new Error('User not authenticated');
+
+    const body = createCompanyBodySchema.parse(req.body);
+
+    const { data, error } = await supabase
+      .from('companies')
+      .insert({
+        user_id: user.id,
+        name: body.name,
+        website: body.domain,
+        summary: body.description,
+        raw_json: {
+          hq_location: body.headquarters,
+          linkedin_url: body.linkedin_url,
+          short_description: body.description,
+        },
+        is_saved: true, // Auto-save created companies
+        saved_category: 'manual',
+        acquisition_fit_score: 0, // Default
+      })
+      .select('*')
+      .single();
+
+    if (error) {
+      logger.error({ err: error, body }, 'Failed to create company');
+      throw new Error(error.message);
+    }
+
+    const payload = mapToSavedCompany(data as DatabaseCompany);
+    res.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
 companyRouter.post('/companies/:companyId/save', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = (req as AuthenticatedRequest).user;

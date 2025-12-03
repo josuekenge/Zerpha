@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { env } from '../config/env.js';
 import { logger } from '../logger.js';
 
-const CLAUDE_MODEL = 'claude-sonnet-4-5';
+const CLAUDE_MODEL = 'claude-3-haiku-20240307';
 const DISCOVERY_MAX_TOKENS = 1024;
 const MAX_COMPANIES = 5;
 

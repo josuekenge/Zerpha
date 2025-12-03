@@ -5,12 +5,23 @@ import pinoHttp from 'pino-http';
 import { apiRouter } from './routes/index.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { logger } from './logger.js';
+import { env } from './config/env.js';
 export const app = express();
 app.use(pinoHttp({
     logger,
 }));
+const allowedOrigins = env.NODE_ENV === 'production'
+    ? []
+    : ['http://localhost:5173'];
 app.use(cors({
-    origin: true,
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, origin ?? allowedOrigins[0]);
+        }
+        else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
 }));
 app.use(helmet());

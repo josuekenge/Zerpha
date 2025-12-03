@@ -208,7 +208,7 @@ export function transformCompanyForApi(dbCompany: DatabaseCompany): ApiCompany {
 
   const secondaryIndustry =
     (typeof dbCompany.secondary_industry === 'string' &&
-    dbCompany.secondary_industry.trim().length > 0
+      dbCompany.secondary_industry.trim().length > 0
       ? dbCompany.secondary_industry.trim()
       : null) ??
     pickStringField(hydratedRaw, 'secondary_industry');
@@ -245,15 +245,15 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
     const enrichCompanyPeople = async (companyId: string, companyName: string, website: string, userId: string) => {
       console.log("ENRICH PEOPLE CALLED FOR", companyName);
       console.log("DEBUG: companyId =", companyId, "userId =", userId, "website =", website);
-      
+
       try {
         logger.info({ companyId, companyName, website }, '[people] starting website-contacts scraper');
-        
+
         // Use the scrapePeople function with the full website URL
         const people = await scrapePeople(website);
-        
+
         console.log('People scraped for', companyName, people);
-        
+
         if (!Array.isArray(people) || people.length === 0) {
           console.log("DEBUG: No people returned from scrapePeople for", companyName);
           logger.debug({ companyId, companyName, website }, '[people] no contacts found by Apify');
@@ -278,8 +278,8 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
               company_id: companyId,
               first_name: p.first_name,
               last_name: p.last_name,
-              full_name: p.first_name && p.last_name 
-                ? `${p.first_name} ${p.last_name}` 
+              full_name: p.first_name && p.last_name
+                ? `${p.first_name} ${p.last_name}`
                 : p.first_name || p.last_name || null,
               email: p.email,
               phone: p.phone,
@@ -390,7 +390,8 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
           reason: company.reason,
         });
 
-        await enrichCompanyPeople(savedCompany.id, savedCompany.name, savedCompany.website, user.id);
+        // Run enrichment in background - do not await
+        void enrichCompanyPeople(savedCompany.id, savedCompany.name, savedCompany.website, user.id);
 
         processedCompanies.push({
           name: company.name,
@@ -449,7 +450,7 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
       }
     };
 
-    const concurrency = 2;
+    const concurrency = 5;
     for (let i = 0; i < discovered.length; i += concurrency) {
       const batch = discovered.slice(i, i + concurrency);
       await Promise.all(batch.map((company) => processCompany(company)));

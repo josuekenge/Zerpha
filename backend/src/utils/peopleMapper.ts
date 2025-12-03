@@ -36,11 +36,11 @@ export function mapEmailsToPeople(apifyResults: any[]): Person[] {
   return apifyResults
     .map((entry) => {
       // Handle ScrapedPerson format from website-contacts
-      if ('sourcePage' in entry) {
+      if ('source_page' in entry) {
         const scrapedEntry = entry as ScrapedPerson;
         const email = safeString(scrapedEntry.email);
         const phone = safeString(scrapedEntry.phone);
-        
+
         // Skip entries with no email and no phone
         if (!email && !phone) {
           return null;
@@ -70,7 +70,7 @@ export function mapEmailsToPeople(apifyResults: any[]): Person[] {
           work_history: null,
           skills: null,
           tags: null,
-          notes: scrapedEntry.sourcePage ? `Source: ${scrapedEntry.sourcePage}` : null,
+          notes: scrapedEntry.source_page ? `Source: ${scrapedEntry.source_page}` : null,
           is_ceo: false,
           is_founder: false,
           is_executive: false,

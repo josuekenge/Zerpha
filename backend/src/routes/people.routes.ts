@@ -131,5 +131,75 @@ peopleRouter.get(
   },
 );
 
+
+
+const createPersonBodySchema = z.object({
+  first_name: z.string().min(1),
+  last_name: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().optional(),
+  role: z.string().optional(),
+  company_id: z.string().uuid().optional(),
+  linkedin_url: z.string().optional(),
+});
+
+peopleRouter.post('/people', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) throw new Error('User not authenticated');
+
+    const body = createPersonBodySchema.parse(req.body);
+
+    const { data, error } = await supabase
+      .from('people')
+      .insert({
+        user_id: user.id,
+        first_name: body.first_name,
+        last_name: body.last_name,
+        email: body.email || null,
+        phone: body.phone,
+        role: body.role,
+        company_id: body.company_id || null, // Allow null if DB allows
+        linkedin_url: body.linkedin_url,
+        source: 'manual',
+      })
+      .select('*')
+      .single();
+
+    if (error) {
+      logger.error({ err: error, body }, 'Failed to create person');
+      throw new Error(error.message);
+    }
+
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+});
+
+peopleRouter.delete('/people/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) throw new Error('User not authenticated');
+
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from('people')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      logger.error({ err: error, personId: id }, 'Failed to delete person');
+      throw new Error(error.message);
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
 export { peopleRouter };
 

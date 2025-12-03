@@ -21,6 +21,7 @@ export interface ScrapedPerson {
   source_page: string;
   role: string | null;
   company_name: string | null;
+  name?: string | null;
 }
 
 /**
@@ -30,7 +31,7 @@ export interface ScrapedPerson {
  */
 export async function scrapePeople(website: string): Promise<ScrapedPerson[]> {
   const token = env.APIFY_TOKEN;
-  
+
   if (!token) {
     console.warn('[apify] APIFY_TOKEN missing, skipping people scraping');
     return [];
@@ -55,7 +56,7 @@ export async function scrapePeople(website: string): Promise<ScrapedPerson[]> {
   try {
     // Use run-sync-get-dataset-items for synchronous execution
     const apiUrl = `${APIFY_BASE_URL}/acts/${encodeURIComponent(APIFY_CONTACTS_ACTOR_ID)}/run-sync-get-dataset-items?token=${token}`;
-    
+
     console.log('[apify] calling actor:', APIFY_CONTACTS_ACTOR_ID, 'for website:', website);
 
     const res = await fetch(apiUrl, {
@@ -71,7 +72,7 @@ export async function scrapePeople(website: string): Promise<ScrapedPerson[]> {
     }
 
     const items = (await res.json()) as any[];
-    
+
     console.log('[apify] raw response items:', JSON.stringify(items, null, 2));
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -83,7 +84,7 @@ export async function scrapePeople(website: string): Promise<ScrapedPerson[]> {
 
     for (const item of items) {
       const sourcePage = item.url || item.sourceUrl || website;
-      
+
       // Handle emails array (common format for contact-info-scraper)
       const emails: string[] = Array.isArray(item.emails) ? item.emails : [];
       const phones: string[] = Array.isArray(item.phones) ? item.phones : [];

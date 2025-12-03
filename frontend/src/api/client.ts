@@ -154,4 +154,21 @@ export async function unsaveCompany(companyId: string): Promise<void> {
   }
 }
 
+export interface CreateCompanyParams {
+  name: string;
+  domain?: string;
+  description?: string;
+  headquarters?: string;
+  linkedin_url?: string;
+}
+
+export async function createCompany(params: CreateCompanyParams): Promise<SavedCompany> {
+  const response = await authenticatedFetch(`${API_BASE_URL}/api/companies`, {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+
+  return handleResponse<SavedCompany>(response, 'Failed to create company');
+}
+
 

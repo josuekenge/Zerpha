@@ -15,6 +15,7 @@ const envSchema = z.object({
     GOOGLE_CLIENT_EMAIL: z.string().email('GOOGLE_CLIENT_EMAIL must be a valid email'),
     GOOGLE_PRIVATE_KEY: z.string().min(1, 'GOOGLE_PRIVATE_KEY is required'),
     GOOGLE_SLIDES_TEMPLATE_ID: z.string().min(1, 'GOOGLE_SLIDES_TEMPLATE_ID is required'),
+    APIFY_TOKEN: z.string().optional(),
 });
 const parsed = envSchema.safeParse({
     NODE_ENV: process.env.NODE_ENV,
@@ -28,6 +29,7 @@ const parsed = envSchema.safeParse({
     GOOGLE_CLIENT_EMAIL: process.env.GOOGLE_CLIENT_EMAIL,
     GOOGLE_PRIVATE_KEY: process.env.GOOGLE_PRIVATE_KEY,
     GOOGLE_SLIDES_TEMPLATE_ID: process.env.GOOGLE_SLIDES_TEMPLATE_ID,
+    APIFY_TOKEN: process.env.APIFY_TOKEN,
 });
 if (!parsed.success) {
     console.error('❌ Invalid or missing environment variables:');

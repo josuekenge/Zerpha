@@ -70,3 +70,30 @@ export async function getAllPeople(): Promise<Person[]> {
   return handleResponse<Person[]>(response, 'Failed to load people');
 }
 
+export interface CreatePersonParams {
+  first_name: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+  company_id?: string;
+  linkedin_url?: string;
+}
+
+export async function createPerson(params: CreatePersonParams): Promise<Person> {
+  const response = await authenticatedFetch(`${API_BASE_URL}/api/people`, {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+  return handleResponse<Person>(response, 'Failed to create person');
+}
+
+export async function deletePerson(personId: string): Promise<void> {
+  const response = await authenticatedFetch(`${API_BASE_URL}/api/people/${personId}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to delete person');
+  }
+}
+
