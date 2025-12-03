@@ -47,12 +47,6 @@ import { cn } from './lib/utils';
 
 type WorkspaceView = 'search' | 'companies' | 'people' | 'history';
 type FitFilter = 'all' | 'high' | 'medium' | 'low';
-type IndustryCarrier = {
-  primary_industry?: string | null;
-  secondary_industry?: string | null;
-  primaryIndustry?: string | null;
-  secondaryIndustry?: string | null;
-};
 
 const INDUSTRIES = [
   "AI",
@@ -74,6 +68,43 @@ const INDUSTRIES = [
   "E Commerce",
   "Hardware Enabled SaaS"
 ];
+
+/**
+ * Check if a company matches the selected industry filter.
+ * Mirrors the pattern used by matchesFitScore.
+ */
+const matchesIndustry = (
+  companyIndustry: string | null | undefined,
+  selectedIndustry: string
+): boolean => {
+  // "all" means show everything
+  if (selectedIndustry === 'all') {
+    return true;
+  }
+  
+  // If company has no industry, it only shows when "all" is selected
+  if (!companyIndustry || typeof companyIndustry !== 'string') {
+    return false;
+  }
+  
+  const companyValue = companyIndustry.trim().toLowerCase();
+  const filterValue = selectedIndustry.toLowerCase();
+  
+  // Direct match (case-insensitive)
+  if (companyValue === filterValue) {
+    return true;
+  }
+  
+  // Handle common variations
+  const normalize = (s: string): string => {
+    return s
+      .replace(/[-_]/g, ' ')  // Replace dashes/underscores with spaces
+      .replace(/\s+/g, '')    // Remove all spaces
+      .toLowerCase();
+  };
+  
+  return normalize(companyValue) === normalize(filterValue);
+};
 
 const DEFAULT_CATEGORY = 'General';
 
@@ -130,6 +161,8 @@ export function WorkspaceApp() {
   const [searchCompaniesList, setSearchCompaniesList] = useState<Company[]>([]);
   const [selectedSearchCompanyId, setSelectedSearchCompanyId] = useState<string | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchIndustryFilter, setSearchIndustryFilter] = useState<string>('all');
+  const [searchFitFilter, setSearchFitFilter] = useState<FitFilter>('all');
 
   // Workspace state
   const [workspaceCompanies, setWorkspaceCompanies] = useState<SavedCompany[]>([]);
@@ -241,30 +274,6 @@ export function WorkspaceApp() {
   // ... (rest of file)
 
 
-  const normalizeIndustry = (value?: string | null): string | null => {
-    if (!value || typeof value !== 'string') {
-      return null;
-    }
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
-  };
-
-  const getCompanyIndustryValues = (
-    company?: IndustryCarrier | null,
-  ): { primary: string | null; secondary: string | null } => {
-    if (!company) {
-      return { primary: null, secondary: null };
-    }
-
-    const primary = company.primary_industry ?? company.primaryIndustry ?? null;
-    const secondary = company.secondary_industry ?? company.secondaryIndustry ?? null;
-
-    return {
-      primary: normalizeIndustry(primary),
-      secondary: normalizeIndustry(secondary),
-    };
-  };
-
   const matchesFitFilter = (
     score: number | null | undefined,
     filter: FitFilter,
@@ -291,35 +300,6 @@ export function WorkspaceApp() {
     return true;
   };
 
-  const matchesIndustryFilter = (
-    company: IndustryCarrier | null | undefined,
-    filter: string,
-  ): boolean => {
-    if (!filter || filter.trim().toLowerCase() === 'all') {
-      return true;
-    }
-
-    const normalizedFilter = filter.trim().toLowerCase();
-    const { primary, secondary } = getCompanyIndustryValues(company);
-
-    if (!primary && !secondary) {
-      return false;
-    }
-
-    const normalizedPrimary = primary?.toLowerCase();
-    const normalizedSecondary = secondary?.toLowerCase();
-
-    const matchesPrimary =
-      normalizedPrimary === normalizedFilter ||
-      (normalizedPrimary && normalizedPrimary.includes(normalizedFilter));
-
-    const matchesSecondary =
-      normalizedSecondary === normalizedFilter ||
-      (normalizedSecondary && normalizedSecondary.includes(normalizedFilter));
-
-    return Boolean(matchesPrimary || matchesSecondary);
-  };
-
   const filteredWorkspaceCompanies = useMemo(() => {
     if (workspaceCompanies.length === 0) {
       return [];
@@ -328,19 +308,14 @@ export function WorkspaceApp() {
     return workspaceCompanies.filter((company) => {
       // Apply Category Filter (by primary industry)
       if (workspaceCategory !== 'all') {
-        const companyIndustry = company.primary_industry?.trim();
-        if (!companyIndustry || companyIndustry.toLowerCase() !== workspaceCategory.toLowerCase()) {
+        if (!matchesIndustry(company.primary_industry, workspaceCategory)) {
           return false;
         }
       }
 
-      // Apply Industry Filter (from dropdown)
-      if (industryFilter && industryFilter !== 'all') {
-        const companyIndustry = company.primary_industry?.toLowerCase() || '';
-        const filterIndustry = industryFilter.toLowerCase();
-        if (!companyIndustry.includes(filterIndustry) && companyIndustry !== filterIndustry) {
-          return false;
-        }
+      // Apply Industry Filter (from dropdown) - same pattern as Fit Score
+      if (!matchesIndustry(company.primary_industry, industryFilter)) {
+        return false;
       }
 
       // Apply Location Filter
@@ -435,6 +410,33 @@ export function WorkspaceApp() {
 
   const selectedPerson = allPeople.find((p) => p.id === selectedPersonId);
 
+  // Filter search results by fit score and industry (both filters combined with AND)
+  const filteredSearchCompanies = useMemo(() => {
+    return searchCompaniesList.filter((company) => {
+      // Apply Fit Score Filter
+      if (searchFitFilter !== 'all') {
+        const score = company.acquisition_fit_score;
+        if (!Number.isFinite(score)) return false;
+        
+        const numericScore = Number(score);
+        if (searchFitFilter === 'high' && numericScore < 8) return false;
+        if (searchFitFilter === 'medium' && (numericScore < 5 || numericScore >= 8)) return false;
+        if (searchFitFilter === 'low' && numericScore >= 5) return false;
+      }
+      
+      // Apply Industry Filter (same pattern as Fit Score)
+      if (!matchesIndustry(company.primary_industry, searchIndustryFilter)) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [searchCompaniesList, searchFitFilter, searchIndustryFilter]);
+
+  // Get the selected search company from filtered results
+  const selectedSearchCompany = filteredSearchCompanies.find((c) => c.id === selectedSearchCompanyId) 
+    ?? searchCompaniesList.find((c) => c.id === selectedSearchCompanyId);
+
   // History computed values
   const filteredHistoryCompanies = useMemo(() => {
     if (!historySearchQuery.trim()) return historyCompanies;
@@ -469,6 +471,8 @@ export function WorkspaceApp() {
     setSelectedSearchCompanyId(null);
     setHasSearched(false);
     setSearchError(null);
+    setSearchIndustryFilter('all');
+    setSearchFitFilter('all');
     // Also clear selected items in other views to ensure a truly fresh feel
     setSelectedWorkspaceCompanyId(null);
     setSelectedHistoryId(null);
@@ -633,10 +637,6 @@ export function WorkspaceApp() {
       setHistoryDetailsLoading(false);
     }
   };
-
-  const selectedSearchCompany = searchCompaniesList.find(
-    (c) => c.id === selectedSearchCompanyId,
-  );
 
   const workspaceSelection = workspaceCompanies.find(
     (c) => c.id === selectedWorkspaceCompanyId,
@@ -1042,24 +1042,77 @@ export function WorkspaceApp() {
                       </div>
                     ) : (
                       <>
-                        <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
-                          <span className="text-sm font-medium text-slate-700">Results ({searchCompaniesList.length})</span>
-                          {searchError && <span className="text-xs text-red-600">{searchError}</span>}
+                        <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-sm font-medium text-slate-700">
+                              Results ({filteredSearchCompanies.length}
+                              {filteredSearchCompanies.length !== searchCompaniesList.length && 
+                                ` of ${searchCompaniesList.length}`})
+                            </span>
+                            {searchError && <span className="text-xs text-red-600">{searchError}</span>}
+                          </div>
+                          {/* Search Filters */}
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-slate-500">Fit:</span>
+                              <select
+                                value={searchFitFilter}
+                                onChange={(e) => setSearchFitFilter(e.target.value as FitFilter)}
+                                className="appearance-none bg-white border border-slate-200 text-xs text-slate-700 py-1.5 pl-2 pr-6 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                              >
+                                <option value="all">All Scores</option>
+                                <option value="high">High (8+)</option>
+                                <option value="medium">Medium (5-7)</option>
+                                <option value="low">Low (&lt;5)</option>
+                              </select>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-slate-500">Industry:</span>
+                              <select
+                                value={searchIndustryFilter}
+                                onChange={(e) => setSearchIndustryFilter(e.target.value)}
+                                className="appearance-none bg-white border border-slate-200 text-xs text-slate-700 py-1.5 pl-2 pr-6 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                              >
+                                <option value="all">All Industries</option>
+                                {INDUSTRIES.map((industry) => (
+                                  <option key={industry} value={industry}>
+                                    {industry}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            {(searchFitFilter !== 'all' || searchIndustryFilter !== 'all') && (
+                              <button
+                                onClick={() => {
+                                  setSearchFitFilter('all');
+                                  setSearchIndustryFilter('all');
+                                }}
+                                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                              >
+                                Clear filters
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <div className="flex-1 overflow-auto bg-white">
-                          {searchCompaniesList.length === 0 ? (
-                            <div className="p-8 text-center text-slate-500 text-sm">No results found.</div>
+                          {filteredSearchCompanies.length === 0 ? (
+                            <div className="p-8 text-center text-slate-500 text-sm">
+                              {searchCompaniesList.length === 0 
+                                ? "No results found." 
+                                : "No companies match the selected filters."}
+                            </div>
                           ) : (
                             <table className="w-full text-left border-collapse">
                               <thead className="sticky top-0 bg-white z-10 shadow-sm">
                                 <tr>
                                   <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Name</th>
+                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Industry</th>
                                   <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Fit</th>
                                   <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Action</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100">
-                                {searchCompaniesList.map(company => (
+                                {filteredSearchCompanies.map(company => (
                                   <tr
                                     key={company.id}
                                     onClick={() => setSelectedSearchCompanyId(company.id)}
@@ -1071,6 +1124,11 @@ export function WorkspaceApp() {
                                     <td className="py-3 px-4">
                                       <div className="font-medium text-slate-900">{company.name}</div>
                                       <div className="text-xs text-slate-500">{company.website}</div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <span className="text-xs text-slate-600">
+                                        {company.primary_industry || 'Unknown'}
+                                      </span>
                                     </td>
                                     <td className="py-3 px-4 text-right">
                                       <span className={cn(

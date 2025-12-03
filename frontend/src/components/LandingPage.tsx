@@ -18,6 +18,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { TypewriterEffect } from './TypewriterEffect';
+import { AboutMe } from './AboutMe';
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -78,7 +79,8 @@ export function LandingPage() {
           <div className="hidden md:flex items-center gap-10">
             <a href="#vision" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Vision</a>
             <a href="#capabilities" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Capabilities</a>
-            <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Pricing</a>
+            <a href="#about" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">About</a>
+            <a href="#mission" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Mission</a>
           </div>
           <div className="flex items-center gap-4">
             {user ? (
@@ -415,93 +417,122 @@ export function LandingPage() {
           </div>
         </div>
 
-        {/* Pricing Section */}
-        <div id="pricing" className="py-24 sm:py-32 relative overflow-hidden bg-white">
+        {/* Mission Section */}
+        <div id="mission" className="py-24 sm:py-32 relative overflow-hidden bg-white">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="mx-auto max-w-2xl sm:text-center"
+              className="mx-auto max-w-3xl text-center"
             >
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Invest in Your Edge</h2>
-              <p className="mt-6 text-lg leading-8 text-slate-600">Simple, transparent pricing for every stage of your journey.</p>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Built for Serial Acquirers</h2>
+              <p className="mt-6 text-lg leading-8 text-slate-600">
+                Zerpha is purpose-built to help <span className="font-semibold text-indigo-600">Volaris Group</span>, <span className="font-semibold text-indigo-600">Constellation Software</span>, and other serial acquirers discover and evaluate B2B vertical SaaS companies faster than ever before.
+              </p>
             </motion.div>
-            <div className="mx-auto mt-16 grid max-w-lg grid-cols-1 gap-y-6 sm:mt-20 sm:gap-y-0 lg:max-w-none lg:grid-cols-3 lg:gap-8">
 
-              {/* Tier 1: Starter */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
-                className="rounded-3xl p-8 ring-1 ring-slate-200 xl:p-10 bg-slate-50/50 hover:bg-white hover:shadow-xl transition-all duration-300"
-              >
-                <h3 className="text-lg font-bold leading-8 text-slate-900">Explorer</h3>
-                <p className="mt-4 text-sm leading-6 text-slate-600">For the curious minds mapping the landscape.</p>
-                <p className="mt-6 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold tracking-tight text-slate-900">Free</span>
-                </p>
-                <button onClick={handleSearch} className="mt-6 block w-full rounded-xl py-2.5 px-3 text-center text-sm font-bold leading-6 text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300 hover:bg-indigo-50 transition-all">Start Exploring</button>
-                <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-slate-600">
-                  <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> 5-15 Search Results</li>
-                  <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> Company Names & Summaries</li>
-                  <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> Verified Emails</li>
-                </ul>
-              </motion.div>
+            <div className="mx-auto mt-16 max-w-5xl">
+              <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
 
-              {/* Tier 2: Pro */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-                className="rounded-3xl p-8 ring-2 ring-indigo-600 xl:p-10 bg-white shadow-2xl shadow-indigo-900/10 relative scale-105 z-10"
-              >
-                <div className="absolute -top-4 left-0 right-0 flex justify-center">
-                  <span className="inline-flex items-center rounded-full bg-indigo-600 px-4 py-1 text-xs font-bold text-white shadow-lg">Most Popular</span>
-                </div>
-                <h3 className="text-lg font-bold leading-8 text-slate-900">Visionary</h3>
-                <p className="mt-4 text-sm leading-6 text-slate-600">For builders ready to dominate their niche.</p>
-                <p className="mt-6 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold tracking-tight text-slate-900">$29</span>
-                  <span className="text-sm font-semibold leading-6 text-slate-600">/mo</span>
-                </p>
-                <button onClick={handleSearch} className="mt-6 block w-full rounded-xl bg-indigo-600 px-3 py-2.5 text-center text-sm font-bold leading-6 text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-all">Get Started</button>
-                <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-slate-600">
-                  <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> 25 Deep Dive Searches</li>
-                  <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> Company Locations</li>
-                  <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> Direct Email Access</li>
-                  <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> Acquisition Scoring</li>
-                </ul>
-              </motion.div>
+                {/* The Challenge */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                  className="rounded-3xl p-8 bg-slate-50 ring-1 ring-slate-200"
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100">
+                      <span className="text-lg">🎯</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900">The Challenge</h3>
+                  </div>
+                  <p className="text-slate-600 leading-relaxed">
+                    Finding high-quality B2B software acquisition targets is time-consuming. Traditional methods involve endless manual research, fragmented data sources, and missed opportunities in niche verticals.
+                  </p>
+                </motion.div>
 
-              {/* Tier 3: Enterprise */}
+                {/* Our Solution */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                  className="rounded-3xl p-8 bg-indigo-600 ring-1 ring-indigo-500"
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+                      <span className="text-lg">⚡</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-white">Our Solution</h3>
+                  </div>
+                  <p className="text-indigo-100 leading-relaxed">
+                    Zerpha uses AI to instantly discover, analyze, and score vertical SaaS companies across any industry. Get acquisition-ready insights, contact information, and fit scores in seconds—not weeks.
+                  </p>
+                </motion.div>
+
+              </div>
+
+              {/* Key Benefits */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
-                className="rounded-3xl p-8 ring-1 ring-slate-200 xl:p-10 bg-slate-50/50 hover:bg-white hover:shadow-xl transition-all duration-300"
+                className="mt-12 rounded-3xl p-8 bg-gradient-to-br from-slate-900 to-slate-800 ring-1 ring-slate-700"
               >
-                <h3 className="text-lg font-bold leading-8 text-slate-900">Empire</h3>
-                <p className="mt-4 text-sm leading-6 text-slate-600">For VC firms and M&A teams.</p>
-                <p className="mt-6 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold tracking-tight text-slate-900">$60</span>
-                  <span className="text-sm font-semibold leading-6 text-slate-600">/mo</span>
-                </p>
-                <button onClick={handleSearch} className="mt-6 block w-full rounded-xl py-2.5 px-3 text-center text-sm font-bold leading-6 text-slate-900 ring-1 ring-inset ring-slate-200 hover:ring-slate-300 hover:bg-slate-50 transition-all">Contact Sales</button>
-                <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-slate-600">
-                  <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> Phone Numbers & Contact Info</li>
-                  <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> PDF Slide Export</li>
-                  <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> Faster Search Speed</li>
-                  <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-indigo-600" /> Priority Support</li>
-                </ul>
+                <h3 className="text-xl font-bold text-white mb-8 text-center">Why Acquirers Choose Zerpha</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600/20 mx-auto mb-4">
+                      <Check className="h-6 w-6 text-indigo-400" />
+                    </div>
+                    <h4 className="font-semibold text-white mb-2">Faster Discovery</h4>
+                    <p className="text-sm text-slate-400">Find vertical SaaS targets in minutes instead of months of manual research.</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600/20 mx-auto mb-4">
+                      <Check className="h-6 w-6 text-indigo-400" />
+                    </div>
+                    <h4 className="font-semibold text-white mb-2">Acquisition Scoring</h4>
+                    <p className="text-sm text-slate-400">AI-powered fit scores help prioritize the best opportunities for your portfolio.</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600/20 mx-auto mb-4">
+                      <Check className="h-6 w-6 text-indigo-400" />
+                    </div>
+                    <h4 className="font-semibold text-white mb-2">Direct Outreach</h4>
+                    <p className="text-sm text-slate-400">Get verified emails and decision-maker contacts to start conversations immediately.</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* CTA */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4 }}
+                className="mt-12 text-center"
+              >
+                <button
+                  onClick={handleSearch}
+                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-indigo-600/25 hover:bg-indigo-500 transition-all hover:shadow-xl hover:shadow-indigo-600/30"
+                >
+                  Start Discovering Targets
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+                <p className="mt-4 text-sm text-slate-500">Join the next generation of M&A intelligence</p>
               </motion.div>
 
             </div>
           </div>
         </div>
+
+        {/* About Me Section */}
+        <AboutMe />
 
         {/* Footer */}
         <footer className="bg-white border-t border-slate-200" aria-labelledby="footer-heading">
