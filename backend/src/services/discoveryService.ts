@@ -5,8 +5,9 @@ import { env } from '../config/env.js';
 import { logger } from '../logger.js';
 
 const CLAUDE_MODEL = 'claude-3-haiku-20240307';
-const DISCOVERY_MAX_TOKENS = 1024;
-const MAX_COMPANIES = 5;
+const DISCOVERY_MAX_TOKENS = 2048; // Increased for more candidates
+const DEFAULT_RESULT_COUNT = 5;
+const MAX_CANDIDATES = 15; // Request more candidates for diversity
 
 const anthropic = new Anthropic({
   apiKey: env.CLAUDE_API_KEY,
@@ -20,12 +21,14 @@ const discoverySchema = z
       reason: z.string().min(1),
     }),
   )
-  .max(MAX_COMPANIES);
+  .max(MAX_CANDIDATES);
 
 export type DiscoveredCompany = z.infer<typeof discoverySchema>[number];
 
+// System prompt requests more candidates for diversity
 const systemPrompt = `You are Zerpha, an AI assistant that researches SaaS companies.
-Task: Given a market or niche query, return up to ${MAX_COMPANIES} relevant SaaS companies, preferring vertical SaaS. 
+Task: Given a market or niche query, return up to ${MAX_CANDIDATES} relevant SaaS companies, preferring vertical SaaS. 
+Include a diverse range of companies - from market leaders to emerging players.
 If the niche lacks clear vertical SaaS options, include the best horizontal/general SaaS companies for that niche instead.
 
 Rules:
@@ -33,6 +36,7 @@ Rules:
 - Each object must contain: name, website, reason.
 - reason should briefly explain why the company fits the niche or why it was selected.
 - Prefer companies with readily discoverable websites that can be scraped.
+- Include both well-known and lesser-known companies for variety.
 - Avoid duplicates.`;
 
 function extractJsonPayload(content: string): string {
@@ -44,18 +48,34 @@ function extractJsonPayload(content: string): string {
   return trimmed;
 }
 
-export async function discoverCompanies(query: string): Promise<DiscoveredCompany[]> {
-  logger.info({ query }, '[discovery] initiating company discovery');
+export interface DiscoveryOptions {
+  maxCandidates?: number;
+  temperature?: number;
+}
+
+/**
+ * Discover companies matching a query.
+ * Returns more candidates than needed for diversity filtering.
+ */
+export async function discoverCompanies(
+  query: string,
+  options: DiscoveryOptions = {},
+): Promise<DiscoveredCompany[]> {
+  const maxCandidates = options.maxCandidates ?? MAX_CANDIDATES;
+  // Use non-zero temperature for variety in results
+  const temperature = options.temperature ?? 0.3;
+
+  logger.info({ query, maxCandidates, temperature }, '[discovery] initiating company discovery');
 
   const message = await anthropic.messages.create({
     model: CLAUDE_MODEL,
     max_tokens: DISCOVERY_MAX_TOKENS,
-    temperature: 0,
+    temperature,
     system: systemPrompt,
     messages: [
       {
         role: 'user',
-        content: `Return ONLY a JSON array (no prose, no markdown) of 1-${MAX_COMPANIES} SaaS companies that match this market query: "${query}". Each object must contain "name", "website", and "reason".`,
+        content: `Return ONLY a JSON array (no prose, no markdown) of ${maxCandidates} diverse SaaS companies that match this market query: "${query}". Include a mix of market leaders and emerging players. Each object must contain "name", "website", and "reason".`,
       },
     ],
   });
@@ -84,7 +104,7 @@ export async function discoverCompanies(query: string): Promise<DiscoveredCompan
 
   try {
     const parsed = JSON.parse(rawJson);
-    const companies = discoverySchema.parse(parsed).slice(0, MAX_COMPANIES);
+    const companies = discoverySchema.parse(parsed).slice(0, maxCandidates);
     logger.info(
       {
         query,
@@ -102,4 +122,7 @@ export async function discoverCompanies(query: string): Promise<DiscoveredCompan
     throw new Error(`Failed to parse Claude discovery response: ${(error as Error).message}`);
   }
 }
+
+// Export constants for use in other modules
+export { DEFAULT_RESULT_COUNT, MAX_CANDIDATES };
 

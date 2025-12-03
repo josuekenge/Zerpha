@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import { z } from 'zod';
 
 import { supabase } from '../config/supabase.js';
-import { discoverCompanies } from '../services/discoveryService.js';
+import { discoverCompanies, DEFAULT_RESULT_COUNT } from '../services/discoveryService.js';
 import { scrapeCompanySite } from '../services/scraperService.js';
 import {
   extractCompanyInsights,
@@ -14,6 +14,12 @@ import { saveExtractedCompany } from '../services/companySaveService.js';
 import { scrapePeople } from '../services/apifyService.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { getCachedExtraction, setCachedExtraction, normalizeDomain } from '../services/cacheService.js';
+import {
+  deriveNicheKey,
+  getSeenDomains,
+  selectDiverseCompanies,
+  recordSeenCompanies,
+} from '../services/diversityService.js';
 
 const searchRequestSchema = z.object({
   query: z.string().min(2).max(200),
@@ -322,18 +328,34 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
       throw new Error(searchError?.message ?? 'Failed to create search');
     }
 
-    const discovered = await discoverCompanies(query);
+    // Derive niche key for diversity tracking
+    const nicheKey = deriveNicheKey(query);
+    logger.info({ query, nicheKey, userId: user.id }, '[search] derived niche key');
+
+    // Get previously seen domains for this user/niche
+    const seenDomains = await getSeenDomains(user.id, nicheKey);
+    logger.info(
+      { nicheKey, seenDomainsCount: seenDomains.size },
+      '[search] fetched seen domains for diversity',
+    );
+
+    // Discover more candidates than needed for diversity (15+ candidates)
+    const allCandidates = await discoverCompanies(query, {
+      maxCandidates: 15,
+      temperature: 0.3, // Add some randomness for variety
+    });
+
     logger.info(
       {
         query,
         searchId: searchInsert.id,
-        discoveredCount: discovered.length,
-        companies: discovered.map((company) => company.name),
+        totalCandidates: allCandidates.length,
+        candidates: allCandidates.map((company) => company.name),
       },
-      '[search] discovery results',
+      '[search] discovery results (all candidates)',
     );
 
-    if (discovered.length === 0) {
+    if (allCandidates.length === 0) {
       logger.warn({ query, searchId: searchInsert.id }, '[search] no companies discovered');
       return res.status(200).json({
         searchId: searchInsert.id,
@@ -341,6 +363,25 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
         companies: [],
       });
     }
+
+    // Select diverse companies, prioritizing unseen ones
+    const { selected: discovered, stats: diversityStats } = selectDiverseCompanies(
+      allCandidates,
+      seenDomains,
+      DEFAULT_RESULT_COUNT,
+      true, // Enable randomness
+    );
+
+    logger.info(
+      {
+        query,
+        searchId: searchInsert.id,
+        nicheKey,
+        diversityStats,
+        selectedCompanies: discovered.map((c) => c.name),
+      },
+      '[search] diversity selection complete',
+    );
 
     const processedCompanies: ProcessedCompany[] = [];
     const failedCompanyRecords: Array<Record<string, unknown>> = [];
@@ -537,6 +578,15 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
       transformCompanyForApi(row as DatabaseCompany),
     );
 
+    // Record the companies shown to this user for this niche (non-blocking)
+    void recordSeenCompanies(
+      user.id,
+      nicheKey,
+      companiesWithSummary.map((c) => ({ website: c.website })),
+    ).catch((err) => {
+      logger.warn({ err, nicheKey, userId: user.id }, '[search] failed to record seen companies');
+    });
+
     const totalDurationMs = Date.now() - searchStartTime;
     
     logger.info(
@@ -545,6 +595,8 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
         returnedCompanies: companiesWithSummary.length,
         totalDurationMs,
         durationSec: (totalDurationMs / 1000).toFixed(2),
+        nicheKey,
+        diversityStats,
       },
       '[search] returning companies',
     );
