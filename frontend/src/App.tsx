@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { 
-  Search, 
-  Loader2, 
-  Check, 
-  Download, 
-  Trash2, 
+import {
+  Search,
+  Loader2,
+  Check,
+  Download,
+  Trash2,
   ChevronDown,
   Zap,
   ChevronsUpDown,
@@ -33,14 +33,13 @@ import { useAuth, signOut } from './lib/auth';
 import {
   exportInfographic,
   fetchSavedCompanies,
-  fetchSearchById,
   fetchSearchHistory,
   fetchSearchDetails,
   saveCompany,
   searchCompanies,
   unsaveCompany,
 } from './api/client';
-import { Company, CompanyWithPeople, InfographicPage, Person, PersonSummary, SavedCompany, SearchHistoryItem } from './types';
+import { Company, CompanyWithPeople, InfographicPage, Person, SavedCompany, SearchHistoryItem } from './types';
 import { getAllPeople } from './api/people';
 import { cn } from './lib/utils';
 
@@ -114,8 +113,12 @@ const savedCompanyToCompany = (saved: SavedCompany): Company => ({
 });
 
 export function WorkspaceApp() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState<WorkspaceView>('search');
+
+  const displayName = user?.email ? `Hi ${user.email.split('@')[0]}` : 'Zerpha Intelligence';
+  const displayInitial = user?.email ? user.email.charAt(0).toUpperCase() : 'Z';
 
   // Search state
   const [query, setQuery] = useState('');
@@ -207,7 +210,7 @@ export function WorkspaceApp() {
   const loadWorkspaceCompanies = useCallback(
     async (options?: { category?: string; autoSelectId?: string }) => {
       const categoryValue = options?.category ?? workspaceCategory;
-      
+
       const queryParams: Record<string, string> = {};
       if (categoryValue !== 'all') {
         queryParams.category = categoryValue;
@@ -222,7 +225,7 @@ export function WorkspaceApp() {
           new Set(result.map((company) => company.saved_category ?? DEFAULT_CATEGORY)),
         );
         setWorkspaceCategories(categories);
-        
+
         let nextSelected: string | null = null;
         if (options?.autoSelectId && result.some((c) => c.id === options.autoSelectId)) {
           nextSelected = options.autoSelectId;
@@ -232,7 +235,7 @@ export function WorkspaceApp() {
           // If no auto select and result exists, we don't auto select first anymore to respect requirement 4
           nextSelected = null;
         }
-        
+
         setSelectedWorkspaceCompanyId(nextSelected);
       } catch (error) {
         console.error(error);
@@ -248,84 +251,84 @@ export function WorkspaceApp() {
     loadWorkspaceCompanies();
   }, [loadWorkspaceCompanies]);
 
-const normalizeIndustry = (value?: string | null): string | null => {
-  if (!value || typeof value !== 'string') {
-    return null;
-  }
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-};
-
-const getCompanyIndustryValues = (
-  company?: IndustryCarrier | null,
-): { primary: string | null; secondary: string | null } => {
-  if (!company) {
-    return { primary: null, secondary: null };
-  }
-
-  const primary = company.primary_industry ?? company.primaryIndustry ?? null;
-  const secondary = company.secondary_industry ?? company.secondaryIndustry ?? null;
-
-  return {
-    primary: normalizeIndustry(primary),
-    secondary: normalizeIndustry(secondary),
+  const normalizeIndustry = (value?: string | null): string | null => {
+    if (!value || typeof value !== 'string') {
+      return null;
+    }
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
   };
-};
 
-const matchesFitFilter = (
-  score: number | null | undefined,
-  filter: FitFilter,
-): boolean => {
-  if (filter === 'all') {
+  const getCompanyIndustryValues = (
+    company?: IndustryCarrier | null,
+  ): { primary: string | null; secondary: string | null } => {
+    if (!company) {
+      return { primary: null, secondary: null };
+    }
+
+    const primary = company.primary_industry ?? company.primaryIndustry ?? null;
+    const secondary = company.secondary_industry ?? company.secondaryIndustry ?? null;
+
+    return {
+      primary: normalizeIndustry(primary),
+      secondary: normalizeIndustry(secondary),
+    };
+  };
+
+  const matchesFitFilter = (
+    score: number | null | undefined,
+    filter: FitFilter,
+  ): boolean => {
+    if (filter === 'all') {
+      return true;
+    }
+
+    if (!Number.isFinite(score)) {
+      return false;
+    }
+
+    const numericScore = Number(score);
+    if (filter === 'high') {
+      return numericScore >= 8;
+    }
+    if (filter === 'medium') {
+      return numericScore >= 5 && numericScore < 8;
+    }
+    if (filter === 'low') {
+      return numericScore >= 0 && numericScore < 5;
+    }
+
     return true;
-  }
+  };
 
-  if (!Number.isFinite(score)) {
-    return false;
-  }
+  const matchesIndustryFilter = (
+    company: IndustryCarrier | null | undefined,
+    filter: string,
+  ): boolean => {
+    if (!filter || filter.trim().toLowerCase() === 'all') {
+      return true;
+    }
 
-  const numericScore = Number(score);
-  if (filter === 'high') {
-    return numericScore >= 8;
-  }
-  if (filter === 'medium') {
-    return numericScore >= 5 && numericScore < 8;
-  }
-  if (filter === 'low') {
-    return numericScore >= 0 && numericScore < 5;
-  }
+    const normalizedFilter = filter.trim().toLowerCase();
+    const { primary, secondary } = getCompanyIndustryValues(company);
 
-  return true;
-};
+    if (!primary && !secondary) {
+      return false;
+    }
 
-const matchesIndustryFilter = (
-  company: IndustryCarrier | null | undefined,
-  filter: string,
-): boolean => {
-  if (!filter || filter.trim().toLowerCase() === 'all') {
-    return true;
-  }
+    const normalizedPrimary = primary?.toLowerCase();
+    const normalizedSecondary = secondary?.toLowerCase();
 
-  const normalizedFilter = filter.trim().toLowerCase();
-  const { primary, secondary } = getCompanyIndustryValues(company);
+    const matchesPrimary =
+      normalizedPrimary === normalizedFilter ||
+      (normalizedPrimary && normalizedPrimary.includes(normalizedFilter));
 
-  if (!primary && !secondary) {
-    return false;
-  }
+    const matchesSecondary =
+      normalizedSecondary === normalizedFilter ||
+      (normalizedSecondary && normalizedSecondary.includes(normalizedFilter));
 
-  const normalizedPrimary = primary?.toLowerCase();
-  const normalizedSecondary = secondary?.toLowerCase();
-
-  const matchesPrimary =
-    normalizedPrimary === normalizedFilter ||
-    (normalizedPrimary && normalizedPrimary.includes(normalizedFilter));
-
-  const matchesSecondary =
-    normalizedSecondary === normalizedFilter ||
-    (normalizedSecondary && normalizedSecondary.includes(normalizedFilter));
-
-  return Boolean(matchesPrimary || matchesSecondary);
-};
+    return Boolean(matchesPrimary || matchesSecondary);
+  };
 
   const filteredWorkspaceCompanies = useMemo(() => {
     if (workspaceCompanies.length === 0) {
@@ -340,10 +343,10 @@ const matchesIndustryFilter = (
         const domain = company.domain.toLowerCase();
         const summary = company.summary?.toLowerCase() ?? '';
         const primaryIndustry = company.primary_industry?.toLowerCase() ?? '';
-        
+
         if (
-          !name.includes(q) && 
-          !domain.includes(q) && 
+          !name.includes(q) &&
+          !domain.includes(q) &&
           !summary.includes(q) &&
           !primaryIndustry.includes(q)
         ) {
@@ -464,7 +467,7 @@ const matchesIndustryFilter = (
     if (typeof nextQuery === 'string') {
       setQuery(nextQuery);
     }
-    
+
     setIsSearching(true);
     setSearchError(null);
     try {
@@ -483,7 +486,7 @@ const matchesIndustryFilter = (
   const handleQuickFilter = (value: string) => {
     void executeSearch(value);
   };
-    
+
   const runInfographic = async (companyId: string) => {
     setInfographicLoading(true);
     setInfographicError(null);
@@ -517,12 +520,16 @@ const matchesIndustryFilter = (
   };
 
   const updateCompanySavedState = (companyId: string, saved: boolean, category: string | null) => {
-    const updater = (list: Company[]) =>
+    setSearchCompaniesList((list) =>
       list.map((c) =>
         c.id === companyId ? { ...c, is_saved: saved, saved_category: category } : c,
-      );
-    setSearchCompaniesList(updater);
-    setHistoryCompanies(updater);
+      ),
+    );
+    setHistoryCompanies((list) =>
+      list.map((c) =>
+        c.id === companyId ? { ...c, is_saved: saved, saved_category: category } : c,
+      ),
+    );
   };
 
   const handleSaveCompany = async (companyId: string, category = DEFAULT_CATEGORY) => {
@@ -534,10 +541,10 @@ const matchesIndustryFilter = (
       showToast('Company saved to workspace');
       // Only auto-select if we are already in the workspace view to avoid jumping
       if (activeView === 'companies') {
-         await loadWorkspaceCompanies({ autoSelectId: saved.id });
+        await loadWorkspaceCompanies({ autoSelectId: saved.id });
       } else {
-         // Just reload in background
-         await loadWorkspaceCompanies();
+        // Just reload in background
+        await loadWorkspaceCompanies();
       }
     } catch (error) {
       console.error(error);
@@ -558,12 +565,12 @@ const matchesIndustryFilter = (
       await unsaveCompany(companyId);
       updateCompanySavedState(companyId, false, null);
       showToast('Company removed from workspace');
-      
+
       // Clear selection if the unsaved company was selected
       if (selectedWorkspaceCompanyId === companyId) {
         setSelectedWorkspaceCompanyId(null);
       }
-      
+
       await loadWorkspaceCompanies();
     } catch (error) {
       console.error(error);
@@ -630,8 +637,8 @@ const matchesIndustryFilter = (
           {toast.message}
         </div>
       )}
-      
-      <InfographicModal 
+
+      <InfographicModal
         isOpen={isInfographicOpen}
         onClose={() => setIsInfographicOpen(false)}
         isLoading={infographicLoading}
@@ -655,14 +662,14 @@ const matchesIndustryFilter = (
         </div>
 
         <div className="p-4 flex-1 overflow-y-auto space-y-8">
-          
+
           {/* Workspace */}
           <div>
             <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3 block px-2">Workspace</label>
             <button className="w-full flex items-center justify-between px-2 py-1.5 text-sm font-medium text-slate-700 hover:bg-white hover:shadow-sm rounded-md transition-all border border-transparent hover:border-slate-200">
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-slate-200 rounded-full flex items-center justify-center text-xs text-slate-600">Z</div>
-                Zerpha Intelligence
+                <div className="w-5 h-5 bg-slate-200 rounded-full flex items-center justify-center text-xs text-slate-600">{displayInitial}</div>
+                {displayName}
               </div>
               <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400" />
             </button>
@@ -670,15 +677,15 @@ const matchesIndustryFilter = (
 
           {/* Search */}
           {activeView === 'search' && (
-             <div className="relative group">
+            <div className="relative group">
               <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-              <input 
-                type="text" 
-                placeholder="Search vertical..." 
-                 value={query} 
+              <input
+                type="text"
+                placeholder="Search vertical..."
+                value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && void executeSearch()}
-                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all" 
+                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all"
               />
             </div>
           )}
@@ -687,12 +694,12 @@ const matchesIndustryFilter = (
           <div>
             <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 block px-2">Menu</label>
             <nav className="space-y-0.5">
-              <button 
+              <button
                 onClick={() => setActiveView('search')}
                 className={cn(
                   "w-full flex items-center gap-2.5 px-2 py-2 text-sm font-medium rounded-md transition-colors",
-                  activeView === 'search' 
-                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100" 
+                  activeView === 'search'
+                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100"
                     : "text-slate-600 hover:bg-slate-100"
                 )}
               >
@@ -700,12 +707,12 @@ const matchesIndustryFilter = (
                 New Search
               </button>
 
-              <button 
+              <button
                 onClick={() => setActiveView('companies')}
                 className={cn(
                   "w-full flex items-center gap-2.5 px-2 py-2 text-sm font-medium rounded-md transition-colors",
-                  activeView === 'companies' 
-                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100" 
+                  activeView === 'companies'
+                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100"
                     : "text-slate-600 hover:bg-slate-100"
                 )}
               >
@@ -714,12 +721,12 @@ const matchesIndustryFilter = (
                 {activeView === 'companies' && <span className="ml-auto text-[10px] font-semibold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">NOW</span>}
               </button>
 
-              <button 
+              <button
                 onClick={() => setActiveView('people')}
                 className={cn(
                   "w-full flex items-center gap-2.5 px-2 py-2 text-sm font-medium rounded-md transition-colors",
-                  activeView === 'people' 
-                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100" 
+                  activeView === 'people'
+                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100"
                     : "text-slate-600 hover:bg-slate-100"
                 )}
               >
@@ -727,12 +734,12 @@ const matchesIndustryFilter = (
                 People
               </button>
 
-              <button 
+              <button
                 onClick={() => setActiveView('history')}
                 className={cn(
                   "w-full flex items-center gap-2.5 px-2 py-2 text-sm font-medium rounded-md transition-colors",
-                  activeView === 'history' 
-                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100" 
+                  activeView === 'history'
+                    ? "bg-white text-indigo-600 shadow-sm border border-slate-100"
                     : "text-slate-600 hover:bg-slate-100"
                 )}
               >
@@ -754,19 +761,19 @@ const matchesIndustryFilter = (
                   <LayoutGrid className="w-3.5 h-3.5" /> Cards
                 </button>
               </div>
-                 </div>
-               )}
+            </div>
+          )}
 
           {/* Filters (Only visible in Companies view) */}
           {activeView === 'companies' && (
             <div className="space-y-4">
               <label className="text-xs font-medium text-slate-400 uppercase tracking-wider px-2">Filters</label>
-              
+
               <div className="px-2 space-y-3">
                 <div>
                   <span className="text-xs font-medium text-slate-500 mb-1.5 block">Fit Score</span>
                   <div className="relative">
-                    <select 
+                    <select
                       value={workspaceFitFilter}
                       onChange={(e) => setWorkspaceFitFilter(e.target.value as FitFilter)}
                       className="w-full appearance-none bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -784,7 +791,7 @@ const matchesIndustryFilter = (
                 <div>
                   <span className="text-xs font-medium text-slate-500 mb-1.5 block">Industry</span>
                   <div className="relative z-50">
-                    <select 
+                    <select
                       value={industryFilter}
                       onChange={(e) => setIndustryFilter(e.target.value)}
                       className="w-full appearance-none bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
@@ -798,19 +805,19 @@ const matchesIndustryFilter = (
                     </select>
                     <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
                   </div>
-             </div>
-          </div>
-        </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
         {/* Footer */}
         <div className="p-4 border-t border-slate-200 flex-shrink-0">
           <p className="text-xs text-slate-400 leading-relaxed px-2">
-            {activeView === 'companies' 
-              ? "Select a row to view detailed insights." 
-              : activeView === 'search' 
-                ? "Enter a query to start scouting." 
+            {activeView === 'companies'
+              ? "Select a row to view detailed insights."
+              : activeView === 'search'
+                ? "Enter a query to start scouting."
                 : "Select a past search to review results."}
           </p>
         </div>
@@ -850,371 +857,239 @@ const matchesIndustryFilter = (
           </div>
         </header>
         <div className="flex-1 flex flex-col min-h-0">
-        {activeView === 'search' && (
+          {activeView === 'search' && (
             <div className="flex-1 overflow-auto px-8 py-6">
-               {!hasSearched && !isSearching && searchCompaniesList.length === 0 && (
-                  <div className="h-full flex flex-col items-center justify-center max-w-2xl mx-auto text-center">
-                    <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
-                      <Search className="w-8 h-8 text-indigo-600" />
-              </div>
-                    <h3 className="text-lg font-medium text-slate-900 mb-2">Start a new market scan</h3>
-                    <p className="text-slate-500 mb-8">Enter a vertical description in the sidebar search to discover and analyze companies with AI.</p>
-                    
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {QUICK_FILTERS.map(filter => (
-                  <button 
-                          key={filter}
-                          onClick={() => handleQuickFilter(filter)}
-                          className="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-600 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-sm transition-all"
-                        >
-                          {filter}
-                  </button>
-                ))}
-              </div>
-            </div>
-               )}
-
-               {(hasSearched || isSearching || searchCompaniesList.length > 0) && (
-                  <div className="flex h-full gap-6">
-                     <div className="flex-1 flex flex-col min-h-0 border border-slate-200 rounded-lg overflow-hidden">
-                        <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
-                           <span className="text-sm font-medium text-slate-700">Results ({searchCompaniesList.length})</span>
-                           {searchError && <span className="text-xs text-red-600">{searchError}</span>}
-                        </div>
-                        <div className="flex-1 overflow-auto bg-white">
-                           {isSearching ? (
-                              <div className="p-4"><ResultListSkeleton /></div>
-                           ) : searchCompaniesList.length === 0 ? (
-                              <div className="p-8 text-center text-slate-500 text-sm">No results found.</div>
-                           ) : (
-                             <table className="w-full text-left border-collapse">
-                               <thead className="sticky top-0 bg-white z-10 shadow-sm">
-                                 <tr>
-                                    <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Name</th>
-                                    <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Fit</th>
-                                    <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Action</th>
-                                 </tr>
-                               </thead>
-                               <tbody className="divide-y divide-slate-100">
-                                  {searchCompaniesList.map(company => (
-                                    <tr 
-                    key={company.id}
-                                      onClick={() => setSelectedSearchCompanyId(company.id)}
-                                      className={cn(
-                                        "group cursor-pointer hover:bg-slate-50 transition-colors",
-                                        selectedSearchCompanyId === company.id ? "bg-indigo-50/50" : ""
-                                      )}
-                                    >
-                                      <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-900">{company.name}</div>
-                                        <div className="text-xs text-slate-500">{company.website}</div>
-                                      </td>
-                                      <td className="py-3 px-4 text-right">
-                                         <span className={cn(
-                                           "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-                                           (company.acquisition_fit_score ?? 0) >= 8 ? "bg-green-100 text-green-800" :
-                                           (company.acquisition_fit_score ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
-                                           "bg-slate-100 text-slate-600"
-                                         )}>
-                                           {company.acquisition_fit_score ?? '-'}
-                                         </span>
-                                      </td>
-                                      <td className="py-3 px-4 text-right">
-                                         <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleSaveCompany(company.id);
-                                            }}
-                                            disabled={savingMap[company.id]}
-                                            className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
-                                         >
-                                            {savingMap[company.id] ? 'Saved' : 'Save'}
-                                         </button>
-                                      </td>
-                                    </tr>
-                                  ))}
-                               </tbody>
-                             </table>
-              )}
-            </div>
-          </div>
-
-                     {/* Detail View for Search */}
-                     {selectedSearchCompany && (
-                        <aside className="w-[400px] flex-shrink-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
-                           <div className="flex-1 overflow-y-auto">
-                <CompanyDetailPanel 
-                               company={selectedSearchCompany} 
-                             />
-                           </div>
-                        </aside>
-                     )}
+              {!hasSearched && !isSearching && searchCompaniesList.length === 0 && (
+                <div className="h-full flex flex-col items-center justify-center max-w-2xl mx-auto text-center">
+                  <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
+                    <Search className="w-8 h-8 text-indigo-600" />
                   </div>
-               )}
-            </div>
-        )}
+                  <h3 className="text-lg font-medium text-slate-900 mb-2">Start a new market scan</h3>
+                  <p className="text-slate-500 mb-8">Enter a vertical description in the sidebar search to discover and analyze companies with AI.</p>
 
-        {activeView === 'companies' && (
-          <div className="flex-1 flex flex-col min-h-0">
-            {/* Filters / Tabs */}
-            <div className="px-8 pt-6 pb-4 space-y-4">
-              <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto">
-                <button 
-                   onClick={() => setWorkspaceCategory('all')}
-                   className={cn(
-                     "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
-                     workspaceCategory === 'all' ? "text-indigo-600 border-indigo-600" : "text-slate-500 border-transparent hover:text-slate-700"
-                   )}
-                >
-                  All Companies
-                </button>
-                {workspaceCategories.map(cat => (
-                   <button 
-                    key={cat}
-                    onClick={() => setWorkspaceCategory(cat)}
-                    className={cn(
-                      "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap capitalize",
-                      workspaceCategory === cat ? "text-indigo-600 border-indigo-600" : "text-slate-500 border-transparent hover:text-slate-700"
-                    )}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-
-              {/* Client-side Search Bar under Tabs */}
-              <div className="relative max-w-md">
-                <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Filter shortlist by name, domain..."
-                  value={shortlistSearchQuery}
-                  onChange={(e) => setShortlistSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Table Container */}
-            <div className="flex-1 overflow-hidden px-8 py-4">
-              <div className="flex h-full overflow-hidden">
-                <div className={cn(
-                  "border-r border-slate-200 bg-white overflow-y-auto flex flex-col transition-all duration-300",
-                  selectedWorkspaceCompanyId ? "w-[45%]" : "w-full border-r-0"
-                )}>
-                  {workspaceLoading ? (
-                     <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 text-indigo-600 animate-spin" /></div>
-                  ) : filteredWorkspaceCompanies.length === 0 ? (
-                     <div className="p-8 text-center text-slate-500 text-sm bg-slate-50 rounded-lg border border-slate-100 border-dashed">
-                       {workspaceCompanies.length > 0 ? "No companies match the selected filters." : "No saved companies yet."}
-                     </div>
-                  ) : (
-                    <table className="w-full text-left border-collapse">
-                      <thead className="sticky top-0 bg-white z-10">
-                        <tr>
-                          <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-8 pl-2">
-                            <div className="w-4 h-4 rounded border border-slate-300 bg-white"></div>
-                          </th>
-                          <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-1/3">Name</th>
-                          <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-1/3 hidden sm:table-cell">Domain</th>
-                          <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right hidden md:table-cell">Fit Score</th>
-                          <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right w-10"></th>
-                        </tr>
-                      </thead>
-                      <tbody className="text-sm divide-y divide-slate-100">
-                        {filteredWorkspaceCompanies.map(company => (
-                          <tr 
-                            key={company.id}
-                            onClick={() => {
-                              if (selectedWorkspaceCompanyId === company.id) {
-                                setSelectedWorkspaceCompanyId(null);
-                              } else {
-                                setSelectedWorkspaceCompanyId(company.id);
-                              }
-                            }}
-                            className={cn(
-                              "group hover:bg-slate-50 transition-colors cursor-pointer",
-                              selectedWorkspaceCompanyId === company.id ? "bg-indigo-50/30" : ""
-                            )}
-                          >
-                            <td className={cn(
-                              "py-3 pr-4 pl-4 border-l-2", 
-                              selectedWorkspaceCompanyId === company.id ? "border-indigo-600" : "border-transparent"
-                            )}>
-                               <div className={cn(
-                                 "w-4 h-4 rounded border flex items-center justify-center",
-                                 selectedWorkspaceCompanyId === company.id ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 bg-white"
-                               )}>
-                                 {selectedWorkspaceCompanyId === company.id && <Check className="w-3 h-3" />}
-                               </div>
-                            </td>
-                            <td className="py-3 pr-4 font-medium text-slate-900">
-                              <div className="truncate max-w-[180px]">{company.name}</div>
-                            </td>
-                            <td className="py-3 pr-4 hidden sm:table-cell">
-                               <a 
-                                 href={normalizeWebsite(company.domain)} 
-                                 target="_blank" 
-                                 rel="noreferrer" 
-                                 onClick={(e) => e.stopPropagation()}
-                                 className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 w-fit truncate max-w-[150px]"
-                               >
-                                 {company.domain} 
-                               </a>
-                            </td>
-                            <td className="py-3 pr-4 text-right font-medium hidden md:table-cell">
-                               <span className={cn(
-                                 "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-                                 (company.fitScore ?? 0) >= 8 ? "bg-green-100 text-green-800" :
-                                 (company.fitScore ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
-                                 (company.fitScore ?? 0) > 0 ? "bg-red-100 text-red-800" : "text-slate-400"
-                               )}>
-                                 {company.fitScore ?? '—'}
-                               </span>
-                            </td>
-                            <td className="py-3 pr-4 text-right">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUnsaveCompany(company.id);
-                                }}
-                                className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                title="Remove from shortlist"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-
-                {selectedWorkspaceCompanyId && workspaceSelectionDetail && (
-                  <div className="w-[55%] max-w-[600px] bg-white overflow-y-auto border-l border-slate-200 shadow-xl shadow-slate-200/50 z-20 h-full animate-in slide-in-from-right duration-300">
-                    <CompanyDetailPanel company={workspaceSelectionDetail} />
-                  </div>
-             )}
-          </div>
-            </div>
-          </div>
-        )}
-
-        {activeView === 'history' && (
-          <div className="flex-1 flex min-h-0">
-            {/* Left Panel: Search History List */}
-            <div className="w-64 border-r border-slate-200 bg-slate-50 flex flex-col overflow-hidden">
-              <div className="p-4 border-b border-slate-200">
-                <h3 className="text-sm font-semibold text-slate-700">Past Searches</h3>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                {historyLoading ? (
-                  <div className="p-4 flex justify-center">
-                    <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
-                  </div>
-                ) : historyItems.length === 0 ? (
-                  <div className="p-4 text-center text-sm text-slate-500">No search history yet.</div>
-                ) : (
-                  <div className="divide-y divide-slate-200">
-                    {historyItems.map((item) => (
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {QUICK_FILTERS.map(filter => (
                       <button
-                        key={item.id}
-                        onClick={() => handleHistoryRowClick(item)}
-                        className={cn(
-                          "w-full text-left p-3 hover:bg-white transition-colors",
-                          selectedHistoryId === item.id ? "bg-white border-l-2 border-indigo-600" : ""
-                        )}
+                        key={filter}
+                        onClick={() => handleQuickFilter(filter)}
+                        className="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-600 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-sm transition-all"
                       >
-                        <p className="text-sm font-medium text-slate-900 truncate">{item.query}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-slate-500">{formatDate(item.created_at)}</span>
-                          <span className="text-xs bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
-                            {item.company_count}
-                          </span>
-                        </div>
+                        {filter}
                       </button>
                     ))}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+              )}
 
-            {/* Middle Panel: Companies for Selected Search */}
-            <div className={cn(
-              "flex flex-col overflow-hidden transition-all duration-300 border-r border-slate-200",
-              selectedHistoryCompanyId ? "w-[35%]" : "flex-1"
-            )}>
-              {!selectedHistoryId ? (
-                <div className="flex-1 flex items-center justify-center text-slate-500 text-sm">
-                  Select a search from the left to view companies
-                </div>
-              ) : historyDetailsLoading ? (
-                <div className="flex-1 flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
-                </div>
-              ) : (
-                <>
-                  <div className="p-4 border-b border-slate-200 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-slate-700">
-                        Companies ({filteredHistoryCompanies.length})
-                      </h3>
+              {(hasSearched || isSearching || searchCompaniesList.length > 0) && (
+                <div className="flex h-full gap-6">
+                  <div className="flex-1 flex flex-col min-h-0 border border-slate-200 rounded-lg overflow-hidden">
+                    <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                      <span className="text-sm font-medium text-slate-700">Results ({searchCompaniesList.length})</span>
+                      {searchError && <span className="text-xs text-red-600">{searchError}</span>}
                     </div>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
-                      <input
-                        type="text"
-                        placeholder="Filter companies..."
-                        value={historySearchQuery}
-                        onChange={(e) => setHistorySearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      />
+                    <div className="flex-1 overflow-auto bg-white">
+                      {isSearching ? (
+                        <div className="p-4"><ResultListSkeleton /></div>
+                      ) : searchCompaniesList.length === 0 ? (
+                        <div className="p-8 text-center text-slate-500 text-sm">No results found.</div>
+                      ) : (
+                        <table className="w-full text-left border-collapse">
+                          <thead className="sticky top-0 bg-white z-10 shadow-sm">
+                            <tr>
+                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Name</th>
+                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Fit</th>
+                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {searchCompaniesList.map(company => (
+                              <tr
+                                key={company.id}
+                                onClick={() => setSelectedSearchCompanyId(company.id)}
+                                className={cn(
+                                  "group cursor-pointer hover:bg-slate-50 transition-colors",
+                                  selectedSearchCompanyId === company.id ? "bg-indigo-50/50" : ""
+                                )}
+                              >
+                                <td className="py-3 px-4">
+                                  <div className="font-medium text-slate-900">{company.name}</div>
+                                  <div className="text-xs text-slate-500">{company.website}</div>
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <span className={cn(
+                                    "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+                                    (company.acquisition_fit_score ?? 0) >= 8 ? "bg-green-100 text-green-800" :
+                                      (company.acquisition_fit_score ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
+                                        "bg-slate-100 text-slate-600"
+                                  )}>
+                                    {company.acquisition_fit_score ?? '-'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSaveCompany(company.id);
+                                    }}
+                                    disabled={savingMap[company.id]}
+                                    className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
+                                  >
+                                    {savingMap[company.id] ? 'Saved' : 'Save'}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
                     </div>
                   </div>
-                  <div className="flex-1 overflow-y-auto">
-                    {filteredHistoryCompanies.length === 0 ? (
-                      <div className="p-4 text-center text-sm text-slate-500">
-                        {historyCompanies.length > 0 ? "No companies match your filter." : "No companies found for this search."}
+
+                  {/* Detail View for Search */}
+                  {selectedSearchCompany && (
+                    <aside className="w-[400px] flex-shrink-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
+                      <div className="flex-1 overflow-y-auto">
+                        <CompanyDetailPanel
+                          company={selectedSearchCompany}
+                        />
+                      </div>
+                    </aside>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeView === 'companies' && (
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Filters / Tabs */}
+              <div className="px-8 pt-6 pb-4 space-y-4">
+                <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto">
+                  <button
+                    onClick={() => setWorkspaceCategory('all')}
+                    className={cn(
+                      "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                      workspaceCategory === 'all' ? "text-indigo-600 border-indigo-600" : "text-slate-500 border-transparent hover:text-slate-700"
+                    )}
+                  >
+                    All Companies
+                  </button>
+                  {workspaceCategories.map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setWorkspaceCategory(cat)}
+                      className={cn(
+                        "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap capitalize",
+                        workspaceCategory === cat ? "text-indigo-600 border-indigo-600" : "text-slate-500 border-transparent hover:text-slate-700"
+                      )}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Client-side Search Bar under Tabs */}
+                <div className="relative max-w-md">
+                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Filter shortlist by name, domain..."
+                    value={shortlistSearchQuery}
+                    onChange={(e) => setShortlistSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Table Container */}
+              <div className="flex-1 overflow-hidden px-8 py-4">
+                <div className="flex h-full overflow-hidden">
+                  <div className={cn(
+                    "border-r border-slate-200 bg-white overflow-y-auto flex flex-col transition-all duration-300",
+                    selectedWorkspaceCompanyId ? "w-[45%]" : "w-full border-r-0"
+                  )}>
+                    {workspaceLoading ? (
+                      <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 text-indigo-600 animate-spin" /></div>
+                    ) : filteredWorkspaceCompanies.length === 0 ? (
+                      <div className="p-8 text-center text-slate-500 text-sm bg-slate-50 rounded-lg border border-slate-100 border-dashed">
+                        {workspaceCompanies.length > 0 ? "No companies match the selected filters." : "No saved companies yet."}
                       </div>
                     ) : (
                       <table className="w-full text-left border-collapse">
                         <thead className="sticky top-0 bg-white z-10">
                           <tr>
-                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Company</th>
-                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Fit</th>
-                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-center">People</th>
+                            <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-8 pl-2">
+                              <div className="w-4 h-4 rounded border border-slate-300 bg-white"></div>
+                            </th>
+                            <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-1/3">Name</th>
+                            <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-1/3 hidden sm:table-cell">Domain</th>
+                            <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right hidden md:table-cell">Fit Score</th>
+                            <th className="py-3 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right w-10"></th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {filteredHistoryCompanies.map((company) => (
+                        <tbody className="text-sm divide-y divide-slate-100">
+                          {filteredWorkspaceCompanies.map(company => (
                             <tr
                               key={company.id}
-                              onClick={() => setSelectedHistoryCompanyId(company.id)}
+                              onClick={() => {
+                                if (selectedWorkspaceCompanyId === company.id) {
+                                  setSelectedWorkspaceCompanyId(null);
+                                } else {
+                                  setSelectedWorkspaceCompanyId(company.id);
+                                }
+                              }}
                               className={cn(
-                                "cursor-pointer hover:bg-slate-50 transition-colors",
-                                selectedHistoryCompanyId === company.id ? "bg-indigo-50" : ""
+                                "group hover:bg-slate-50 transition-colors cursor-pointer",
+                                selectedWorkspaceCompanyId === company.id ? "bg-indigo-50/30" : ""
                               )}
                             >
-                              <td className="py-3 px-4">
-                                <div className="font-medium text-slate-900">{company.name}</div>
-                                <div className="text-xs text-slate-500 truncate max-w-[200px]">{company.website}</div>
+                              <td className={cn(
+                                "py-3 pr-4 pl-4 border-l-2",
+                                selectedWorkspaceCompanyId === company.id ? "border-indigo-600" : "border-transparent"
+                              )}>
+                                <div className={cn(
+                                  "w-4 h-4 rounded border flex items-center justify-center",
+                                  selectedWorkspaceCompanyId === company.id ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 bg-white"
+                                )}>
+                                  {selectedWorkspaceCompanyId === company.id && <Check className="w-3 h-3" />}
+                                </div>
                               </td>
-                              <td className="py-3 px-4 text-right">
+                              <td className="py-3 pr-4 font-medium text-slate-900">
+                                <div className="truncate max-w-[180px]">{company.name}</div>
+                              </td>
+                              <td className="py-3 pr-4 hidden sm:table-cell">
+                                <a
+                                  href={normalizeWebsite(company.domain)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 w-fit truncate max-w-[150px]"
+                                >
+                                  {company.domain}
+                                </a>
+                              </td>
+                              <td className="py-3 pr-4 text-right font-medium hidden md:table-cell">
                                 <span className={cn(
                                   "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-                                  (company.acquisition_fit_score ?? 0) >= 8 ? "bg-green-100 text-green-800" :
-                                  (company.acquisition_fit_score ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
-                                  "bg-slate-100 text-slate-600"
+                                  (company.fitScore ?? 0) >= 8 ? "bg-green-100 text-green-800" :
+                                    (company.fitScore ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
+                                      (company.fitScore ?? 0) > 0 ? "bg-red-100 text-red-800" : "text-slate-400"
                                 )}>
-                                  {company.acquisition_fit_score ?? '-'}
+                                  {company.fitScore ?? '—'}
                                 </span>
                               </td>
-                              <td className="py-3 px-4 text-center">
-                                <span className="inline-flex items-center gap-1 text-xs text-slate-600">
-                                  <Users className="w-3.5 h-3.5" />
-                                  {company.people?.length ?? 0}
-                                </span>
+                              <td className="py-3 pr-4 text-right">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUnsaveCompany(company.id);
+                                  }}
+                                  className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                  title="Remove from shortlist"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
                               </td>
                             </tr>
                           ))}
@@ -1222,370 +1097,502 @@ const matchesIndustryFilter = (
                       </table>
                     )}
                   </div>
-                </>
-              )}
-            </div>
 
-            {/* Right Panel: Company Detail + People */}
-            {selectedHistoryCompanyId && selectedHistoryCompany && (
-              <div className="flex-1 bg-white overflow-y-auto animate-in slide-in-from-right duration-300">
-                {/* Company Details */}
-                <div className="border-b border-slate-200">
-                  <CompanyDetailPanel company={selectedHistoryCompanyAsCompany!} />
-                </div>
-
-                {/* People Section */}
-                <div className="p-6">
-                  <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4 flex items-center gap-2">
-                    <Users className="w-4 h-4 text-slate-400" />
-                    Contacts ({selectedHistoryCompany.people?.length ?? 0})
-                  </h3>
-
-                  {(!selectedHistoryCompany.people || selectedHistoryCompany.people.length === 0) ? (
-                    <div className="text-sm text-slate-500 bg-slate-50 rounded-lg p-4 border border-slate-100 border-dashed">
-                      No contacts found for this company yet.
+                  {selectedWorkspaceCompanyId && workspaceSelectionDetail && (
+                    <div className="w-[55%] max-w-[600px] bg-white overflow-y-auto border-l border-slate-200 shadow-xl shadow-slate-200/50 z-20 h-full animate-in slide-in-from-right duration-300">
+                      <CompanyDetailPanel company={workspaceSelectionDetail} />
                     </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeView === 'history' && (
+            <div className="flex-1 flex min-h-0">
+              {/* Left Panel: Search History List */}
+              <div className="w-64 border-r border-slate-200 bg-slate-50 flex flex-col overflow-hidden">
+                <div className="p-4 border-b border-slate-200">
+                  <h3 className="text-sm font-semibold text-slate-700">Past Searches</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  {historyLoading ? (
+                    <div className="p-4 flex justify-center">
+                      <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
+                    </div>
+                  ) : historyItems.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-slate-500">No search history yet.</div>
                   ) : (
-                    <div className="space-y-3">
-                      {selectedHistoryCompany.people.map((person) => {
-                        const displayName = person.full_name 
-                          || (person.first_name && person.last_name ? `${person.first_name} ${person.last_name}` : null)
-                          || person.first_name 
-                          || person.last_name 
-                          || 'Unknown';
-                        const isHighlighted = person.is_ceo || person.is_founder || person.is_executive;
-
-                        return (
-                          <div
-                            key={person.id}
-                            className={cn(
-                              "p-4 rounded-lg border transition-colors",
-                              isHighlighted ? "bg-amber-50/50 border-amber-200" : "bg-white border-slate-200"
-                            )}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className={cn(
-                                    "font-medium text-slate-900",
-                                    isHighlighted && "font-bold"
-                                  )}>
-                                    {displayName}
-                                  </span>
-                                  {person.is_ceo && (
-                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 rounded">CEO</span>
-                                  )}
-                                  {person.is_founder && (
-                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-purple-100 text-purple-700 rounded">Founder</span>
-                                  )}
-                                  {person.is_executive && !person.is_ceo && (
-                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 rounded">Exec</span>
-                                  )}
-                                </div>
-                                <p className="text-sm text-slate-600 mt-0.5">{person.role || 'Unknown Role'}</p>
-                              </div>
-                              {person.source && (
-                                <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded capitalize">
-                                  {person.source}
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="mt-3 flex flex-wrap gap-4 text-sm">
-                              {person.email && (
-                                <a
-                                  href={`mailto:${person.email}`}
-                                  className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800"
-                                >
-                                  <Mail className="w-4 h-4" />
-                                  <span className="truncate max-w-[200px]">{person.email}</span>
-                                </a>
-                              )}
-                              {person.phone && (
-                                <span className="flex items-center gap-1.5 text-slate-600">
-                                  <Phone className="w-4 h-4" />
-                                  {person.phone}
-                                </span>
-                              )}
-                            </div>
+                    <div className="divide-y divide-slate-200">
+                      {historyItems.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => handleHistoryRowClick(item)}
+                          className={cn(
+                            "w-full text-left p-3 hover:bg-white transition-colors",
+                            selectedHistoryId === item.id ? "bg-white border-l-2 border-indigo-600" : ""
+                          )}
+                        >
+                          <p className="text-sm font-medium text-slate-900 truncate">{item.query}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-slate-500">{formatDate(item.created_at)}</span>
+                            <span className="text-xs bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
+                              {item.company_count}
+                            </span>
                           </div>
-                        );
-                      })}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
               </div>
-            )}
-          </div>
-        )}
 
-        {/* People View */}
-        {activeView === 'people' && (
-          <div className="flex-1 flex flex-col min-h-0">
-            {/* Search Bar */}
-            <div className="px-8 pt-6 pb-4">
-              <div className="relative max-w-md">
-                <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Search by name, email, role, or company..."
-                  value={peopleSearchQuery}
-                  onChange={(e) => setPeopleSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all"
-                />
-              </div>
-            </div>
-
-            {/* People Table */}
-            <div className="flex-1 overflow-hidden px-8 py-4">
-              <div className="flex h-full overflow-hidden">
-                {/* People List */}
-                <div className={cn(
-                  "bg-white overflow-y-auto flex flex-col transition-all duration-300 border border-slate-200 rounded-lg",
-                  selectedPersonId ? "w-[50%] border-r-0 rounded-r-none" : "w-full"
-                )}>
-                  {peopleLoading ? (
-                    <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 text-indigo-600 animate-spin" /></div>
-                  ) : filteredPeople.length === 0 ? (
-                    <div className="p-8 text-center text-slate-500 text-sm bg-slate-50 rounded-lg border border-slate-100 border-dashed m-4">
-                      {allPeople.length > 0 ? "No people match your search." : "No contacts found yet. Run a search to discover companies and their decision makers."}
-                    </div>
-                  ) : (
-                    <table className="w-full text-left border-collapse">
-                      <thead className="sticky top-0 bg-white z-10">
-                        <tr>
-                          <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Name</th>
-                          <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 hidden md:table-cell">Role</th>
-                          <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Email</th>
-                          <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 hidden lg:table-cell">Company</th>
-                          <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 hidden sm:table-cell">Source</th>
-                        </tr>
-                      </thead>
-                      <tbody className="text-sm divide-y divide-slate-100">
-                        {filteredPeople.map((person) => {
-                          const isHighlighted = person.is_ceo || person.is_founder || person.is_executive;
-                          return (
-                            <tr
-                              key={person.id}
-                              onClick={() => setSelectedPersonId(selectedPersonId === person.id ? null : person.id)}
-                              className={cn(
-                                "group hover:bg-slate-50 transition-colors cursor-pointer",
-                                selectedPersonId === person.id ? "bg-indigo-50/30" : "",
-                                isHighlighted ? "bg-amber-50/30" : ""
-                              )}
-                            >
-                              <td className="py-3 px-4">
-                                <div className="flex items-center gap-2">
-                                  <span className={cn(
-                                    "font-medium text-slate-900",
-                                    isHighlighted && "font-bold"
-                                  )}>
-                                    {person.full_name || 'Unknown'}
-                                  </span>
-                                  {person.is_ceo && (
-                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 rounded">CEO</span>
-                                  )}
-                                  {person.is_founder && (
-                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-purple-100 text-purple-700 rounded">Founder</span>
-                                  )}
-                                  {person.is_executive && !person.is_ceo && (
-                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 rounded">Exec</span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="py-3 px-4 text-slate-600 hidden md:table-cell">
-                                {person.role || '—'}
-                              </td>
-                              <td className="py-3 px-4">
-                                {person.email ? (
-                                  <a
-                                    href={`mailto:${person.email}`}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-                                  >
-                                    <Mail className="w-3.5 h-3.5" />
-                                    <span className="truncate max-w-[180px]">{person.email}</span>
-                                  </a>
-                                ) : (
-                                  <span className="text-slate-400">—</span>
-                                )}
-                              </td>
-                              <td className="py-3 px-4 text-slate-600 hidden lg:table-cell">
-                                {person.company_name || '—'}
-                              </td>
-                              <td className="py-3 px-4 hidden sm:table-cell">
-                                <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded capitalize">
-                                  {person.source || 'unknown'}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-
-                {/* Person Detail Panel */}
-                {selectedPersonId && selectedPerson && (
-                  <div className="w-[50%] max-w-[500px] bg-white overflow-y-auto border border-slate-200 rounded-r-lg shadow-xl shadow-slate-200/50 z-20 h-full animate-in slide-in-from-right duration-300">
-                    {/* Header */}
-                    <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 py-5 z-20">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h2 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
-                            {selectedPerson.full_name || 'Unknown Contact'}
-                            {selectedPerson.is_ceo && (
-                              <span className="px-2 py-0.5 text-xs font-semibold uppercase bg-amber-100 text-amber-700 rounded">CEO</span>
-                            )}
-                            {selectedPerson.is_founder && (
-                              <span className="px-2 py-0.5 text-xs font-semibold uppercase bg-purple-100 text-purple-700 rounded">Founder</span>
-                            )}
-                          </h2>
-                          <p className="text-sm text-slate-500 mt-0.5">{selectedPerson.role || 'Unknown Role'}</p>
-                        </div>
+              {/* Middle Panel: Companies for Selected Search */}
+              <div className={cn(
+                "flex flex-col overflow-hidden transition-all duration-300 border-r border-slate-200",
+                selectedHistoryCompanyId ? "w-[35%]" : "flex-1"
+              )}>
+                {!selectedHistoryId ? (
+                  <div className="flex-1 flex items-center justify-center text-slate-500 text-sm">
+                    Select a search from the left to view companies
+                  </div>
+                ) : historyDetailsLoading ? (
+                  <div className="flex-1 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="p-4 border-b border-slate-200 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-slate-700">
+                          Companies ({filteredHistoryCompanies.length})
+                        </h3>
+                      </div>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <input
+                          type="text"
+                          placeholder="Filter companies..."
+                          value={historySearchQuery}
+                          onChange={(e) => setHistorySearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
                       </div>
                     </div>
-
-                    <div className="p-6 space-y-6">
-                      {/* Contact Info */}
-                      <section className="border border-slate-200 rounded-lg overflow-hidden">
-                        <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                          <h3 className="text-sm font-semibold text-slate-900">Contact Information</h3>
+                    <div className="flex-1 overflow-y-auto">
+                      {filteredHistoryCompanies.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-slate-500">
+                          {historyCompanies.length > 0 ? "No companies match your filter." : "No companies found for this search."}
                         </div>
-                        <div className="divide-y divide-slate-100">
-                          {selectedPerson.email && (
-                            <div className="p-4 flex items-center gap-3">
-                              <Mail className="w-4 h-4 text-slate-400" />
-                              <a href={`mailto:${selectedPerson.email}`} className="text-sm text-indigo-600 hover:text-indigo-800">
-                                {selectedPerson.email}
-                              </a>
-                            </div>
-                          )}
-                          {selectedPerson.phone && (
-                            <div className="p-4 flex items-center gap-3">
-                              <Phone className="w-4 h-4 text-slate-400" />
-                              <a href={`tel:${selectedPerson.phone}`} className="text-sm text-slate-700">
-                                {selectedPerson.phone}
-                              </a>
-                            </div>
-                          )}
-                          {selectedPerson.linkedin_url && (
-                            <div className="p-4 flex items-center gap-3">
-                              <Linkedin className="w-4 h-4 text-slate-400" />
-                              <a href={selectedPerson.linkedin_url} target="_blank" rel="noreferrer" className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
-                                LinkedIn Profile <ExternalLink className="w-3 h-3" />
-                              </a>
-                            </div>
-                          )}
-                          {(selectedPerson.location_city || selectedPerson.location_country) && (
-                            <div className="p-4 flex items-center gap-3">
-                              <MapPin className="w-4 h-4 text-slate-400" />
-                              <span className="text-sm text-slate-700">
-                                {[selectedPerson.location_city, selectedPerson.location_country].filter(Boolean).join(', ')}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </section>
+                      ) : (
+                        <table className="w-full text-left border-collapse">
+                          <thead className="sticky top-0 bg-white z-10">
+                            <tr>
+                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Company</th>
+                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Fit</th>
+                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-center">People</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {filteredHistoryCompanies.map((company) => (
+                              <tr
+                                key={company.id}
+                                onClick={() => setSelectedHistoryCompanyId(company.id)}
+                                className={cn(
+                                  "cursor-pointer hover:bg-slate-50 transition-colors",
+                                  selectedHistoryCompanyId === company.id ? "bg-indigo-50" : ""
+                                )}
+                              >
+                                <td className="py-3 px-4">
+                                  <div className="font-medium text-slate-900">{company.name}</div>
+                                  <div className="text-xs text-slate-500 truncate max-w-[200px]">{company.website}</div>
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <span className={cn(
+                                    "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+                                    (company.acquisition_fit_score ?? 0) >= 8 ? "bg-green-100 text-green-800" :
+                                      (company.acquisition_fit_score ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
+                                        "bg-slate-100 text-slate-600"
+                                  )}>
+                                    {company.acquisition_fit_score ?? '-'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-center">
+                                  <span className="inline-flex items-center gap-1 text-xs text-slate-600">
+                                    <Users className="w-3.5 h-3.5" />
+                                    {company.people?.length ?? 0}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
 
-                      {/* Company Info */}
-                      {selectedPerson.company_name && (
-                        <section className="border border-slate-200 rounded-lg overflow-hidden">
-                          <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                            <h3 className="text-sm font-semibold text-slate-900">Company</h3>
-                          </div>
-                          <div className="p-4">
-                            <div className="flex items-center gap-3">
-                              <Building2 className="w-4 h-4 text-slate-400" />
-                              <div>
-                                <p className="text-sm font-medium text-slate-900">{selectedPerson.company_name}</p>
-                                {selectedPerson.company_website && (
-                                  <a 
-                                    href={normalizeWebsite(selectedPerson.company_website)} 
-                                    target="_blank" 
-                                    rel="noreferrer"
-                                    className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+              {/* Right Panel: Company Detail + People */}
+              {selectedHistoryCompanyId && selectedHistoryCompany && (
+                <div className="flex-1 bg-white overflow-y-auto animate-in slide-in-from-right duration-300">
+                  {/* Company Details */}
+                  <div className="border-b border-slate-200">
+                    <CompanyDetailPanel company={selectedHistoryCompanyAsCompany!} />
+                  </div>
+
+                  {/* People Section */}
+                  <div className="p-6">
+                    <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-slate-400" />
+                      Contacts ({selectedHistoryCompany.people?.length ?? 0})
+                    </h3>
+
+                    {(!selectedHistoryCompany.people || selectedHistoryCompany.people.length === 0) ? (
+                      <div className="text-sm text-slate-500 bg-slate-50 rounded-lg p-4 border border-slate-100 border-dashed">
+                        No contacts found for this company yet.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {selectedHistoryCompany.people.map((person) => {
+                          const displayName = person.full_name
+                            || (person.first_name && person.last_name ? `${person.first_name} ${person.last_name}` : null)
+                            || person.first_name
+                            || person.last_name
+                            || 'Unknown';
+                          const isHighlighted = person.is_ceo || person.is_founder || person.is_executive;
+
+                          return (
+                            <div
+                              key={person.id}
+                              className={cn(
+                                "p-4 rounded-lg border transition-colors",
+                                isHighlighted ? "bg-amber-50/50 border-amber-200" : "bg-white border-slate-200"
+                              )}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className={cn(
+                                      "font-medium text-slate-900",
+                                      isHighlighted && "font-bold"
+                                    )}>
+                                      {displayName}
+                                    </span>
+                                    {person.is_ceo && (
+                                      <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 rounded">CEO</span>
+                                    )}
+                                    {person.is_founder && (
+                                      <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-purple-100 text-purple-700 rounded">Founder</span>
+                                    )}
+                                    {person.is_executive && !person.is_ceo && (
+                                      <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 rounded">Exec</span>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-slate-600 mt-0.5">{person.role || 'Unknown Role'}</p>
+                                </div>
+                                {person.source && (
+                                  <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded capitalize">
+                                    {person.source}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                                {person.email && (
+                                  <a
+                                    href={`mailto:${person.email}`}
+                                    className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800"
                                   >
-                                    {selectedPerson.company_website} <ExternalLink className="w-3 h-3" />
+                                    <Mail className="w-4 h-4" />
+                                    <span className="truncate max-w-[200px]">{person.email}</span>
                                   </a>
+                                )}
+                                {person.phone && (
+                                  <span className="flex items-center gap-1.5 text-slate-600">
+                                    <Phone className="w-4 h-4" />
+                                    {person.phone}
+                                  </span>
                                 )}
                               </div>
                             </div>
-                          </div>
-                        </section>
-                      )}
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
-                      {/* Professional Info */}
-                      <section className="border border-slate-200 rounded-lg overflow-hidden">
-                        <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                          <h3 className="text-sm font-semibold text-slate-900">Professional Details</h3>
-                        </div>
-                        <div className="divide-y divide-slate-100">
-                          {selectedPerson.department && (
-                            <div className="p-4 grid grid-cols-3 gap-4">
-                              <div className="text-sm font-medium text-slate-500">Department</div>
-                              <div className="col-span-2 text-sm text-slate-700">{selectedPerson.department}</div>
-                            </div>
-                          )}
-                          {selectedPerson.seniority && (
-                            <div className="p-4 grid grid-cols-3 gap-4">
-                              <div className="text-sm font-medium text-slate-500">Seniority</div>
-                              <div className="col-span-2 text-sm text-slate-700">{selectedPerson.seniority}</div>
-                            </div>
-                          )}
-                          <div className="p-4 grid grid-cols-3 gap-4">
-                            <div className="text-sm font-medium text-slate-500">Source</div>
-                            <div className="col-span-2">
-                              <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded capitalize">
-                                {selectedPerson.source || 'unknown'}
-                              </span>
-                            </div>
-                          </div>
-                          {selectedPerson.confidence_score !== null && (
-                            <div className="p-4 grid grid-cols-3 gap-4">
-                              <div className="text-sm font-medium text-slate-500">Confidence</div>
-                              <div className="col-span-2 text-sm text-slate-700">{selectedPerson.confidence_score}%</div>
-                            </div>
-                          )}
-                        </div>
-                      </section>
+          {/* People View */}
+          {activeView === 'people' && (
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Search Bar */}
+              <div className="px-8 pt-6 pb-4">
+                <div className="relative max-w-md">
+                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, role, or company..."
+                    value={peopleSearchQuery}
+                    onChange={(e) => setPeopleSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all"
+                  />
+                </div>
+              </div>
 
-                      {/* Notes */}
-                      {selectedPerson.notes && (
+              {/* People Table */}
+              <div className="flex-1 overflow-hidden px-8 py-4">
+                <div className="flex h-full overflow-hidden">
+                  {/* People List */}
+                  <div className={cn(
+                    "bg-white overflow-y-auto flex flex-col transition-all duration-300 border border-slate-200 rounded-lg",
+                    selectedPersonId ? "w-[50%] border-r-0 rounded-r-none" : "w-full"
+                  )}>
+                    {peopleLoading ? (
+                      <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 text-indigo-600 animate-spin" /></div>
+                    ) : filteredPeople.length === 0 ? (
+                      <div className="p-8 text-center text-slate-500 text-sm bg-slate-50 rounded-lg border border-slate-100 border-dashed m-4">
+                        {allPeople.length > 0 ? "No people match your search." : "No contacts found yet. Run a search to discover companies and their decision makers."}
+                      </div>
+                    ) : (
+                      <table className="w-full text-left border-collapse">
+                        <thead className="sticky top-0 bg-white z-10">
+                          <tr>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Name</th>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 hidden md:table-cell">Role</th>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Email</th>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 hidden lg:table-cell">Company</th>
+                            <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 hidden sm:table-cell">Source</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-sm divide-y divide-slate-100">
+                          {filteredPeople.map((person) => {
+                            const isHighlighted = person.is_ceo || person.is_founder || person.is_executive;
+                            return (
+                              <tr
+                                key={person.id}
+                                onClick={() => setSelectedPersonId(selectedPersonId === person.id ? null : person.id)}
+                                className={cn(
+                                  "group hover:bg-slate-50 transition-colors cursor-pointer",
+                                  selectedPersonId === person.id ? "bg-indigo-50/30" : "",
+                                  isHighlighted ? "bg-amber-50/30" : ""
+                                )}
+                              >
+                                <td className="py-3 px-4">
+                                  <div className="flex items-center gap-2">
+                                    <span className={cn(
+                                      "font-medium text-slate-900",
+                                      isHighlighted && "font-bold"
+                                    )}>
+                                      {person.full_name || 'Unknown'}
+                                    </span>
+                                    {person.is_ceo && (
+                                      <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 rounded">CEO</span>
+                                    )}
+                                    {person.is_founder && (
+                                      <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-purple-100 text-purple-700 rounded">Founder</span>
+                                    )}
+                                    {person.is_executive && !person.is_ceo && (
+                                      <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 rounded">Exec</span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="py-3 px-4 text-slate-600 hidden md:table-cell">
+                                  {person.role || '—'}
+                                </td>
+                                <td className="py-3 px-4">
+                                  {person.email ? (
+                                    <a
+                                      href={`mailto:${person.email}`}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                                    >
+                                      <Mail className="w-3.5 h-3.5" />
+                                      <span className="truncate max-w-[180px]">{person.email}</span>
+                                    </a>
+                                  ) : (
+                                    <span className="text-slate-400">—</span>
+                                  )}
+                                </td>
+                                <td className="py-3 px-4 text-slate-600 hidden lg:table-cell">
+                                  {person.company_name || '—'}
+                                </td>
+                                <td className="py-3 px-4 hidden sm:table-cell">
+                                  <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded capitalize">
+                                    {person.source || 'unknown'}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+
+                  {/* Person Detail Panel */}
+                  {selectedPersonId && selectedPerson && (
+                    <div className="w-[50%] max-w-[500px] bg-white overflow-y-auto border border-slate-200 rounded-r-lg shadow-xl shadow-slate-200/50 z-20 h-full animate-in slide-in-from-right duration-300">
+                      {/* Header */}
+                      <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 py-5 z-20">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h2 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                              {selectedPerson.full_name || 'Unknown Contact'}
+                              {selectedPerson.is_ceo && (
+                                <span className="px-2 py-0.5 text-xs font-semibold uppercase bg-amber-100 text-amber-700 rounded">CEO</span>
+                              )}
+                              {selectedPerson.is_founder && (
+                                <span className="px-2 py-0.5 text-xs font-semibold uppercase bg-purple-100 text-purple-700 rounded">Founder</span>
+                              )}
+                            </h2>
+                            <p className="text-sm text-slate-500 mt-0.5">{selectedPerson.role || 'Unknown Role'}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-6 space-y-6">
+                        {/* Contact Info */}
                         <section className="border border-slate-200 rounded-lg overflow-hidden">
                           <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                            <h3 className="text-sm font-semibold text-slate-900">Notes</h3>
+                            <h3 className="text-sm font-semibold text-slate-900">Contact Information</h3>
                           </div>
-                          <div className="p-4">
-                            <p className="text-sm text-slate-600 leading-relaxed">{selectedPerson.notes}</p>
+                          <div className="divide-y divide-slate-100">
+                            {selectedPerson.email && (
+                              <div className="p-4 flex items-center gap-3">
+                                <Mail className="w-4 h-4 text-slate-400" />
+                                <a href={`mailto:${selectedPerson.email}`} className="text-sm text-indigo-600 hover:text-indigo-800">
+                                  {selectedPerson.email}
+                                </a>
+                              </div>
+                            )}
+                            {selectedPerson.phone && (
+                              <div className="p-4 flex items-center gap-3">
+                                <Phone className="w-4 h-4 text-slate-400" />
+                                <a href={`tel:${selectedPerson.phone}`} className="text-sm text-slate-700">
+                                  {selectedPerson.phone}
+                                </a>
+                              </div>
+                            )}
+                            {selectedPerson.linkedin_url && (
+                              <div className="p-4 flex items-center gap-3">
+                                <Linkedin className="w-4 h-4 text-slate-400" />
+                                <a href={selectedPerson.linkedin_url} target="_blank" rel="noreferrer" className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                                  LinkedIn Profile <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </div>
+                            )}
+                            {(selectedPerson.location_city || selectedPerson.location_country) && (
+                              <div className="p-4 flex items-center gap-3">
+                                <MapPin className="w-4 h-4 text-slate-400" />
+                                <span className="text-sm text-slate-700">
+                                  {[selectedPerson.location_city, selectedPerson.location_country].filter(Boolean).join(', ')}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </section>
-                      )}
 
-                      {/* Key Info */}
-                      <section className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Record Info</h3>
-                        <div className="grid grid-cols-1 gap-2">
-                          <div className="flex justify-between">
-                            <span className="text-xs text-slate-400 font-mono">ID</span>
-                            <span className="text-xs text-slate-500 font-mono">{selectedPerson.id.slice(0, 24)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-xs text-slate-400">Added</span>
-                            <span className="text-xs text-slate-600">{formatDate(selectedPerson.created_at)}</span>
-                          </div>
-                        </div>
-                      </section>
+                        {/* Company Info */}
+                        {selectedPerson.company_name && (
+                          <section className="border border-slate-200 rounded-lg overflow-hidden">
+                            <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+                              <h3 className="text-sm font-semibold text-slate-900">Company</h3>
+                            </div>
+                            <div className="p-4">
+                              <div className="flex items-center gap-3">
+                                <Building2 className="w-4 h-4 text-slate-400" />
+                                <div>
+                                  <p className="text-sm font-medium text-slate-900">{selectedPerson.company_name}</p>
+                                  {selectedPerson.company_website && (
+                                    <a
+                                      href={normalizeWebsite(selectedPerson.company_website)}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                                    >
+                                      {selectedPerson.company_website} <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </section>
+                        )}
 
-                      <div className="h-8"></div>
+                        {/* Professional Info */}
+                        <section className="border border-slate-200 rounded-lg overflow-hidden">
+                          <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+                            <h3 className="text-sm font-semibold text-slate-900">Professional Details</h3>
+                          </div>
+                          <div className="divide-y divide-slate-100">
+                            {selectedPerson.department && (
+                              <div className="p-4 grid grid-cols-3 gap-4">
+                                <div className="text-sm font-medium text-slate-500">Department</div>
+                                <div className="col-span-2 text-sm text-slate-700">{selectedPerson.department}</div>
+                              </div>
+                            )}
+                            {selectedPerson.seniority && (
+                              <div className="p-4 grid grid-cols-3 gap-4">
+                                <div className="text-sm font-medium text-slate-500">Seniority</div>
+                                <div className="col-span-2 text-sm text-slate-700">{selectedPerson.seniority}</div>
+                              </div>
+                            )}
+                            <div className="p-4 grid grid-cols-3 gap-4">
+                              <div className="text-sm font-medium text-slate-500">Source</div>
+                              <div className="col-span-2">
+                                <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded capitalize">
+                                  {selectedPerson.source || 'unknown'}
+                                </span>
+                              </div>
+                            </div>
+                            {selectedPerson.confidence_score !== null && (
+                              <div className="p-4 grid grid-cols-3 gap-4">
+                                <div className="text-sm font-medium text-slate-500">Confidence</div>
+                                <div className="col-span-2 text-sm text-slate-700">{selectedPerson.confidence_score}%</div>
+                              </div>
+                            )}
+                          </div>
+                        </section>
+
+                        {/* Notes */}
+                        {selectedPerson.notes && (
+                          <section className="border border-slate-200 rounded-lg overflow-hidden">
+                            <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+                              <h3 className="text-sm font-semibold text-slate-900">Notes</h3>
+                            </div>
+                            <div className="p-4">
+                              <p className="text-sm text-slate-600 leading-relaxed">{selectedPerson.notes}</p>
+                            </div>
+                          </section>
+                        )}
+
+                        {/* Key Info */}
+                        <section className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Record Info</h3>
+                          <div className="grid grid-cols-1 gap-2">
+                            <div className="flex justify-between">
+                              <span className="text-xs text-slate-400 font-mono">ID</span>
+                              <span className="text-xs text-slate-500 font-mono">{selectedPerson.id.slice(0, 24)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-xs text-slate-400">Added</span>
+                              <span className="text-xs text-slate-600">{formatDate(selectedPerson.created_at)}</span>
+                            </div>
+                          </div>
+                        </section>
+
+                        <div className="h-8"></div>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
         </div>
       </main>
 

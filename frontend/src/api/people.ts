@@ -49,7 +49,7 @@ async function handleResponse<T>(
   }
 
   const error = new Error(errorDetails?.message ?? defaultMessage);
-  (error as Record<string, unknown>).status = response.status;
+  (error as any).status = response.status;
   throw error;
 }
 

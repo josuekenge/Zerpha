@@ -12,7 +12,7 @@ const API_BASE_URL = 'http://localhost:3001';
 async function getAuthHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
-  
+
   if (!token) {
     return {
       'Content-Type': 'application/json',
@@ -27,7 +27,7 @@ async function getAuthHeaders(): Promise<HeadersInit> {
 
 async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const headers = await getAuthHeaders();
-  
+
   return fetch(url, {
     ...options,
     headers: {
@@ -55,7 +55,7 @@ async function handleResponse<T>(response: Response, defaultMessage: string): Pr
   }
 
   const error = new Error(errorDetails?.message ?? defaultMessage);
-  (error as Record<string, unknown>).status = response.status;
+  (error as any).status = response.status;
   throw error;
 }
 
@@ -149,7 +149,7 @@ export async function unsaveCompany(companyId: string): Promise<void> {
       // ignore
     }
     const err = new Error(errorDetails?.message ?? 'Failed to unsave company');
-    (err as Record<string, unknown>).status = response.status;
+    (err as any).status = response.status;
     throw err;
   }
 }
