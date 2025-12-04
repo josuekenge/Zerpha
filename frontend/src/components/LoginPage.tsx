@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Zap, ArrowRight, HelpCircle } from 'lucide-react';
+import { ArrowRight, HelpCircle } from 'lucide-react';
 import { signInWithGoogle, signInWithEmail } from '../lib/auth';
 import { useAuth } from '../lib/auth';
 import { useNavigate, useLocation } from 'react-router-dom';

@@ -6,8 +6,7 @@ import {
   SavedCompany,
   SearchDetailsResponse,
 } from '../types';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { buildApiUrl } from './config';
 
 async function getAuthHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getSession();
@@ -60,7 +59,7 @@ async function handleResponse<T>(response: Response, defaultMessage: string): Pr
 }
 
 export async function searchCompanies(query: string): Promise<SearchResponse> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/search`, {
+  const response = await authenticatedFetch(buildApiUrl('/api/search'), {
     method: 'POST',
     body: JSON.stringify({ query }),
   });
@@ -69,7 +68,7 @@ export async function searchCompanies(query: string): Promise<SearchResponse> {
 }
 
 export async function exportInfographic(companyId: string): Promise<InfographicReportResult> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/export-report`, {
+  const response = await authenticatedFetch(buildApiUrl('/api/export-report'), {
     method: 'POST',
     body: JSON.stringify({ companyId }),
   });
@@ -83,12 +82,12 @@ export async function exportInfographic(companyId: string): Promise<InfographicR
 }
 
 export async function fetchSearchHistory(): Promise<SearchHistoryItem[]> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/search-history`);
+  const response = await authenticatedFetch(buildApiUrl('/api/search-history'));
   return handleResponse<SearchHistoryItem[]>(response, 'Failed to load search history');
 }
 
 export async function fetchSearchById(searchId: string): Promise<SearchResponse> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/search/${searchId}`);
+  const response = await authenticatedFetch(buildApiUrl(`/api/search/${searchId}`));
   return handleResponse<SearchResponse>(response, 'Failed to load saved search');
 }
 
@@ -96,7 +95,7 @@ export async function fetchSearchById(searchId: string): Promise<SearchResponse>
  * Fetch full search details including companies and their people
  */
 export async function fetchSearchDetails(searchId: string): Promise<SearchDetailsResponse> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/searches/${searchId}/details`);
+  const response = await authenticatedFetch(buildApiUrl(`/api/searches/${searchId}/details`));
   return handleResponse<SearchDetailsResponse>(response, 'Failed to load search details');
 }
 
@@ -108,7 +107,7 @@ export interface SavedCompanyQuery {
 }
 
 export async function fetchSavedCompanies(params: SavedCompanyQuery = {}): Promise<SavedCompany[]> {
-  const url = new URL(`${API_BASE_URL}/api/companies`);
+  const url = new URL(buildApiUrl('/api/companies'), window.location.origin);
 
   if (params.searchId) {
     url.searchParams.set('searchId', params.searchId);
@@ -128,7 +127,7 @@ export async function fetchSavedCompanies(params: SavedCompanyQuery = {}): Promi
 }
 
 export async function saveCompany(companyId: string, category?: string): Promise<SavedCompany> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/companies/${companyId}/save`, {
+  const response = await authenticatedFetch(buildApiUrl(`/api/companies/${companyId}/save`), {
     method: 'POST',
     body: JSON.stringify({ category }),
   });
@@ -137,7 +136,7 @@ export async function saveCompany(companyId: string, category?: string): Promise
 }
 
 export async function unsaveCompany(companyId: string): Promise<void> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/companies/${companyId}/unsave`, {
+  const response = await authenticatedFetch(buildApiUrl(`/api/companies/${companyId}/unsave`), {
     method: 'POST',
   });
 
@@ -163,7 +162,7 @@ export interface CreateCompanyParams {
 }
 
 export async function createCompany(params: CreateCompanyParams): Promise<SavedCompany> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/companies`, {
+  const response = await authenticatedFetch(buildApiUrl('/api/companies'), {
     method: 'POST',
     body: JSON.stringify(params),
   });

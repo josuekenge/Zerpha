@@ -1,7 +1,6 @@
 import { Person } from '../types';
 import { supabase } from '../lib/supabase';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { buildApiUrl } from './config';
 
 async function getAuthHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getSession();
@@ -57,7 +56,7 @@ export async function getPeopleByCompanyId(
   companyId: string,
 ): Promise<Person[]> {
   const response = await authenticatedFetch(
-    `${API_BASE_URL}/api/companies/${companyId}/people`,
+    buildApiUrl(`/api/companies/${companyId}/people`),
   );
   return handleResponse<Person[]>(response, 'Failed to load contacts');
 }
@@ -66,7 +65,7 @@ export async function getPeopleByCompanyId(
  * Fetch all people for the current user across all companies
  */
 export async function getAllPeople(): Promise<Person[]> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/people`);
+  const response = await authenticatedFetch(buildApiUrl('/api/people'));
   return handleResponse<Person[]>(response, 'Failed to load people');
 }
 
@@ -81,7 +80,7 @@ export interface CreatePersonParams {
 }
 
 export async function createPerson(params: CreatePersonParams): Promise<Person> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/people`, {
+  const response = await authenticatedFetch(buildApiUrl('/api/people'), {
     method: 'POST',
     body: JSON.stringify(params),
   });
@@ -89,7 +88,7 @@ export async function createPerson(params: CreatePersonParams): Promise<Person> 
 }
 
 export async function deletePerson(personId: string): Promise<void> {
-  const response = await authenticatedFetch(`${API_BASE_URL}/api/people/${personId}`, {
+  const response = await authenticatedFetch(buildApiUrl(`/api/people/${personId}`), {
     method: 'DELETE',
   });
   if (!response.ok) {

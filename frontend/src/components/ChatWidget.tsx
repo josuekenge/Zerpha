@@ -5,6 +5,7 @@ import { cn } from '../lib/utils';
 
 import { createCompany } from '../api/client';
 import { createPerson } from '../api/people';
+import { buildApiUrl } from '../api/config';
 
 interface Message {
     id: string;
@@ -104,7 +105,7 @@ export function ChatWidget({ context, mode = 'floating', className }: ChatWidget
                 formData.append('files', file);
             });
 
-            const response = await fetch('http://localhost:3001/api/chat', {
+            const response = await fetch(buildApiUrl('/api/chat'), {
                 method: 'POST',
                 body: formData,
             });

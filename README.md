@@ -102,14 +102,15 @@ The frontend is a React + Vite application using Tailwind CSS.
     ```
 
 3.  **Configure Environment:**
-    Create a `.env` file in the `frontend/` directory:
+    Create a `.env` file in the `frontend/` directory (see `.env.example` for reference):
 
     ```env
     VITE_SUPABASE_URL=https://your-project.supabase.co
     VITE_SUPABASE_ANON_KEY=your_anon_public_key_here
+    VITE_API_BASE_URL=http://localhost:3001
     ```
 
-    > **Note:** Variables must start with `VITE_` to be exposed to the frontend.
+    > **Note:** Variables must start with `VITE_` to be exposed to the frontend. The backend should be running separately on port `3001` during local development.
 
 4.  **Start the Dev Server:**
     ```bash
@@ -164,7 +165,7 @@ Deploy Zerpha to Railway as two separate services (backend + frontend).
    ```
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key
-   VITE_API_URL=https://your-backend.railway.app
+   VITE_API_BASE_URL=https://your-backend.railway.app
    ```
 4. Railway will auto-detect and deploy using the `railway.json` config
 
@@ -175,6 +176,25 @@ Deploy Zerpha to Railway as two separate services (backend + frontend).
   - Go to **Authentication > URL Configuration**
   - Add `https://your-frontend.railway.app` to Site URL and Redirect URLs
 - **Health Check:** Backend has a `/health` endpoint for Railway health checks
+
+---
+
+## 🌐 Netlify Deployment
+
+You can also deploy the frontend independently on Netlify while the backend lives on Railway.
+
+1. **Site configuration**
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+   - Base directory / repository root: `frontend`
+2. **Environment variables (Netlify → Site Configuration → Environment):**
+   ```
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
+   VITE_API_BASE_URL=https://your-backend.onrailway.app
+   ```
+3. The `frontend/netlify.toml` file already configures the build/publish settings and includes an SPA redirect so client-side routing works.
+4. For local development, run the backend separately on port `3001` and set `VITE_API_BASE_URL=http://localhost:3001`.
 
 ---
 
