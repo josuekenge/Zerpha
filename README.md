@@ -4,355 +4,149 @@ Zerpha is a full-stack application for discovering and analyzing companies using
 
 ---
 
-## 📋 Table of Contents
+## 🚀 Quick Start
 
-- [Prerequisites](#prerequisites)
-- [Project Structure](#project-structure)
-- [Backend Setup](#backend-setup)
-- [Frontend Setup](#frontend-setup)
-- [Database Setup](#database-setup)
-- [Running the Application](#running-the-application)
-- [Environment Variables Reference](#environment-variables-reference)
-- [Troubleshooting](#troubleshooting)
+Get up and running in minutes.
+
+### 1. Backend
+```bash
+cd backend
+npm install
+# Create .env file (see below)
+npm run dev
+```
+
+### 2. Frontend
+```bash
+cd frontend
+npm install
+# Create .env file (see below)
+npm run dev
+```
+
+### 3. Access
+- **Frontend:** [http://localhost:5173](http://localhost:5173)
+- **Backend API:** [http://localhost:3001](http://localhost:3001)
 
 ---
 
-## Prerequisites
-
-Before you begin, ensure you have the following installed:
+## 🛠️ Prerequisites
 
 - **Node.js** v18+ (recommended: v20+)
 - **npm** v9+
-- **Supabase CLI** (for database migrations)
-- **Git**
-
-Required accounts/API keys:
-
-- [Supabase](https://supabase.com) - Database and Authentication
-- [Anthropic Claude](https://anthropic.com) - AI company analysis
-- [Google Cloud](https://console.cloud.google.com) - Slides/Docs integration
-- [Apify](https://apify.com) - Contact scraping (optional but recommended)
+- **Supabase Account** (for database & auth)
+- **Google Cloud Console** (for OAuth & Slides API)
 
 ---
 
-## Project Structure
+## ⚙️ Backend Setup
 
-```
-Zerpha/
-├── backend/                 # Node.js/Express API (TypeScript)
-│   ├── src/
-│   │   ├── config/          # Environment & Supabase config
-│   │   ├── middleware/      # Auth middleware
-│   │   ├── routes/          # API routes
-│   │   ├── services/        # Business logic (AI, scraping, etc.)
-│   │   └── types/           # TypeScript types
-│   ├── package.json
-│   └── .env                 # Backend environment variables
-│
-├── frontend/                # React + Vite (TypeScript)
-│   ├── src/
-│   │   ├── api/             # API client helpers
-│   │   ├── components/      # React components
-│   │   ├── lib/             # Supabase client, auth, utils
-│   │   └── types/           # TypeScript types
-│   ├── package.json
-│   └── .env                 # Frontend environment variables
-│
-├── supabase/
-│   └── migrations/          # SQL migration files
-│
-└── README.md
-```
+The backend handles API requests, AI processing (Claude/Gemini), and database interactions.
 
----
+1.  **Navigate to backend:**
+    ```bash
+    cd backend
+    ```
 
-## Backend Setup
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-### 1. Install Dependencies
+3.  **Configure Environment:**
+    Create a `.env` file in the `backend/` directory with the following:
 
-```bash
-cd backend
-npm install
-```
+    ```env
+    # Server
+    NODE_ENV=development
+    PORT=3001
 
-### 2. Create Environment File
+    # Supabase (Required)
+    SUPABASE_URL=https://your-project.supabase.co
+    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 
-Create `backend/.env` with the following variables:
+    # AI APIs (Required)
+    CLAUDE_API_KEY=sk-ant-api03-...
+    GEMINI_API_KEY=AIzaSy...
 
-```env
-# Server
-NODE_ENV=development
-PORT=3001
+    # Google Cloud (Required for Slides/Docs export)
+    GOOGLE_PROJECT_ID=your-project-id
+    GOOGLE_APPLICATION_CREDENTIALS=./path/to/service-account.json
+    GOOGLE_CLIENT_EMAIL=your-service-account@email.com
+    GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+    GOOGLE_SLIDES_TEMPLATE_ID=your_slides_template_id
 
-# Supabase (Required)
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    # Apify (Optional - for contact scraping)
+    APIFY_TOKEN=your_apify_token
+    ```
 
-# AI APIs (Required)
-CLAUDE_API_KEY=sk-ant-api03-...
-GEMINI_API_KEY=AIzaSy...
-
-# Google Cloud (Required for Slides/Docs export)
-GOOGLE_PROJECT_ID=your-project-id
-GOOGLE_APPLICATION_CREDENTIALS=./path/to/service-account.json
-GOOGLE_CLIENT_EMAIL=your-service-account@project.iam.gserviceaccount.com
-GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-GOOGLE_SLIDES_TEMPLATE_ID=1abc123...
-
-# Apify (Optional - for contact scraping)
-APIFY_TOKEN=apify_api_xxxxxxxxxxxxx
-```
-
-### 3. Get Your API Keys
-
-| Variable | Where to get it |
-|----------|-----------------|
-| `SUPABASE_URL` | Supabase Dashboard → Settings → API → Project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Settings → API → service_role (secret) |
-| `CLAUDE_API_KEY` | [Anthropic Console](https://console.anthropic.com/) |
-| `GEMINI_API_KEY` | [Google AI Studio](https://makersuite.google.com/app/apikey) |
-| `GOOGLE_*` | [Google Cloud Console](https://console.cloud.google.com/) → Service Accounts |
-| `APIFY_TOKEN` | [Apify Console](https://console.apify.com/) → Settings → Integrations |
-
-### 4. Start the Backend
-
-```bash
-cd backend
-npm run dev
-```
-
-You should see:
-
-```
-[supabase] Connection verified
-[12:00:00.000] INFO: 🚀 Backend ready on http://localhost:3001
-```
+4.  **Start the Server:**
+    ```bash
+    npm run dev
+    ```
 
 ---
 
-## Frontend Setup
+## 🎨 Frontend Setup
 
-### 1. Install Dependencies
+The frontend is a React + Vite application using Tailwind CSS.
 
-```bash
-cd frontend
-npm install
-```
+1.  **Navigate to frontend:**
+    ```bash
+    cd frontend
+    ```
 
-### 2. Create Environment File
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-Create `frontend/.env` in the frontend root directory (next to `package.json`):
+3.  **Configure Environment:**
+    Create a `.env` file in the `frontend/` directory:
 
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
+    ```env
+    VITE_SUPABASE_URL=https://your-project.supabase.co
+    VITE_SUPABASE_ANON_KEY=your_anon_public_key_here
+    ```
 
-> ⚠️ **Important:** 
-> - Frontend uses `VITE_` prefix (Vite requirement)
-> - Use the **anon/public** key, NOT the service role key
-> - The `.env` file must be in `frontend/` directory, not `frontend/src/`
+    > **Note:** Variables must start with `VITE_` to be exposed to the frontend.
 
-### 3. Get Your Frontend Keys
-
-| Variable | Where to get it |
-|----------|-----------------|
-| `VITE_SUPABASE_URL` | Supabase Dashboard → Settings → API → Project URL |
-| `VITE_SUPABASE_ANON_KEY` | Supabase Dashboard → Settings → API → anon (public) |
-
-### 4. Start the Frontend
-
-```bash
-cd frontend
-npm run dev
-```
-
-You should see:
-
-```
-  VITE v5.x.x  ready in xxx ms
-
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: use --host to expose
-```
+4.  **Start the Dev Server:**
+    ```bash
+    npm run dev
+    ```
 
 ---
 
-## Database Setup
+## 🗄️ Database Setup (Supabase)
 
-### 1. Install Supabase CLI
-
-```bash
-npm install -g supabase
-```
-
-### 2. Login to Supabase
-
-```bash
-supabase login
-```
-
-### 3. Link Your Project
-
-```bash
-supabase link --project-ref your-project-ref
-```
-
-> Find your project ref in Supabase Dashboard URL: `https://supabase.com/dashboard/project/[PROJECT_REF]`
-
-### 4. Apply Migrations
-
-```bash
-supabase db push
-```
-
-This will create the following tables:
-
-- `searches` - Search history
-- `companies` - Discovered companies
-- `people` - Contact information
-- `reports` - Generated reports
-
-### 5. Enable Google Auth in Supabase
-
-1. Go to Supabase Dashboard → Authentication → Providers
-2. Enable **Google** provider
-3. Add your Google OAuth credentials
-4. Set redirect URL to: `https://your-project.supabase.co/auth/v1/callback`
+1.  **Create a Project:** Go to [Supabase](https://supabase.com) and create a new project.
+2.  **Run Migrations:** Use the Supabase CLI to push the schema.
+    ```bash
+    npm install -g supabase
+    supabase login
+    supabase link --project-ref your-project-ref
+    supabase db push
+    ```
+3.  **Enable Google Auth:**
+    - Go to **Authentication > Providers** in Supabase.
+    - Enable **Google**.
+    - Add your Client ID and Secret from Google Cloud Console.
+    - Set the Redirect URL to: `https://your-project.supabase.co/auth/v1/callback`
 
 ---
 
-## Running the Application
+## ❓ Troubleshooting
 
-### Development Mode
-
-Open **two terminal windows**:
-
-**Terminal 1 - Backend:**
-```bash
-cd backend
-npm run dev
-```
-
-**Terminal 2 - Frontend:**
-```bash
-cd frontend
-npm run dev
-```
-
-### Access the Application
-
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:3001
-
-### Authentication Flow
-
-1. Visit http://localhost:5173
-2. Click any CTA button on the landing page
-3. Login with Google or email
-4. You'll be redirected to the workspace at `/workspace`
+| Issue | Solution |
+|-------|----------|
+| **Backend won't start** | Check if `.env` exists in `backend/` and has all keys. |
+| **Frontend "Supabase env missing"** | Ensure `.env` is in `frontend/` and keys start with `VITE_`. Restart server. |
+| **Port 3001 in use** | Kill the process: `npx kill-port 3001` or change `PORT` in `.env`. |
+| **Google Login fails** | Check Redirect URL in Google Cloud Console matches Supabase config. |
 
 ---
 
-## Environment Variables Reference
-
-### Backend (`backend/.env`)
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NODE_ENV` | No | `development`, `test`, or `production` (default: `development`) |
-| `PORT` | No | Server port (default: `3001`) |
-| `SUPABASE_URL` | ✅ Yes | Your Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Yes | Supabase service role key (secret) |
-| `CLAUDE_API_KEY` | ✅ Yes | Anthropic Claude API key |
-| `GEMINI_API_KEY` | ✅ Yes | Google Gemini API key |
-| `GOOGLE_PROJECT_ID` | ✅ Yes | Google Cloud project ID |
-| `GOOGLE_APPLICATION_CREDENTIALS` | ✅ Yes | Path to service account JSON |
-| `GOOGLE_CLIENT_EMAIL` | ✅ Yes | Service account email |
-| `GOOGLE_PRIVATE_KEY` | ✅ Yes | Service account private key |
-| `GOOGLE_SLIDES_TEMPLATE_ID` | ✅ Yes | Google Slides template ID |
-| `APIFY_TOKEN` | No | Apify API token (for contact scraping) |
-
-### Frontend (`frontend/.env`)
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `VITE_SUPABASE_URL` | ✅ Yes | Your Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | ✅ Yes | Supabase anon/public key |
-
----
-
-## Troubleshooting
-
-### Backend won't start
-
-**Error:** `❌ Invalid or missing environment variables`
-
-**Solution:** Check that all required variables are set in `backend/.env`. See the table above.
-
----
-
-**Error:** `Error: listen EADDRINUSE: address already in use :::3001`
-
-**Solution:** Another process is using port 3001. Either:
-- Kill the existing process: `npx kill-port 3001`
-- Or change `PORT` in your `.env`
-
----
-
-### Frontend shows "Supabase environment variables are not set"
-
-**Solution:**
-1. Ensure `frontend/.env` exists (not `frontend/src/.env`)
-2. Variables must start with `VITE_`
-3. Restart the Vite dev server after changing `.env`
-
----
-
-### Google Auth not working
-
-**Solution:**
-1. Ensure Google provider is enabled in Supabase Dashboard
-2. Check redirect URL is correct in Google Cloud Console
-3. Verify OAuth consent screen is configured
-
----
-
-### People section is empty
-
-**Solution:**
-1. Add `APIFY_TOKEN` to `backend/.env`
-2. Run a new search
-3. Check backend logs for `[people] scraped people from Apify`
-
----
-
-### Database errors
-
-**Solution:**
-1. Run migrations: `supabase db push`
-2. Check RLS policies are applied (migration `0005_add_user_id_rls.sql`)
-3. Verify `user_id` column exists in `companies` and `people` tables
-
----
-
-## ⚠️ Security Notes
-
-**NEVER commit `.env` files or credentials to Git.**
-
-The `.gitignore` is configured to block:
-- `.env`, `.env.local`, `.env.*`
-- `*.service-account.json`
-- `*credentials*.json`
-- `*-key.json`
-
-If you accidentally commit a secret:
-1. Immediately rotate/delete the key
-2. Remove from Git: `git rm --cached filename`
-3. Consider using `git filter-repo` to scrub history
-
----
-
-## License
+## 📄 License
 
 MIT
