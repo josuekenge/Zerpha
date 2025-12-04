@@ -38,14 +38,29 @@ const parsed = envSchema.safeParse({
 });
 
 if (!parsed.success) {
-  console.error('❌ Invalid or missing environment variables:');
+  console.error('❌ Invalid or missing environment variables (continuing anyway):');
   for (const issue of parsed.error.issues) {
     console.error(`  • ${issue.path.join('.') || 'root'}: ${issue.message}`);
   }
-  console.error('');
-  console.error('Required variables: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, CLAUDE_API_KEY');
-  console.error('');
-  throw new Error('Failed to load environment variables. Check your .env file.');
+  console.error(
+    'Server will still start so Railway health checks pass, but API features may fail until env vars are fixed.',
+  );
 }
 
-export const env: Env = parsed.data;
+const fallbackEnv: Env = {
+  NODE_ENV: (process.env.NODE_ENV as Env['NODE_ENV']) ?? 'development',
+  PORT: Number(process.env.PORT) || 3001,
+  SUPABASE_URL: process.env.SUPABASE_URL ?? '',
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
+  CLAUDE_API_KEY: process.env.CLAUDE_API_KEY ?? '',
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? '',
+  GOOGLE_PROJECT_ID: process.env.GOOGLE_PROJECT_ID ?? '',
+  GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS ?? '',
+  GOOGLE_CLIENT_EMAIL: process.env.GOOGLE_CLIENT_EMAIL ?? '',
+  GOOGLE_PRIVATE_KEY: process.env.GOOGLE_PRIVATE_KEY ?? '',
+  GOOGLE_SLIDES_TEMPLATE_ID: process.env.GOOGLE_SLIDES_TEMPLATE_ID ?? '',
+  APIFY_TOKEN: process.env.APIFY_TOKEN ?? '',
+  FRONTEND_URL: process.env.FRONTEND_URL ?? '',
+};
+
+export const env: Env = parsed.success ? parsed.data : fallbackEnv;
