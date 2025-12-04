@@ -17,7 +17,9 @@ import {
   Phone,
   Linkedin,
   MapPin,
-  ExternalLink
+  ExternalLink,
+  Menu,
+  X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -178,6 +180,7 @@ export function WorkspaceApp() {
   );
   const [shortlistSearchQuery, setShortlistSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // History state
   const [historyItems, setHistoryItems] = useState<SearchHistoryItem[]>([]);
@@ -927,10 +930,21 @@ export function WorkspaceApp() {
         onRetry={retryInfographic}
       />
 
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-72 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col h-full transition-all duration-300 relative z-20">
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 flex flex-col h-full transition-transform duration-300 lg:translate-x-0 lg:static lg:flex-shrink-0 shadow-2xl lg:shadow-none",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
         {/* Brand */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-100 flex-shrink-0">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-center gap-3 text-slate-900 cursor-pointer" onClick={() => navigate('/')}>
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 p-1.5">
               <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
@@ -940,6 +954,12 @@ export function WorkspaceApp() {
               <span className="text-slate-500 text-[10px] font-medium leading-none mt-1">Intelligence</span>
             </div>
           </div>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="lg:hidden p-2 -mr-2 text-slate-400 hover:text-slate-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         <div className="p-4 flex-1 overflow-y-auto space-y-8">
@@ -1133,11 +1153,19 @@ export function WorkspaceApp() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 bg-slate-50/50 overflow-hidden">
-        <header className="h-16 flex items-center justify-between px-8 border-b border-slate-200 flex-shrink-0 bg-white/80">
-          <div>
-            <div className="text-xs text-slate-500 mb-0.5 font-medium">{viewMeta.subtitle}</div>
-            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">{viewMeta.title}</h1>
+      <main className="flex-1 flex flex-col min-w-0 bg-slate-50/50 overflow-hidden relative">
+        <header className="h-16 flex items-center justify-between px-4 sm:px-8 border-b border-slate-200 flex-shrink-0 bg-white/80">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div>
+              <div className="text-xs text-slate-500 mb-0.5 font-medium">{viewMeta.subtitle}</div>
+              <h1 className="text-xl font-semibold text-slate-900 tracking-tight">{viewMeta.title}</h1>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {activeView === 'search' && (hasSearched || query) && (
@@ -1174,7 +1202,7 @@ export function WorkspaceApp() {
         </header>
         <div className="flex-1 flex flex-col min-h-0">
           {activeView === 'search' && (
-            <div className="flex-1 overflow-auto px-8 py-6">
+            <div className="flex-1 overflow-auto px-4 sm:px-8 py-6">
               {!hasSearched && !isSearching && searchCompaniesList.length === 0 && (
                 <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto relative">
                   <div className="h-full flex flex-col items-center justify-center relative overflow-hidden bg-slate-50/50">
@@ -1235,8 +1263,8 @@ export function WorkspaceApp() {
               )}
 
               {(hasSearched || isSearching || searchCompaniesList.length > 0) && (
-                <div className="flex h-full gap-6">
-                  <div className="flex-1 flex flex-col min-h-0 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden relative">
+                <div className="flex flex-col lg:flex-row h-full gap-6">
+                  <div className="flex-1 flex flex-col min-h-0 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden relative h-[500px] lg:h-auto">
                     {isSearching ? (
                       <div className="absolute inset-0 z-20 bg-white flex flex-col items-center justify-center">
                         <LoadingStats />
@@ -1371,7 +1399,7 @@ export function WorkspaceApp() {
                   {/* Detail View for Search */}
                   {selectedSearchCompany && (
                     <>
-                      <aside className="w-[400px] flex-shrink-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
+                      <aside className="w-full lg:w-[400px] flex-shrink-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col h-[600px] lg:h-auto">
                         <div className="flex-1 overflow-y-auto">
                           <CompanyDetailPanel
                             company={selectedSearchCompany}
@@ -1379,7 +1407,7 @@ export function WorkspaceApp() {
                         </div>
                       </aside>
                       {/* Embedded Chat for Search */}
-                      <aside className="w-[350px] flex-shrink-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
+                      <aside className="w-full lg:w-[350px] flex-shrink-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col h-[500px] lg:h-auto">
                         <ChatWidget mode="embedded" context={chatContext} />
                       </aside>
                     </>
@@ -1392,7 +1420,7 @@ export function WorkspaceApp() {
           {activeView === 'companies' && (
             <div className="flex-1 flex flex-col min-h-0">
               {/* Header */}
-              <div className="px-8 pt-6 pb-4">
+              <div className="px-4 sm:px-8 pt-6 pb-4">
                 {/* Top Row: All Companies Tab and View Toggle */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-1 border-b border-slate-200">
@@ -1453,11 +1481,11 @@ export function WorkspaceApp() {
               </div>
 
               {/* Table Container */}
-              <div className="flex-1 overflow-hidden px-8 py-4">
-                <div className="flex h-full overflow-hidden bg-white rounded-xl shadow-sm border border-slate-200">
+              <div className="flex-1 overflow-hidden px-4 sm:px-8 py-4">
+                <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-white rounded-xl shadow-sm border border-slate-200">
                   <div className={cn(
                     "border-r border-slate-200 bg-white overflow-y-auto flex flex-col transition-all duration-300",
-                    selectedWorkspaceCompanyId ? "w-[30%]" : "w-full border-r-0"
+                    selectedWorkspaceCompanyId ? "w-full lg:w-[30%] h-1/3 lg:h-full border-b lg:border-b-0" : "w-full border-r-0"
                   )}>
                     {workspaceLoading ? (
                       <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 text-indigo-600 animate-spin" /></div>

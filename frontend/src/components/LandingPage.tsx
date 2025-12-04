@@ -9,7 +9,9 @@ import {
   FileText,
   Zap,
   Target,
-  Check
+  Check,
+  Menu,
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
@@ -20,6 +22,7 @@ export function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSearch = () => {
     if (user) {
@@ -87,7 +90,7 @@ export function LandingPage() {
             <a href="#about" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">About</a>
             <a href="#mission" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Mission</a>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4">
             {user ? (
               <button
                 onClick={() => navigate('/workspace')}
@@ -107,7 +110,55 @@ export function LandingPage() {
               </>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-slate-600 hover:text-slate-900 p-2"
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-20 left-0 w-full bg-white border-b border-slate-200 shadow-xl md:hidden z-40"
+          >
+            <div className="flex flex-col p-6 space-y-4">
+              <a href="#vision" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-slate-600 hover:text-indigo-600 py-2 border-b border-slate-100">Vision</a>
+              <a href="#capabilities" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-slate-600 hover:text-indigo-600 py-2 border-b border-slate-100">Capabilities</a>
+              <a href="#about" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-slate-600 hover:text-indigo-600 py-2 border-b border-slate-100">About</a>
+              <a href="#mission" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-slate-600 hover:text-indigo-600 py-2 border-b border-slate-100">Mission</a>
+
+              <div className="pt-4 flex flex-col gap-3">
+                {user ? (
+                  <button
+                    onClick={() => navigate('/workspace')}
+                    className="w-full text-center text-sm font-medium bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all"
+                  >
+                    Go to Workspace
+                  </button>
+                ) : (
+                  <>
+                    <button onClick={() => navigate('/login')} className="w-full text-center text-sm font-medium text-slate-600 hover:text-slate-900 py-2">Sign in</button>
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="w-full text-center text-sm font-medium bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all"
+                    >
+                      Get Started
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
       </motion.nav>
 
       <main className="relative isolate pt-20">
@@ -134,7 +185,7 @@ export function LandingPage() {
 
             <motion.h1
               variants={fadeInUp}
-              className="text-6xl font-bold tracking-tight text-slate-900 sm:text-8xl mb-6"
+              className="text-4xl sm:text-6xl font-bold tracking-tight text-slate-900 lg:text-8xl mb-6"
             >
               Build the Future of <br />
               <TypewriterEffect
@@ -144,7 +195,7 @@ export function LandingPage() {
               />
             </motion.h1>
 
-            <motion.p variants={fadeInUp} className="mt-8 text-xl leading-8 text-slate-600 max-w-2xl mx-auto font-medium">
+            <motion.p variants={fadeInUp} className="mt-8 text-lg sm:text-xl leading-8 text-slate-600 max-w-2xl mx-auto font-medium px-4">
               Don't just find companies. Discover ecosystems. Zerpha transforms chaotic market signals into clear, actionable strategies for the boldest builders.
             </motion.p>
 
@@ -181,10 +232,10 @@ export function LandingPage() {
               </div>
             </motion.div>
 
-            <motion.div variants={fadeInUp} className="mt-12 flex items-center justify-center gap-x-8">
+            <motion.div variants={fadeInUp} className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-8 px-4">
               <button
                 onClick={handleSearch}
-                className="rounded-xl bg-indigo-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-600/25 hover:bg-indigo-500 hover:scale-105 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                className="w-full sm:w-auto rounded-xl bg-indigo-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-600/25 hover:bg-indigo-500 hover:scale-105 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
                 Start Your Journey
               </button>
@@ -201,9 +252,9 @@ export function LandingPage() {
             <div className="-m-2 rounded-2xl bg-gradient-to-b from-slate-900/5 to-slate-900/0 p-2 ring-1 ring-inset ring-slate-900/10 lg:-m-4 lg:rounded-3xl lg:p-4 bg-white/30 backdrop-blur-2xl shadow-2xl">
               <div className="rounded-xl bg-white/80 ring-1 ring-slate-900/5 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden">
                 {/* Dashboard Header */}
-                <div className="border-b border-slate-100 bg-white/50 px-6 py-4 flex items-center justify-between backdrop-blur-sm">
-                  <div className="flex items-center gap-4">
-                    <h3 className="text-base font-bold text-slate-900">Market Intelligence: "Sustainable Logistics"</h3>
+                <div className="border-b border-slate-100 bg-white/50 px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between backdrop-blur-sm gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900">Market Intelligence: "Sustainable Logistics"</h3>
                     <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 ring-1 ring-inset ring-indigo-700/10">High Opportunity</span>
                   </div>
                   <div className="flex items-center gap-3">
@@ -307,8 +358,8 @@ export function LandingPage() {
             className="mx-auto max-w-2xl text-center"
           >
             <h2 className="text-base font-bold leading-7 text-indigo-600 tracking-wide uppercase">The Zerpha Advantage</h2>
-            <p className="mt-2 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">See what others miss.</p>
-            <p className="mt-6 text-xl leading-8 text-slate-600">
+            <p className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">See what others miss.</p>
+            <p className="mt-6 text-lg sm:text-xl leading-8 text-slate-600">
               In the race for vertical dominance, speed and clarity are everything. Zerpha is your unfair advantage.
             </p>
           </motion.div>
@@ -366,7 +417,7 @@ export function LandingPage() {
 
           <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
             <div className="mx-auto max-w-3xl text-center mb-16">
-              <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl mb-6">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl mb-6">
                 Built for Serial Acquirers
               </h2>
               <p className="text-lg leading-8 text-slate-600">
