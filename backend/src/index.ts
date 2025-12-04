@@ -1,5 +1,5 @@
 import cors from 'cors';
-import { app } from './app';
+import { app } from './app.js';
 import { verifySupabaseConnection } from './config/supabase.js';
 import { logger } from './logger.js';
 
