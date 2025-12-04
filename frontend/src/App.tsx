@@ -31,6 +31,8 @@ import { LoginPage } from './components/LoginPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoadingStats } from './components/LoadingStats';
 import { ChatWidget } from './components/ChatWidget';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { TermsOfService } from './components/TermsOfService';
 import { useAuth, signOut } from './lib/auth';
 import {
   exportInfographic,
@@ -432,7 +434,7 @@ export function WorkspaceApp() {
     const r4 = Math.random();
     const r5 = Math.random();
     const r6 = Math.random();
-    
+
     // Varied subject lines
     const subjects = [
       `Quick question about ${companyName}`,
@@ -447,14 +449,14 @@ export function WorkspaceApp() {
     const subject = subjects[Math.floor(r1 * subjects.length)];
 
     // Varied greetings
-    const greetings = firstName 
+    const greetings = firstName
       ? [`Hey ${firstName}!`, `Hi ${firstName},`, `${firstName} —`, `Hey there ${firstName},`, `Hi there ${firstName}!`, `${firstName}, hi!`]
       : [`Hey there!`, `Hi!`, `Hello!`, `Hey,`, `Hi there,`, `Hope you're well!`];
     const greeting = greetings[Math.floor(r2 * greetings.length)];
 
     // Varied openers based on what data we have
     const openers: string[] = [];
-    
+
     if (summary) {
       const shortSum = summary.slice(0, 100);
       openers.push(
@@ -915,8 +917,8 @@ export function WorkspaceApp() {
           {toast.message}
         </div>
       )}
-      
-      <InfographicModal 
+
+      <InfographicModal
         isOpen={isInfographicOpen}
         onClose={() => setIsInfographicOpen(false)}
         isLoading={infographicLoading}
@@ -961,7 +963,7 @@ export function WorkspaceApp() {
               <input
                 type="text"
                 placeholder="Search vertical..."
-                 value={query} 
+                value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && void executeSearch()}
                 className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all shadow-sm"
@@ -1025,7 +1027,7 @@ export function WorkspaceApp() {
                 Search history
               </button>
             </nav>
-                 </div>
+          </div>
 
           {/* View Toggle (Only visible in Companies view) */}
           {activeView === 'companies' && (
@@ -1054,8 +1056,8 @@ export function WorkspaceApp() {
                 >
                   <LayoutGrid className="w-3.5 h-3.5" /> Cards
                 </button>
-             </div>
-          </div>
+              </div>
+            </div>
           )}
 
           {/* Filters (Only visible in Companies view) */}
@@ -1238,8 +1240,8 @@ export function WorkspaceApp() {
                     {isSearching ? (
                       <div className="absolute inset-0 z-20 bg-white flex flex-col items-center justify-center">
                         <LoadingStats />
-        </div>
-      ) : (
+                      </div>
+                    ) : (
                       <>
                         <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
                           <div className="flex justify-between items-center mb-3">
@@ -1281,7 +1283,7 @@ export function WorkspaceApp() {
                               </select>
                             </div>
                             {(searchFitFilter !== 'all' || searchIndustryFilter !== 'all') && (
-                <button 
+                              <button
                                 onClick={() => {
                                   setSearchFitFilter('all');
                                   setSearchIndustryFilter('all');
@@ -1289,9 +1291,9 @@ export function WorkspaceApp() {
                                 className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
                               >
                                 Clear filters
-                </button>
+                              </button>
                             )}
-              </div>
+                          </div>
                         </div>
                         <div className="flex-1 overflow-auto bg-white">
                           {filteredSearchCompanies.length === 0 ? (
@@ -1340,13 +1342,13 @@ export function WorkspaceApp() {
                                       </span>
                                     </td>
                                     <td className="py-3 px-4 text-right">
-                  <button 
+                                      <button
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleSaveCompany(company.id, company.primary_industry ?? DEFAULT_CATEGORY);
                                         }}
                                         disabled={company.is_saved || savingMap[company.id]}
-                    className={cn(
+                                        className={cn(
                                           "text-xs font-medium transition-colors",
                                           company.is_saved
                                             ? "text-green-600 cursor-default"
@@ -1354,17 +1356,17 @@ export function WorkspaceApp() {
                                         )}
                                       >
                                         {savingMap[company.id] ? 'Saving...' : company.is_saved ? 'Saved' : 'Save'}
-                  </button>
+                                      </button>
                                     </td>
                                   </tr>
-                ))}
+                                ))}
                               </tbody>
                             </table>
                           )}
-              </div>
+                        </div>
                       </>
                     )}
-            </div>
+                  </div>
 
                   {/* Detail View for Search */}
                   {selectedSearchCompany && (
@@ -1468,7 +1470,7 @@ export function WorkspaceApp() {
                       <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto">
                         {filteredWorkspaceCompanies.map(company => (
                           <motion.div
-                    key={company.id}
+                            key={company.id}
                             whileHover={{ y: -4 }}
                             onClick={() => {
                               if (selectedWorkspaceCompanyId === company.id) {
@@ -1764,11 +1766,11 @@ export function WorkspaceApp() {
                               ))}
                             </tbody>
                           </table>
-              )}
-            </div>
+                        )}
+                      </div>
                     </>
                   )}
-          </div>
+                </div>
 
                 {/* Right Panel: Company Detail + People */}
                 {selectedHistoryCompanyId && selectedHistoryCompany && (
@@ -1850,7 +1852,7 @@ export function WorkspaceApp() {
                                       const r4 = Math.random();
                                       const r5 = Math.random();
                                       const r6 = Math.random();
-                                      
+
                                       const subjects = [
                                         `Quick question about ${companyName}`,
                                         `${companyName} caught my eye`,
@@ -1861,7 +1863,7 @@ export function WorkspaceApp() {
                                       ];
                                       const subject = subjects[Math.floor(r1 * subjects.length)];
 
-                                      const greetings = firstName 
+                                      const greetings = firstName
                                         ? [`Hey ${firstName}!`, `Hi ${firstName},`, `${firstName} —`, `Hey there ${firstName},`]
                                         : [`Hey there!`, `Hi!`, `Hello!`, `Hope you're well!`];
                                       const greeting = greetings[Math.floor(r2 * greetings.length)];
@@ -2048,8 +2050,8 @@ export function WorkspaceApp() {
                                     )}
                                     {person.is_executive && !person.is_ceo && (
                                       <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 rounded">Exec</span>
-             )}
-          </div>
+                                    )}
+                                  </div>
                                 </td>
                                 <td className="py-3 px-4 text-slate-600 hidden md:table-cell">
                                   {person.role || '—'}
@@ -2089,7 +2091,7 @@ export function WorkspaceApp() {
                         </tbody>
                       </table>
                     )}
-        </div>
+                  </div>
 
                   {/* Person Detail Panel */}
                   {selectedPersonId && selectedPerson && (
@@ -2283,6 +2285,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
       <Route
         path="/login"
         element={user ? <Navigate to="/workspace" replace /> : <LoginPage />}

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  LayoutGrid,
   ArrowRight,
   Search,
   Download,
@@ -64,14 +63,23 @@ export function LandingPage() {
         className="fixed top-0 z-50 w-full border-b border-slate-200/50 bg-white/80 backdrop-blur-xl"
       >
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-8">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 p-2">
-              <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold tracking-tight text-xl leading-none text-slate-900">Zerpha</span>
-              <span className="text-slate-500 text-[10px] font-medium leading-none mt-1">Intelligence</span>
-            </div>
+          <div className="flex items-center gap-3 cursor-pointer">
+            <motion.div
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-3"
+              onClick={() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                navigate('/');
+              }}
+            >
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 p-2">
+                <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-bold tracking-tight text-xl leading-none text-slate-900">Zerpha</span>
+                <span className="text-slate-500 text-[10px] font-medium leading-none mt-1">Intelligence</span>
+              </div>
+            </motion.div>
           </div>
           <div className="hidden md:flex items-center gap-10">
             <a href="#vision" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Vision</a>
@@ -306,7 +314,7 @@ export function LandingPage() {
           </motion.div>
 
           <div className="mx-auto mt-20 max-w-2xl sm:mt-24 lg:mt-24 lg:max-w-none">
-            <dl className="grid max-w-xl grid-cols-1 gap-x-12 gap-y-16 lg:max-w-none lg:grid-cols-3">
+            <dl className="grid max-w-xl grid-cols-1 gap-x-12 gap-y-16 lg:max-w-none lg:grid-cols-2">
               {/* Feature 1 */}
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -484,14 +492,15 @@ export function LandingPage() {
           <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
-                  <LayoutGrid className="h-4 w-4" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white p-1.5">
+                  <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
                 </div>
-                <p className="text-xs leading-5 text-slate-500">© 2024 Zerpha Inc. All rights reserved.</p>
+                <span className="text-sm font-semibold text-slate-900">Zerpha</span>
               </div>
-              <div className="flex gap-8">
-                <a href="#" className="text-xs leading-5 text-slate-500 hover:text-indigo-600 transition-colors">Privacy</a>
-                <a href="#" className="text-xs leading-5 text-slate-500 hover:text-indigo-600 transition-colors">Terms</a>
+              <div className="flex items-center gap-6 text-sm text-slate-500">
+                <a href="/privacy" className="hover:text-indigo-600 transition-colors">Privacy Policy</a>
+                <a href="/terms" className="hover:text-indigo-600 transition-colors">Terms of Service</a>
+                <p>&copy; {new Date().getFullYear()} Zerpha Inc.</p>
               </div>
             </div>
           </div>
