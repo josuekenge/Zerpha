@@ -6,8 +6,10 @@ import { logger } from './logger.js';
 async function bootstrap() {
   await verifySupabaseConnection();
 
-  const server = app.listen(env.PORT, () => {
-    logger.info(`🚀 Backend ready on http://localhost:${env.PORT}`);
+  // Railway provides PORT env var - bind to 0.0.0.0 for external access
+  const port = process.env.PORT || env.PORT;
+  const server = app.listen(Number(port), '0.0.0.0', () => {
+    logger.info(`🚀 Backend ready on http://0.0.0.0:${port}`);
   });
 
   const shutdown = (signal: string) => {
