@@ -46,7 +46,7 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors());
+app.options('*', cors(corsOptions)); // Use same config for preflight requests
 
 app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
