@@ -17,7 +17,7 @@ export function AboutMe() {
             role: "Chief Project Development Officer",
             date: "Jul 2025 - Present",
             location: "Remote",
-            description: "Leading project development and strategic initiatives.",
+            description: "I lead the strategic development of logistics solutions, overseeing the entire project lifecycle from conception to deployment. My focus is on optimizing operational workflows and integrating new technologies to drive efficiency and scalability across the organization.",
             color: "from-blue-500 to-cyan-500"
         },
         {
@@ -25,7 +25,7 @@ export function AboutMe() {
             role: "Co-Founder",
             date: "Nov 2024 - Present",
             location: "On-site",
-            description: "Co-founded a healthcare mobility solution.",
+            description: "I co-founded this healthcare mobility initiative to bridge the gap between patients and care providers. I am responsible for the technical architecture and product roadmap, ensuring our solution directly addresses the critical pain points in mobile health service delivery.",
             color: "from-emerald-500 to-teal-500"
         },
         {
@@ -33,7 +33,7 @@ export function AboutMe() {
             role: "Explore Intern (SWE + PM)",
             date: "May 2024 - Aug 2024",
             location: "Redmond, WA",
-            description: "Software Engineering and Product Management internship. Worked on core features and product strategy.",
+            description: "During my time at Redmond, I rotated between Software Engineering and Product Management roles. I contributed to core product features, conducted user research to inform design decisions, and collaborated with cross-functional teams to ship high-quality software.",
             color: "from-orange-500 to-amber-500"
         },
         {
@@ -41,7 +41,7 @@ export function AboutMe() {
             role: "Co-Founder",
             date: "Dec 2024 - Mar 2025",
             location: "Ottawa, ON",
-            description: "Specialized in integrating AI-driven technology to streamline operations and expand business potential in the solar industry.",
+            description: "I spearheaded the integration of AI-driven technologies to streamline business operations in the solar industry. My work involved developing automated systems that significantly reduced manual overhead and unlocked new revenue channels for our clients.",
             color: "from-purple-500 to-pink-500"
         },
         {
@@ -49,7 +49,7 @@ export function AboutMe() {
             role: "Co-Founder",
             date: "Jan 2023 - Jan 2023",
             location: "Ottawa, ON",
-            description: "Created and managed advertising campaigns and client information systems.",
+            description: "I established and managed comprehensive client information systems to improve data accessibility. Additionally, I designed and executed targeted advertising campaigns that successfully increased brand visibility and client acquisition.",
             color: "from-indigo-500 to-violet-500"
         },
         {
@@ -57,7 +57,7 @@ export function AboutMe() {
             role: "Chief Executive Officer",
             date: "Jul 2021 - May 2022",
             location: "Hybrid",
-            description: "Managed finances and generated revenue growth.",
+            description: "As CEO, I oversaw all financial operations and strategic planning. I implemented revenue growth strategies that stabilized the business and fostered a culture of innovation and accountability within the team.",
             color: "from-rose-500 to-red-500"
         }
     ];
@@ -100,6 +100,7 @@ export function AboutMe() {
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.6 }}
+                            className="flex flex-col items-center text-center lg:items-start lg:text-left"
                         >
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-sm font-bold mb-6">
                                 <span className="relative flex h-2 w-2">
@@ -109,13 +110,30 @@ export function AboutMe() {
                                 Open to Opportunities
                             </div>
 
-                            <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl mb-6">
+                            <div className="mb-8 relative group">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                                <div className="relative w-72 h-72 rounded-2xl overflow-hidden shadow-xl ring-4 ring-white bg-white">
+                                    <img
+                                        src="/josue-profile-v2.png"
+                                        alt="Josué Kenge"
+                                        className="w-full h-full object-cover object-top"
+                                    />
+                                </div>
+                            </div>
+
+                            <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl mb-2">
                                 Josué Kenge
                             </h2>
-                            <p className="text-xl text-slate-600 leading-relaxed mb-8">
-                                I co-founded Ulife.ai, helping B2B businesses unlock their full potential with AI.
-                                My computer science background fuels my journey into tech with curiosity and a love for creative problem-solving.
-                            </p>
+                            <div className="text-xl font-medium text-indigo-600 mb-6">Founder & Full Stack Engineer</div>
+
+                            <div className="space-y-4 text-lg text-slate-600 leading-relaxed mb-8">
+                                <p>
+                                    I'm a builder at heart, driven by a vision to simplify complex market intelligence for vertical SaaS. With Zerpha, I'm leveraging the power of advanced AI agents like Claude and Gemini to democratize access to deep market insights that were previously reserved for large enterprises.
+                                </p>
+                                <p>
+                                    My journey spans from interning at Microsoft to co-founding multiple ventures like Ulife and MobiSoins. This MVP represents the culmination of my experience in product strategy and software engineering—designed to be fast, intuitive, and ruthlessly efficient for analysts and founders alike.
+                                </p>
+                            </div>
 
                             <div className="flex gap-4">
                                 <a
@@ -127,7 +145,7 @@ export function AboutMe() {
                                     <Linkedin className="h-6 w-6" />
                                 </a>
                                 <a
-                                    href="https://github.com"
+                                    href="https://github.com/josuekenge"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="p-3 rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 hover:text-slate-900 hover:ring-slate-900 hover:bg-slate-50 transition-all"
@@ -160,7 +178,7 @@ export function AboutMe() {
                             <div>
                                 <div className="font-bold text-slate-900">Carleton University</div>
                                 <div className="text-slate-600">Bachelor's degree, Computer Science</div>
-                                <div className="text-sm text-slate-500 mt-1">Aug 2022 - Apr 2026</div>
+                                <div className="text-sm text-slate-500 mt-1">Aug 2022 - May 2027</div>
                             </div>
                         </motion.div>
 

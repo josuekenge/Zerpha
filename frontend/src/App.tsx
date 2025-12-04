@@ -81,20 +81,20 @@ const matchesIndustry = (
   if (selectedIndustry === 'all') {
     return true;
   }
-  
+
   // If company has no industry, it only shows when "all" is selected
   if (!companyIndustry || typeof companyIndustry !== 'string') {
     return false;
   }
-  
+
   const companyValue = companyIndustry.trim().toLowerCase();
   const filterValue = selectedIndustry.toLowerCase();
-  
+
   // Direct match (case-insensitive)
   if (companyValue === filterValue) {
     return true;
   }
-  
+
   // Handle common variations
   const normalize = (s: string): string => {
     return s
@@ -102,7 +102,7 @@ const matchesIndustry = (
       .replace(/\s+/g, '')    // Remove all spaces
       .toLowerCase();
   };
-  
+
   return normalize(companyValue) === normalize(filterValue);
 };
 
@@ -410,6 +410,147 @@ export function WorkspaceApp() {
 
   const selectedPerson = allPeople.find((p) => p.id === selectedPersonId);
 
+  // Generate custom email mailto link based on person and company data
+  const generateEmailLink = useCallback((person: Person) => {
+    // Try to find company data from workspace companies or search results
+    const companyFromWorkspace = workspaceCompanies.find(
+      c => c.name?.toLowerCase() === person.company_name?.toLowerCase()
+    );
+    const companyFromSearch = searchCompaniesList.find(
+      c => c.name?.toLowerCase() === person.company_name?.toLowerCase()
+    );
+
+    const companyName = person.company_name || 'your company';
+    const firstName = person.first_name || person.full_name?.split(' ')[0] || '';
+    const fitScore = companyFromWorkspace?.fitScore ?? companyFromSearch?.acquisition_fit_score;
+    const summary = companyFromWorkspace?.summary ?? companyFromSearch?.summary;
+
+    // Multiple random seeds for true variety
+    const r1 = Math.random();
+    const r2 = Math.random();
+    const r3 = Math.random();
+    const r4 = Math.random();
+    const r5 = Math.random();
+    const r6 = Math.random();
+    
+    // Varied subject lines
+    const subjects = [
+      `Quick question about ${companyName}`,
+      `${companyName} caught my eye`,
+      `Loved what I saw at ${companyName}`,
+      `Coffee chat? Re: ${companyName}`,
+      `Thinking about ${companyName}`,
+      `Had to reach out - ${companyName}`,
+      `Curious about ${companyName}`,
+      `${companyName} - quick hello`,
+    ];
+    const subject = subjects[Math.floor(r1 * subjects.length)];
+
+    // Varied greetings
+    const greetings = firstName 
+      ? [`Hey ${firstName}!`, `Hi ${firstName},`, `${firstName} —`, `Hey there ${firstName},`, `Hi there ${firstName}!`, `${firstName}, hi!`]
+      : [`Hey there!`, `Hi!`, `Hello!`, `Hey,`, `Hi there,`, `Hope you're well!`];
+    const greeting = greetings[Math.floor(r2 * greetings.length)];
+
+    // Varied openers based on what data we have
+    const openers: string[] = [];
+    
+    if (summary) {
+      const shortSum = summary.slice(0, 100);
+      openers.push(
+        `I came across ${companyName} and honestly, I'm impressed. ${shortSum}... sounds like you're building something really cool.`,
+        `So I was doing some research and stumbled upon ${companyName}. ${shortSum}... — that's exactly the kind of thing that gets me excited.`,
+        `Been looking into interesting companies in your space and ${companyName} stood out. Love what you're doing.`,
+        `Found ${companyName} while exploring the market and had to reach out. ${shortSum}... really caught my attention.`,
+        `Your work at ${companyName} popped up on my radar. ${shortSum}... I dig it.`,
+        `Came across ${companyName} recently and thought — these folks are onto something. ${shortSum}...`,
+      );
+    } else {
+      openers.push(
+        `I came across ${companyName} and really liked what I saw.`,
+        `Been researching companies in your space and ${companyName} caught my attention.`,
+        `Just discovered ${companyName} and wanted to reach out.`,
+        `Found ${companyName} while exploring the market — looks like you're doing some interesting stuff.`,
+        `Your company popped up on my radar and I had to say hi.`,
+        `Stumbled upon ${companyName} and thought I'd reach out directly.`,
+      );
+    }
+    const opener = openers[Math.floor(r3 * openers.length)];
+
+    // Interest level based on fit score - always positive, never negative
+    let interestPhrase = '';
+    if (fitScore !== null && fitScore !== undefined) {
+      if (fitScore >= 8) {
+        // High interest - very excited
+        const highInterest = [
+          `I'm genuinely excited about what you're building here.`,
+          `This is exactly the kind of company I've been looking for.`,
+          `Really think there's something special here.`,
+          `I've looked at a lot of companies lately, and ${companyName} stands out.`,
+          `Not gonna lie — I'm pretty excited about this one.`,
+        ];
+        interestPhrase = highInterest[Math.floor(r4 * highInterest.length)] + '\n\n';
+      } else if (fitScore >= 5) {
+        // Medium interest - curious, sees potential
+        const mediumInterest = [
+          `I see a lot of potential here and would love to learn more.`,
+          `There's something interesting brewing at ${companyName} — curious to dig deeper.`,
+          `I think there could be a cool opportunity to explore together.`,
+          `Would love to understand more about where you're taking this.`,
+          `Feels like there's potential here worth exploring.`,
+        ];
+        interestPhrase = mediumInterest[Math.floor(r4 * mediumInterest.length)] + '\n\n';
+      } else {
+        // Lower score - still positive, focused on potential and learning
+        const exploratoryInterest = [
+          `I'd love to learn more about your journey and where you see things going.`,
+          `Curious to hear your story and what's next for ${companyName}.`,
+          `Would be great to connect and hear more about your vision.`,
+          `Always interested in meeting founders doing interesting things in this space.`,
+          `Would love to chat and see if there's any way we could help each other out.`,
+        ];
+        interestPhrase = exploratoryInterest[Math.floor(r4 * exploratoryInterest.length)] + '\n\n';
+      }
+    } else {
+      // No score - general interest
+      const generalInterest = [
+        `Would love to learn more about what you're working on.`,
+        `Curious to hear more about your story.`,
+        `Think it'd be cool to connect and chat.`,
+      ];
+      interestPhrase = generalInterest[Math.floor(r4 * generalInterest.length)] + '\n\n';
+    }
+
+    // Varied asks
+    const asks = [
+      `Would love to grab a quick call if you're open to it — no pressure at all.`,
+      `Any chance you'd be up for a 15-min chat sometime?`,
+      `Would you be down for a quick conversation? Totally casual.`,
+      `I know you're probably slammed, but if you ever have 15 minutes, I'd love to connect.`,
+      `Let me know if you'd be open to hopping on a call — even just 10 minutes.`,
+      `No rush, but would be great to chat if you're interested.`,
+      `If you're ever free for a quick call, I'd love that.`,
+    ];
+    const ask = asks[Math.floor(r5 * asks.length)];
+
+    // Varied sign-offs
+    const signOffs = [
+      `Cheers,\nJosue`,
+      `Talk soon?\nJosue`,
+      `Best,\nJosue`,
+      `Looking forward to it!\nJosue`,
+      `Hope to hear from you!\nJosue`,
+      `Thanks!\nJosue`,
+      `Take care,\nJosue`,
+    ];
+    const signOff = signOffs[Math.floor(r6 * signOffs.length)];
+
+    // Build the email
+    const body = `${greeting}\n\n${opener}\n\n${interestPhrase}${ask}\n\n${signOff}\n\n---\nContact: ${person.email}${person.phone ? ` | ${person.phone}` : ''}`;
+
+    return `mailto:josuekenge4@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }, [workspaceCompanies, searchCompaniesList]);
+
   // Filter search results by fit score and industry (both filters combined with AND)
   const filteredSearchCompanies = useMemo(() => {
     return searchCompaniesList.filter((company) => {
@@ -417,24 +558,24 @@ export function WorkspaceApp() {
       if (searchFitFilter !== 'all') {
         const score = company.acquisition_fit_score;
         if (!Number.isFinite(score)) return false;
-        
+
         const numericScore = Number(score);
         if (searchFitFilter === 'high' && numericScore < 8) return false;
         if (searchFitFilter === 'medium' && (numericScore < 5 || numericScore >= 8)) return false;
         if (searchFitFilter === 'low' && numericScore >= 5) return false;
       }
-      
+
       // Apply Industry Filter (same pattern as Fit Score)
       if (!matchesIndustry(company.primary_industry, searchIndustryFilter)) {
         return false;
       }
-      
+
       return true;
     });
   }, [searchCompaniesList, searchFitFilter, searchIndustryFilter]);
 
   // Get the selected search company from filtered results
-  const selectedSearchCompany = filteredSearchCompanies.find((c) => c.id === selectedSearchCompanyId) 
+  const selectedSearchCompany = filteredSearchCompanies.find((c) => c.id === selectedSearchCompanyId)
     ?? searchCompaniesList.find((c) => c.id === selectedSearchCompanyId);
 
   // History computed values
@@ -478,6 +619,65 @@ export function WorkspaceApp() {
     setSelectedHistoryId(null);
     setHistoryCompanies([]);
   };
+
+  // Reset functions for each section - called when clicking on already active section
+  const resetSearchView = useCallback(() => {
+    setQuery('');
+    setSearchCompaniesList([]);
+    setSelectedSearchCompanyId(null);
+    setHasSearched(false);
+    setSearchError(null);
+    setSearchIndustryFilter('all');
+    setSearchFitFilter('all');
+  }, []);
+
+  const resetCompaniesView = useCallback(() => {
+    setSelectedWorkspaceCompanyId(null);
+    setWorkspaceFitFilter('all');
+    setIndustryFilter('all');
+    setLocationFilter('');
+    setShortlistSearchQuery('');
+    setWorkspaceCategory('all');
+    loadWorkspaceCompanies();
+  }, [loadWorkspaceCompanies]);
+
+  const resetPeopleView = useCallback(() => {
+    setSelectedPersonId(null);
+    setPeopleSearchQuery('');
+    loadAllPeople();
+  }, [loadAllPeople]);
+
+  const resetHistoryView = useCallback(() => {
+    setSelectedHistoryId(null);
+    setSelectedHistoryCompanyId(null);
+    setHistoryCompanies([]);
+    setHistorySearchQuery('');
+    loadSearchHistory();
+  }, [loadSearchHistory]);
+
+  // Navigation handler - resets if already on that view, otherwise switches
+  const handleNavigation = useCallback((view: WorkspaceView) => {
+    if (activeView === view) {
+      // Already on this view - reset it
+      switch (view) {
+        case 'search':
+          resetSearchView();
+          break;
+        case 'companies':
+          resetCompaniesView();
+          break;
+        case 'people':
+          resetPeopleView();
+          break;
+        case 'history':
+          resetHistoryView();
+          break;
+      }
+    } else {
+      // Switch to new view
+      setActiveView(view);
+    }
+  }, [activeView, resetSearchView, resetCompaniesView, resetPeopleView, resetHistoryView]);
 
   const executeSearch = async (nextQuery?: string) => {
     const targetQuery = typeof nextQuery === 'string' ? nextQuery : query;
@@ -715,8 +915,8 @@ export function WorkspaceApp() {
           {toast.message}
         </div>
       )}
-
-      <InfographicModal
+      
+      <InfographicModal 
         isOpen={isInfographicOpen}
         onClose={() => setIsInfographicOpen(false)}
         isLoading={infographicLoading}
@@ -729,8 +929,8 @@ export function WorkspaceApp() {
       <aside className="w-72 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col h-full transition-all duration-300 relative z-20">
         {/* Brand */}
         <div className="h-16 flex items-center px-6 border-b border-slate-100 flex-shrink-0">
-          <div className="flex items-center gap-3 text-slate-900">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 p-1.5">
+          <div className="flex items-center gap-3 text-slate-900 cursor-pointer" onClick={() => navigate('/')}>
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 p-1.5">
               <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
             </div>
             <div className="flex flex-col">
@@ -761,7 +961,7 @@ export function WorkspaceApp() {
               <input
                 type="text"
                 placeholder="Search vertical..."
-                value={query}
+                 value={query} 
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && void executeSearch()}
                 className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all shadow-sm"
@@ -774,7 +974,7 @@ export function WorkspaceApp() {
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block px-3">Menu</label>
             <nav className="space-y-1">
               <button
-                onClick={() => setActiveView('search')}
+                onClick={() => handleNavigation('search')}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'search'
@@ -787,7 +987,7 @@ export function WorkspaceApp() {
               </button>
 
               <button
-                onClick={() => setActiveView('companies')}
+                onClick={() => handleNavigation('companies')}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'companies'
@@ -797,11 +997,10 @@ export function WorkspaceApp() {
               >
                 <Building2 className={cn("w-4 h-4", activeView === 'companies' ? "text-white" : "text-slate-400 group-hover:text-slate-600")} />
                 Companies
-                {activeView === 'companies' && <span className="ml-auto text-[10px] font-bold bg-white/20 text-white px-1.5 py-0.5 rounded">NOW</span>}
               </button>
 
               <button
-                onClick={() => setActiveView('people')}
+                onClick={() => handleNavigation('people')}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'people'
@@ -814,7 +1013,7 @@ export function WorkspaceApp() {
               </button>
 
               <button
-                onClick={() => setActiveView('history')}
+                onClick={() => handleNavigation('history')}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'history'
@@ -826,7 +1025,7 @@ export function WorkspaceApp() {
                 Search history
               </button>
             </nav>
-          </div>
+                 </div>
 
           {/* View Toggle (Only visible in Companies view) */}
           {activeView === 'companies' && (
@@ -855,8 +1054,8 @@ export function WorkspaceApp() {
                 >
                   <LayoutGrid className="w-3.5 h-3.5" /> Cards
                 </button>
-              </div>
-            </div>
+             </div>
+          </div>
           )}
 
           {/* Filters (Only visible in Companies view) */}
@@ -1039,14 +1238,14 @@ export function WorkspaceApp() {
                     {isSearching ? (
                       <div className="absolute inset-0 z-20 bg-white flex flex-col items-center justify-center">
                         <LoadingStats />
-                      </div>
-                    ) : (
+        </div>
+      ) : (
                       <>
                         <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
                           <div className="flex justify-between items-center mb-3">
                             <span className="text-sm font-medium text-slate-700">
                               Results ({filteredSearchCompanies.length}
-                              {filteredSearchCompanies.length !== searchCompaniesList.length && 
+                              {filteredSearchCompanies.length !== searchCompaniesList.length &&
                                 ` of ${searchCompaniesList.length}`})
                             </span>
                             {searchError && <span className="text-xs text-red-600">{searchError}</span>}
@@ -1082,7 +1281,7 @@ export function WorkspaceApp() {
                               </select>
                             </div>
                             {(searchFitFilter !== 'all' || searchIndustryFilter !== 'all') && (
-                              <button
+                <button 
                                 onClick={() => {
                                   setSearchFitFilter('all');
                                   setSearchIndustryFilter('all');
@@ -1090,15 +1289,15 @@ export function WorkspaceApp() {
                                 className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
                               >
                                 Clear filters
-                              </button>
+                </button>
                             )}
-                          </div>
+              </div>
                         </div>
                         <div className="flex-1 overflow-auto bg-white">
                           {filteredSearchCompanies.length === 0 ? (
                             <div className="p-8 text-center text-slate-500 text-sm">
-                              {searchCompaniesList.length === 0 
-                                ? "No results found." 
+                              {searchCompaniesList.length === 0
+                                ? "No results found."
                                 : "No companies match the selected filters."}
                             </div>
                           ) : (
@@ -1141,13 +1340,13 @@ export function WorkspaceApp() {
                                       </span>
                                     </td>
                                     <td className="py-3 px-4 text-right">
-                                      <button
+                  <button 
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleSaveCompany(company.id, company.primary_industry ?? DEFAULT_CATEGORY);
                                         }}
                                         disabled={company.is_saved || savingMap[company.id]}
-                                        className={cn(
+                    className={cn(
                                           "text-xs font-medium transition-colors",
                                           company.is_saved
                                             ? "text-green-600 cursor-default"
@@ -1155,17 +1354,17 @@ export function WorkspaceApp() {
                                         )}
                                       >
                                         {savingMap[company.id] ? 'Saving...' : company.is_saved ? 'Saved' : 'Save'}
-                                      </button>
+                  </button>
                                     </td>
                                   </tr>
-                                ))}
+                ))}
                               </tbody>
                             </table>
                           )}
-                        </div>
+              </div>
                       </>
                     )}
-                  </div>
+            </div>
 
                   {/* Detail View for Search */}
                   {selectedSearchCompany && (
@@ -1269,7 +1468,7 @@ export function WorkspaceApp() {
                       <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto">
                         {filteredWorkspaceCompanies.map(company => (
                           <motion.div
-                            key={company.id}
+                    key={company.id}
                             whileHover={{ y: -4 }}
                             onClick={() => {
                               if (selectedWorkspaceCompanyId === company.id) {
@@ -1565,11 +1764,11 @@ export function WorkspaceApp() {
                               ))}
                             </tbody>
                           </table>
-                        )}
-                      </div>
+              )}
+            </div>
                     </>
                   )}
-                </div>
+          </div>
 
                 {/* Right Panel: Company Detail + People */}
                 {selectedHistoryCompanyId && selectedHistoryCompany && (
@@ -1638,15 +1837,104 @@ export function WorkspaceApp() {
                                   </div>
 
                                   <div className="mt-3 flex flex-wrap gap-4 text-sm">
-                                    {person.email && (
-                                      <a
-                                        href={`mailto:${person.email}`}
-                                        className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800"
-                                      >
-                                        <Mail className="w-4 h-4" />
-                                        <span className="truncate max-w-[200px]">{person.email}</span>
-                                      </a>
-                                    )}
+                                    {person.email && (() => {
+                                      const companyName = selectedHistoryCompany.name || 'your company';
+                                      const firstName = person.first_name || person.full_name?.split(' ')[0] || '';
+                                      const fitScore = selectedHistoryCompany.acquisition_fit_score;
+                                      const summary = selectedHistoryCompany.summary;
+
+                                      // Multiple random seeds for true variety
+                                      const r1 = Math.random();
+                                      const r2 = Math.random();
+                                      const r3 = Math.random();
+                                      const r4 = Math.random();
+                                      const r5 = Math.random();
+                                      const r6 = Math.random();
+                                      
+                                      const subjects = [
+                                        `Quick question about ${companyName}`,
+                                        `${companyName} caught my eye`,
+                                        `Loved what I saw at ${companyName}`,
+                                        `Coffee chat? Re: ${companyName}`,
+                                        `Had to reach out - ${companyName}`,
+                                        `Curious about ${companyName}`,
+                                      ];
+                                      const subject = subjects[Math.floor(r1 * subjects.length)];
+
+                                      const greetings = firstName 
+                                        ? [`Hey ${firstName}!`, `Hi ${firstName},`, `${firstName} —`, `Hey there ${firstName},`]
+                                        : [`Hey there!`, `Hi!`, `Hello!`, `Hope you're well!`];
+                                      const greeting = greetings[Math.floor(r2 * greetings.length)];
+
+                                      const openers: string[] = [];
+                                      if (summary) {
+                                        const shortSum = summary.slice(0, 100);
+                                        openers.push(
+                                          `I came across ${companyName} and honestly, I'm impressed. ${shortSum}... sounds like you're building something really cool.`,
+                                          `So I was doing some research and stumbled upon ${companyName}. ${shortSum}... — that's exactly the kind of thing that gets me excited.`,
+                                          `Found ${companyName} while exploring the market and had to reach out. ${shortSum}... really caught my attention.`,
+                                          `Your work at ${companyName} popped up on my radar. ${shortSum}... I dig it.`,
+                                        );
+                                      } else {
+                                        openers.push(
+                                          `I came across ${companyName} and really liked what I saw.`,
+                                          `Been researching companies in your space and ${companyName} caught my attention.`,
+                                          `Found ${companyName} while exploring the market — looks like you're doing some interesting stuff.`,
+                                          `Stumbled upon ${companyName} and thought I'd reach out directly.`,
+                                        );
+                                      }
+                                      const opener = openers[Math.floor(r3 * openers.length)];
+
+                                      // Interest level - always positive
+                                      let interestPhrase = '';
+                                      if (fitScore !== null && fitScore !== undefined) {
+                                        if (fitScore >= 8) {
+                                          const high = [
+                                            `I'm genuinely excited about what you're building here.`,
+                                            `This is exactly the kind of company I've been looking for.`,
+                                            `Not gonna lie — I'm pretty excited about this one.`,
+                                          ];
+                                          interestPhrase = high[Math.floor(r4 * high.length)] + '\n\n';
+                                        } else if (fitScore >= 5) {
+                                          const med = [
+                                            `I see a lot of potential here and would love to learn more.`,
+                                            `There's something interesting brewing here — curious to dig deeper.`,
+                                            `Feels like there's potential here worth exploring.`,
+                                          ];
+                                          interestPhrase = med[Math.floor(r4 * med.length)] + '\n\n';
+                                        } else {
+                                          const low = [
+                                            `I'd love to learn more about your journey and where you see things going.`,
+                                            `Curious to hear your story and what's next for ${companyName}.`,
+                                            `Always interested in meeting founders doing interesting things in this space.`,
+                                          ];
+                                          interestPhrase = low[Math.floor(r4 * low.length)] + '\n\n';
+                                        }
+                                      }
+
+                                      const asks = [
+                                        `Would love to grab a quick call if you're open to it — no pressure at all.`,
+                                        `Any chance you'd be up for a 15-min chat sometime?`,
+                                        `Would you be down for a quick conversation? Totally casual.`,
+                                        `Let me know if you'd be open to hopping on a call.`,
+                                      ];
+                                      const ask = asks[Math.floor(r5 * asks.length)];
+
+                                      const signOffs = [`Cheers,\nJosue`, `Talk soon?\nJosue`, `Best,\nJosue`, `Hope to hear from you!\nJosue`];
+                                      const signOff = signOffs[Math.floor(r6 * signOffs.length)];
+
+                                      const body = `${greeting}\n\n${opener}\n\n${interestPhrase}${ask}\n\n${signOff}\n\n---\nContact: ${person.email}${person.phone ? ` | ${person.phone}` : ''}`;
+
+                                      return (
+                                        <a
+                                          href={`mailto:josuekenge4@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
+                                          className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800"
+                                        >
+                                          <Mail className="w-4 h-4" />
+                                          <span className="truncate max-w-[200px]">{person.email}</span>
+                                        </a>
+                                      );
+                                    })()}
                                     {person.phone && (
                                       <span className="flex items-center gap-1.5 text-slate-600">
                                         <Phone className="w-4 h-4" />
@@ -1733,7 +2021,7 @@ export function WorkspaceApp() {
                                 <td className="py-3 px-4">
                                   {person.email ? (
                                     <a
-                                      href={`mailto:${person.email}`}
+                                      href={generateEmailLink(person)}
                                       onClick={(e) => e.stopPropagation()}
                                       className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
                                     >
@@ -1760,8 +2048,8 @@ export function WorkspaceApp() {
                                     )}
                                     {person.is_executive && !person.is_ceo && (
                                       <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 rounded">Exec</span>
-                                    )}
-                                  </div>
+             )}
+          </div>
                                 </td>
                                 <td className="py-3 px-4 text-slate-600 hidden md:table-cell">
                                   {person.role || '—'}
@@ -1801,7 +2089,7 @@ export function WorkspaceApp() {
                         </tbody>
                       </table>
                     )}
-                  </div>
+        </div>
 
                   {/* Person Detail Panel */}
                   {selectedPersonId && selectedPerson && (

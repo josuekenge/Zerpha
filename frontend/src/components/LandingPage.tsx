@@ -10,10 +10,7 @@ import {
   FileText,
   Zap,
   Target,
-  TrendingUp,
-  Check,
-  ShieldCheck,
-  Rocket
+  Check
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
@@ -67,8 +64,8 @@ export function LandingPage() {
         className="fixed top-0 z-50 w-full border-b border-slate-200/50 bg-white/80 backdrop-blur-xl"
       >
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 p-2">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 p-2">
               <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
             </div>
             <div className="flex flex-col">
@@ -348,188 +345,135 @@ export function LandingPage() {
                 </dd>
               </motion.div>
 
-              {/* Feature 3 */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="flex flex-col bg-white p-10 rounded-[2.5rem] shadow-sm ring-1 ring-slate-200/60 hover:shadow-2xl hover:shadow-blue-900/10 hover:-translate-y-2 transition-all duration-500 group"
-              >
-                <dt className="flex items-center gap-x-4 text-xl font-bold leading-7 text-slate-900">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">
-                    <TrendingUp className="h-7 w-7" />
-                  </div>
-                  Gemini 3 Pro Storytelling
-                </dt>
-                <dd className="mt-6 flex flex-auto flex-col text-base leading-7 text-slate-600">
-                  <p className="flex-auto">Turn raw data into board-ready narratives instantly. Gemini 3 Pro crafts compelling slide decks that sell your vision for you.</p>
-                </dd>
-              </motion.div>
+
             </dl>
           </div>
         </div>
 
-        {/* Trust/Vision Section (Replaces Tech Stack) */}
-        <div id="vision" className="relative isolate overflow-hidden bg-slate-900 py-24 sm:py-32">
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,theme(colors.indigo.100),white)] opacity-20" />
-          <div className="absolute inset-y-0 right-1/2 -z-10 mr-16 w-[200%] origin-bottom-left skew-x-[-30deg] bg-slate-900 shadow-xl shadow-indigo-600/10 ring-1 ring-indigo-50 sm:mr-28 lg:mr-0 xl:mr-16 xl:origin-center" />
+        {/* Built for Serial Acquirers - Consistent White & Purple Theme */}
+        <div className="py-24 sm:py-32 bg-white relative overflow-hidden">
+          {/* Aurora Gradients */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-purple-200/30 rounded-full blur-[100px] opacity-60 mix-blend-multiply pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-indigo-200/30 rounded-full blur-[100px] opacity-60 mix-blend-multiply pointer-events-none" />
 
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl lg:mx-0">
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Built for the Bold.</h2>
-              <p className="mt-6 text-lg leading-8 text-slate-300">
-                We believe the next decade belongs to Vertical SaaS. Zerpha is the operating system for the visionaries who will build it. Secure, scalable, and relentlessly accurate.
+          <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
+            <div className="mx-auto max-w-3xl text-center mb-16">
+              <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl mb-6">
+                Built for Serial Acquirers
+              </h2>
+              <p className="text-lg leading-8 text-slate-600">
+                Zerpha is purpose-built to help <span className="font-semibold text-indigo-600">Volaris Group</span>, <span className="font-semibold text-indigo-600">Constellation Software</span>, and other serial acquirers discover and evaluate B2B vertical SaaS companies faster than ever before.
               </p>
             </div>
-            <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-8">
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              {/* The Challenge Card - Dark Purple */}
               <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="rounded-2xl bg-white/5 p-8 ring-1 ring-white/10 hover:bg-white/10 transition-all"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="relative overflow-hidden rounded-[2.5rem] bg-[#1e1b4b] p-10 shadow-xl shadow-indigo-900/20"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <ShieldCheck className="h-6 w-6 text-emerald-400" />
-                  <h3 className="text-lg font-bold leading-8 text-white">Uncompromising Security</h3>
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
+
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-rose-300 backdrop-blur-sm">
+                      <Target className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">The Challenge</h3>
+                  </div>
+                  <p className="text-lg leading-relaxed text-indigo-100/80">
+                    Finding high-quality B2B software acquisition targets is time-consuming. Traditional methods involve endless manual research, fragmented data sources, and missed opportunities in niche verticals.
+                  </p>
                 </div>
-                <p className="text-base leading-7 text-slate-400">Your strategic data is your most valuable asset. We protect it with enterprise-grade encryption and isolation.</p>
               </motion.div>
+
+              {/* Our Solution Card - Vibrant Indigo */}
               <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="rounded-2xl bg-white/5 p-8 ring-1 ring-white/10 hover:bg-white/10 transition-all"
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="relative overflow-hidden rounded-[2.5rem] bg-indigo-600 p-10 shadow-xl shadow-indigo-600/20"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <Rocket className="h-6 w-6 text-indigo-400" />
-                  <h3 className="text-lg font-bold leading-8 text-white">Velocity at Scale</h3>
+                <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl"></div>
+
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-white backdrop-blur-sm">
+                      <Zap className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Our Solution</h3>
+                  </div>
+                  <p className="text-lg leading-relaxed text-indigo-100">
+                    Zerpha uses AI to instantly discover, analyze, and score vertical SaaS companies across any industry. Get acquisition-ready insights, contact information, and fit scores in seconds—not weeks.
+                  </p>
                 </div>
-                <p className="text-base leading-7 text-slate-400">Move faster than the market. Our dual-engine AI architecture processes thousands of data points in seconds.</p>
-              </motion.div>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="rounded-2xl bg-white/5 p-8 ring-1 ring-white/10 hover:bg-white/10 transition-all"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <Check className="h-6 w-6 text-blue-400" />
-                  <h3 className="text-lg font-bold leading-8 text-white">Precision Guaranteed</h3>
-                </div>
-                <p className="text-base leading-7 text-slate-400">Hallucinations have no place in business strategy. We use multi-step verification to ensure every insight is grounded in reality.</p>
               </motion.div>
             </div>
-          </div>
-        </div>
 
-        {/* Mission Section */}
-        <div id="mission" className="py-24 sm:py-32 relative overflow-hidden bg-white">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            {/* Why Choose Zerpha - Deepest Purple */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="mx-auto max-w-3xl text-center"
+              className="relative overflow-hidden rounded-[2.5rem] bg-[#0F0529] px-6 py-16 sm:px-12 lg:px-16 shadow-2xl"
             >
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Built for Serial Acquirers</h2>
-              <p className="mt-6 text-lg leading-8 text-slate-600">
-                Zerpha is purpose-built to help <span className="font-semibold text-indigo-600">Volaris Group</span>, <span className="font-semibold text-indigo-600">Constellation Software</span>, and other serial acquirers discover and evaluate B2B vertical SaaS companies faster than ever before.
-              </p>
-            </motion.div>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent"></div>
 
-            <div className="mx-auto mt-16 max-w-5xl">
-              <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              <div className="relative z-10">
+                <div className="text-center mb-12">
+                  <h3 className="text-2xl font-bold text-white">Why Acquirers Choose Zerpha</h3>
+                </div>
 
-                {/* The Challenge */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                  className="rounded-3xl p-8 bg-slate-50 ring-1 ring-slate-200"
-                >
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100">
-                      <span className="text-lg">🎯</span>
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-900">The Challenge</h3>
-                  </div>
-                  <p className="text-slate-600 leading-relaxed">
-                    Finding high-quality B2B software acquisition targets is time-consuming. Traditional methods involve endless manual research, fragmented data sources, and missed opportunities in niche verticals.
-                  </p>
-                </motion.div>
-
-                {/* Our Solution */}
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
-                  className="rounded-3xl p-8 bg-indigo-600 ring-1 ring-indigo-500"
-                >
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
-                      <span className="text-lg">⚡</span>
-                    </div>
-                    <h3 className="text-xl font-bold text-white">Our Solution</h3>
-                  </div>
-                  <p className="text-indigo-100 leading-relaxed">
-                    Zerpha uses AI to instantly discover, analyze, and score vertical SaaS companies across any industry. Get acquisition-ready insights, contact information, and fit scores in seconds—not weeks.
-                  </p>
-                </motion.div>
-
-              </div>
-
-              {/* Key Benefits */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-                className="mt-12 rounded-3xl p-8 bg-gradient-to-br from-slate-900 to-slate-800 ring-1 ring-slate-700"
-              >
-                <h3 className="text-xl font-bold text-white mb-8 text-center">Why Acquirers Choose Zerpha</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                   <div className="text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600/20 mx-auto mb-4">
-                      <Check className="h-6 w-6 text-indigo-400" />
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-indigo-300 ring-1 ring-white/10 mb-6">
+                      <Check className="h-6 w-6" />
                     </div>
-                    <h4 className="font-semibold text-white mb-2">Faster Discovery</h4>
-                    <p className="text-sm text-slate-400">Find vertical SaaS targets in minutes instead of months of manual research.</p>
+                    <h4 className="text-lg font-bold text-white mb-2">Faster Discovery</h4>
+                    <p className="text-sm leading-6 text-slate-400">
+                      Find vertical SaaS targets in minutes instead of months of manual research.
+                    </p>
                   </div>
+
                   <div className="text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600/20 mx-auto mb-4">
-                      <Check className="h-6 w-6 text-indigo-400" />
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-indigo-300 ring-1 ring-white/10 mb-6">
+                      <Check className="h-6 w-6" />
                     </div>
-                    <h4 className="font-semibold text-white mb-2">Acquisition Scoring</h4>
-                    <p className="text-sm text-slate-400">AI-powered fit scores help prioritize the best opportunities for your portfolio.</p>
+                    <h4 className="text-lg font-bold text-white mb-2">Acquisition Scoring</h4>
+                    <p className="text-sm leading-6 text-slate-400">
+                      AI-powered fit scores help prioritize the best opportunities for your portfolio.
+                    </p>
                   </div>
+
                   <div className="text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600/20 mx-auto mb-4">
-                      <Check className="h-6 w-6 text-indigo-400" />
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-indigo-300 ring-1 ring-white/10 mb-6">
+                      <Check className="h-6 w-6" />
                     </div>
-                    <h4 className="font-semibold text-white mb-2">Direct Outreach</h4>
-                    <p className="text-sm text-slate-400">Get verified emails and decision-maker contacts to start conversations immediately.</p>
+                    <h4 className="text-lg font-bold text-white mb-2">Direct Outreach</h4>
+                    <p className="text-sm leading-6 text-slate-400">
+                      Get verified emails and decision-maker contacts to start conversations immediately.
+                    </p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
+            </motion.div>
 
-              {/* CTA */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.4 }}
-                className="mt-12 text-center"
+            <div className="mt-16 flex justify-center">
+              <button
+                onClick={handleSearch}
+                className="group relative inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-600/25 hover:bg-indigo-500 hover:-translate-y-0.5 transition-all duration-200"
               >
-                <button
-                  onClick={handleSearch}
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-indigo-600/25 hover:bg-indigo-500 transition-all hover:shadow-xl hover:shadow-indigo-600/30"
-                >
-                  Start Discovering Targets
-                  <ArrowRight className="h-5 w-5" />
-                </button>
-                <p className="mt-4 text-sm text-slate-500">Join the next generation of M&A intelligence</p>
-              </motion.div>
-
+                Start Discovering Targets
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </button>
             </div>
           </div>
         </div>
+
+
 
         {/* About Me Section */}
         <AboutMe />
