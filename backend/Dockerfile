@@ -8,6 +8,8 @@ COPY backend/package*.json ./
 
 # Install all dependencies (including devDependencies for tsc)
 RUN npm install
+# Ensure local binaries are executable (fixes sh: tsc permission denied)
+RUN chmod +x node_modules/.bin/* || true
 
 # Copy source files AFTER installing dependencies (preserves node_modules)
 COPY backend/. .
