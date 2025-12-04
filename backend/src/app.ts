@@ -23,7 +23,7 @@ app.use(
     logger,
   } as any),
 );
-
+// CORS
 const allowedOrigins = [
   'https://www.zerpha.ca',
   'https://zerpha.ca',
