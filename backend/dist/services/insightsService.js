@@ -1,7 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { env } from '../config/env.js';
-const CLAUDE_MODEL = 'claude-sonnet-4-5';
-const INSIGHTS_MAX_TOKENS = 1024;
+// Use Haiku for faster insights generation
+const CLAUDE_MODEL = 'claude-3-haiku-20240307';
+// Reduced - insights are just 3-4 sentences
+const INSIGHTS_MAX_TOKENS = 400;
 const anthropic = new Anthropic({
     apiKey: env.CLAUDE_API_KEY,
 });

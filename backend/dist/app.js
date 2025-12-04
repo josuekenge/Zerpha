@@ -10,15 +10,26 @@ export const app = express();
 app.use(pinoHttp({
     logger,
 }));
+// Configure allowed origins for CORS
 const allowedOrigins = env.NODE_ENV === 'production'
-    ? []
-    : ['http://localhost:5173'];
+    ? [
+        env.FRONTEND_URL, // Set this in Railway env vars
+        'https://zerpha.up.railway.app',
+        'https://zerpha.railway.app',
+    ].filter(Boolean)
+    : ['http://localhost:5173', 'http://localhost:3000'];
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, origin ?? allowedOrigins[0]);
+        // Allow requests with no origin (mobile apps, curl, etc.)
+        if (!origin) {
+            callback(null, true);
+            return;
+        }
+        if (allowedOrigins.includes(origin)) {
+            callback(null, origin);
         }
         else {
+            logger.warn({ origin, allowedOrigins }, 'CORS blocked origin');
             callback(new Error('Not allowed by CORS'));
         }
     },

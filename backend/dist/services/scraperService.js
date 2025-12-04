@@ -1,4 +1,4 @@
-const FETCH_TIMEOUT_MS = 10000;
+const FETCH_TIMEOUT_MS = 8000; // Reduced from 10s for faster failures
 const USER_AGENT = 'Mozilla/5.0 (compatible; ZerphaBot/1.0; +https://zerpha.app/market-intel)';
 const productKeywords = ['product', 'solution', 'platform', 'features'];
 const pricingKeywords = ['pricing', 'price', 'plans', 'plan', 'how-it-works'];
@@ -64,10 +64,30 @@ function findLinkByKeywords(links, keywords) {
     }
     return null;
 }
+/**
+ * Fetch a secondary page (product/pricing) with error handling.
+ * Returns null on failure instead of throwing.
+ */
+async function fetchSecondaryPage(url, type) {
+    try {
+        const html = await fetchHtml(url);
+        return {
+            page: { type, url, html, text: stripHtml(html) },
+            error: null,
+        };
+    }
+    catch (error) {
+        return {
+            page: null,
+            error: `${type} page failed (${url}): ${error.message}`,
+        };
+    }
+}
 export async function scrapeCompanySite(baseUrl) {
     const pages = [];
     const errors = [];
     try {
+        // Fetch homepage first (required)
         const homepageHtml = await fetchHtml(baseUrl);
         pages.push({
             type: 'home',
@@ -77,33 +97,24 @@ export async function scrapeCompanySite(baseUrl) {
         });
         const links = extractLinks(homepageHtml, baseUrl);
         const productUrl = findLinkByKeywords(links, productKeywords);
-        if (productUrl) {
-            try {
-                const productHtml = await fetchHtml(productUrl);
-                pages.push({
-                    type: 'product',
-                    url: productUrl,
-                    html: productHtml,
-                    text: stripHtml(productHtml),
-                });
-            }
-            catch (error) {
-                errors.push(`Product page failed (${productUrl}): ${error.message}`);
-            }
-        }
         const pricingUrl = findLinkByKeywords(links, pricingKeywords);
+        // Fetch product and pricing pages CONCURRENTLY
+        const secondaryFetches = [];
+        if (productUrl) {
+            secondaryFetches.push(fetchSecondaryPage(productUrl, 'product'));
+        }
         if (pricingUrl) {
-            try {
-                const pricingHtml = await fetchHtml(pricingUrl);
-                pages.push({
-                    type: 'pricing',
-                    url: pricingUrl,
-                    html: pricingHtml,
-                    text: stripHtml(pricingHtml),
-                });
-            }
-            catch (error) {
-                errors.push(`Pricing page failed (${pricingUrl}): ${error.message}`);
+            secondaryFetches.push(fetchSecondaryPage(pricingUrl, 'pricing'));
+        }
+        if (secondaryFetches.length > 0) {
+            const results = await Promise.all(secondaryFetches);
+            for (const result of results) {
+                if (result.page) {
+                    pages.push(result.page);
+                }
+                if (result.error) {
+                    errors.push(result.error);
+                }
             }
         }
     }

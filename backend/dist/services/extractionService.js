@@ -2,8 +2,10 @@ import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import { env } from '../config/env.js';
 import { allowedIndustries, } from '../types/company.js';
-const CLAUDE_MODEL = 'claude-sonnet-4-5';
-const EXTRACTION_MAX_TOKENS = 4096;
+// Use Haiku for faster extraction - it's sufficient for structured JSON output
+const CLAUDE_MODEL = 'claude-3-haiku-20240307';
+// Reduced from 4096 - typical extraction responses are ~1500-2000 tokens
+const EXTRACTION_MAX_TOKENS = 2500;
 const anthropic = new Anthropic({
     apiKey: env.CLAUDE_API_KEY,
 });
@@ -40,7 +42,8 @@ export const companyExtractionSchema = z.object({
     primary_industry: industryEnum,
     secondary_industry: industryEnum.nullable(),
 });
-const systemPrompt = `You are Zerpha, an M&A and SaaS market analysis assistant. You analyze scraped SaaS company webpages and respond ONLY with strict JSON that matches the required schema. Never add commentary, code fences, or prose outside the JSON object.`;
+// Concise system prompt to reduce input tokens
+const systemPrompt = `You are Zerpha, an M&A analyst. Output ONLY valid JSON matching the schema. No markdown, no prose.`;
 const allowedIndustryList = allowedIndustries.map((industry) => `- "${industry}"`).join('\n');
 function buildExtractionPrompt(companyName, website, content) {
     return `Analyze the following scraped content for a SaaS company. Produce a single JSON object that strictly matches the schema below. Do not include explanations or markdown, just valid JSON.
