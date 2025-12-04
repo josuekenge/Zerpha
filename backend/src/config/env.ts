@@ -15,8 +15,8 @@ const envSchema = z.object({
   GOOGLE_CLIENT_EMAIL: z.string().optional().default(''),
   GOOGLE_PRIVATE_KEY: z.string().optional().default(''),
   GOOGLE_SLIDES_TEMPLATE_ID: z.string().optional().default(''),
-  APIFY_TOKEN: z.string().optional(),
-  FRONTEND_URL: z.string().url().optional(),
+  APIFY_TOKEN: z.string().optional().default(''),
+  FRONTEND_URL: z.string().optional().default(''),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -42,6 +42,9 @@ if (!parsed.success) {
   for (const issue of parsed.error.issues) {
     console.error(`  • ${issue.path.join('.') || 'root'}: ${issue.message}`);
   }
+  console.error('');
+  console.error('Required variables: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, CLAUDE_API_KEY');
+  console.error('');
   throw new Error('Failed to load environment variables. Check your .env file.');
 }
 
