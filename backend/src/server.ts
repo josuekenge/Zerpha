@@ -4,20 +4,21 @@ import { logger } from './logger.js';
 
 async function bootstrap() {
   // Start server FIRST so health checks pass while we initialize
-  const port = process.env.PORT || 3001;
-  
-  const server = app.listen(Number(port), '0.0.0.0', () => {
+  const port = Number(process.env.PORT) || 3001;
+
+  const server = app.listen(port, '0.0.0.0', () => {
     console.log(`🚀 Backend ready on http://0.0.0.0:${port}`);
     logger.info(`🚀 Backend ready on http://0.0.0.0:${port}`);
   });
 
-  // Verify Supabase connection after server is up
-  try {
-    await verifySupabaseConnection();
-    console.log('✅ Supabase connection verified');
-  } catch (err) {
-    console.warn('⚠️ Supabase connection check failed, continuing anyway:', err);
-  }
+  // Verify Supabase connection after server is up (log-only)
+  verifySupabaseConnection()
+    .then(() => {
+      console.log('✅ Supabase connection verified');
+    })
+    .catch((err) => {
+      console.warn('⚠️ Supabase connection check failed, continuing anyway:', err);
+    });
 
   const shutdown = (signal: string) => {
     logger.info(`Received ${signal}, closing server...`);

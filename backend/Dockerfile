@@ -10,11 +10,10 @@ COPY backend/package*.json ./
 RUN npm install
 
 # Copy source files AFTER installing dependencies (preserves node_modules)
-COPY backend/src ./src
-COPY backend/tsconfig.json ./
+COPY backend/. .
 
 # Build TypeScript
-RUN npx tsc -p tsconfig.json
+RUN npm run build
 
 # Stage 2: Runner
 FROM node:20.18.0-slim AS runner
@@ -34,4 +33,4 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3001
 
 # Start the server
-CMD ["node", "dist/server.js"]
+CMD ["npm", "start"]
