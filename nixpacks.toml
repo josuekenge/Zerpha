@@ -1,12 +1,3 @@
-[phases.setup]
-nixPkgs = ["nodejs_20"]
-
-[phases.install]
-cmds = ["cd backend && npm install"]
-
-[phases.build]
-cmds = ["cd backend && chmod -R +x node_modules/.bin && npm run build"]
-
-[start]
-cmd = "cd backend && npm run start"
+# Use Dockerfile instead of Nixpacks
+# This file is kept for reference but Railway will use backend/Dockerfile
 
