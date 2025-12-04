@@ -1,24 +1,10 @@
-import express from 'express';
-
-import { app as legacyApp } from './app.js';
+import { app } from './app.js';
 import { verifySupabaseConnection } from './config/supabase.js';
 import { logger } from './logger.js';
 
-const server = express();
-
-// Root-level health endpoint for Railway
-server.get('/health', (_req, res) => {
-  console.log('Healthcheck hit');
-  logger.info('Healthcheck hit');
-  res.status(200).send('ok');
-});
-
-// Mount the existing application (routes, middleware, etc.)
-server.use(legacyApp);
-
 const PORT = Number(process.env.PORT) || 3001;
 
-server.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server listening on port ${PORT}`);
   logger.info(`Server listening on port ${PORT}`);
 });
@@ -40,4 +26,3 @@ const shutdown = (signal: string) => {
 
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
-
