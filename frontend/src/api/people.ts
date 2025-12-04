@@ -1,7 +1,7 @@
 import { Person } from '../types';
 import { supabase } from '../lib/supabase';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 async function getAuthHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getSession();

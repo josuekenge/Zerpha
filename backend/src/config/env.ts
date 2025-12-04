@@ -9,15 +9,14 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   CLAUDE_API_KEY: z.string().min(1, 'CLAUDE_API_KEY is required'),
-  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
-  GOOGLE_PROJECT_ID: z.string().min(1, 'GOOGLE_PROJECT_ID is required'),
-  GOOGLE_APPLICATION_CREDENTIALS: z
-    .string()
-    .min(1, 'GOOGLE_APPLICATION_CREDENTIALS path is required'),
-  GOOGLE_CLIENT_EMAIL: z.string().email('GOOGLE_CLIENT_EMAIL must be a valid email'),
-  GOOGLE_PRIVATE_KEY: z.string().min(1, 'GOOGLE_PRIVATE_KEY is required'),
-  GOOGLE_SLIDES_TEMPLATE_ID: z.string().min(1, 'GOOGLE_SLIDES_TEMPLATE_ID is required'),
+  GEMINI_API_KEY: z.string().optional().default(''),
+  GOOGLE_PROJECT_ID: z.string().optional().default(''),
+  GOOGLE_APPLICATION_CREDENTIALS: z.string().optional().default(''),
+  GOOGLE_CLIENT_EMAIL: z.string().optional().default(''),
+  GOOGLE_PRIVATE_KEY: z.string().optional().default(''),
+  GOOGLE_SLIDES_TEMPLATE_ID: z.string().optional().default(''),
   APIFY_TOKEN: z.string().optional(),
+  FRONTEND_URL: z.string().url().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -35,6 +34,7 @@ const parsed = envSchema.safeParse({
   GOOGLE_PRIVATE_KEY: process.env.GOOGLE_PRIVATE_KEY,
   GOOGLE_SLIDES_TEMPLATE_ID: process.env.GOOGLE_SLIDES_TEMPLATE_ID,
   APIFY_TOKEN: process.env.APIFY_TOKEN,
+  FRONTEND_URL: process.env.FRONTEND_URL,
 });
 
 if (!parsed.success) {

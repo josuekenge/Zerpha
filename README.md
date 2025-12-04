@@ -136,6 +136,48 @@ The frontend is a React + Vite application using Tailwind CSS.
 
 ---
 
+## 🚂 Railway Deployment
+
+Deploy Zerpha to Railway as two separate services (backend + frontend).
+
+### Backend Service
+
+1. **Create a new service** in Railway and connect your GitHub repo
+2. **Set the root directory** to `backend`
+3. **Add environment variables:**
+   ```
+   NODE_ENV=production
+   PORT=3001
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   CLAUDE_API_KEY=your-claude-api-key
+   FRONTEND_URL=https://your-frontend.railway.app
+   APIFY_TOKEN=your-apify-token (optional)
+   ```
+4. Railway will auto-detect and deploy using the `railway.json` config
+
+### Frontend Service
+
+1. **Create another service** in Railway and connect the same repo
+2. **Set the root directory** to `frontend`
+3. **Add environment variables:**
+   ```
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
+   VITE_API_URL=https://your-backend.railway.app
+   ```
+4. Railway will auto-detect and deploy using the `railway.json` config
+
+### Important Notes
+
+- **CORS:** Make sure `FRONTEND_URL` in the backend matches your deployed frontend URL
+- **Supabase Auth:** Add your Railway frontend URL to Supabase's allowed redirect URLs:
+  - Go to **Authentication > URL Configuration**
+  - Add `https://your-frontend.railway.app` to Site URL and Redirect URLs
+- **Health Check:** Backend has a `/health` endpoint for Railway health checks
+
+---
+
 ## ❓ Troubleshooting
 
 | Issue | Solution |
@@ -144,6 +186,8 @@ The frontend is a React + Vite application using Tailwind CSS.
 | **Frontend "Supabase env missing"** | Ensure `.env` is in `frontend/` and keys start with `VITE_`. Restart server. |
 | **Port 3001 in use** | Kill the process: `npx kill-port 3001` or change `PORT` in `.env`. |
 | **Google Login fails** | Check Redirect URL in Google Cloud Console matches Supabase config. |
+| **Railway build fails** | Make sure root directory is set correctly (`backend` or `frontend`). |
+| **CORS errors on Railway** | Set `FRONTEND_URL` env var in backend to your frontend Railway URL. |
 
 ---
 
