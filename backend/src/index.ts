@@ -20,6 +20,11 @@ app.use(
 );
 app.options('*', cors());
 
+// Health check endpoint for Railway
+app.get('/health', (_req, res) => {
+  res.status(200).send({ status: 'ok' });
+});
+
 const PORT = Number(process.env.PORT) || 3001;
 
 const server = app.listen(PORT, '0.0.0.0', () => {
