@@ -23,6 +23,14 @@ const allowedOrigins = [
   'http://localhost:3000',
 ];
 
+// DEBUG: Log all OPTIONS requests to verify they reach the server
+app.use((req, _res, next) => {
+  if (req.method === 'OPTIONS') {
+    console.log('OPTIONS hit', req.path, 'origin:', req.headers.origin);
+  }
+  next();
+});
+
 // Simplified CORS - let the library handle it properly
 app.use(
   cors({
