@@ -9,15 +9,30 @@ import { logger } from './logger.js';
 
 export const app = express();
 
-console.log('🔥 CORS SUPER SIMPLE TEST 🔥');
+console.log('🔥 Zerpha CORS baseline v1 starting');
 
-// Trust Railway proxy
 app.set('trust proxy', 1);
 
-// Very permissive CORS for debugging
+const allowedOrigins = [
+  'https://www.zerpha.ca',
+  'https://zerpha.ca',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
 const corsOptions: CorsOptions = {
-  // Reflect the request Origin header, whatever it is
-  origin: true,
+  origin(origin, callback) {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Disallow other origins, no crash
+    return callback(null, false);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
@@ -26,12 +41,13 @@ const corsOptions: CorsOptions = {
   maxAge: 86400,
 };
 
-// Health check endpoint
-app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'ok' });
+// Log every request so we see OPTIONS hitting the app
+app.use((req, _res, next) => {
+  console.log(`[REQ] ${req.method} ${req.path} origin=${req.headers.origin ?? 'none'}`);
+  next();
 });
 
-// CORS must run before body parsers, helmet, logging, or routes
+// CORS first
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
@@ -39,7 +55,7 @@ app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Helmet
+// Security headers
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -47,11 +63,20 @@ app.use(
 );
 
 // Logging
-app.use(pinoHttp({ logger } as any));
+app.use(
+  pinoHttp({
+    logger,
+  }) as any,
+);
+
+// Health check, still behind CORS
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // API routes
 app.use('/api', apiRouter);
 
-// Error handlers
+// Not found and error handling
 app.use(notFoundHandler);
 app.use(errorHandler);
