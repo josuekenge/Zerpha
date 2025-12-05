@@ -17,15 +17,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
+    let didSetLoading = false;
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      if (isMounted) {
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
+    // Timeout to ensure we never get stuck loading forever
+    const timeout = setTimeout(() => {
+      if (isMounted && !didSetLoading) {
+        console.warn('[Auth] Session check timed out, setting loading to false');
+        didSetLoading = true;
         setLoading(false);
       }
-    });
+    }, 3000); // 3 second timeout
+
+    // Get initial session
+    supabase.auth.getSession()
+      .then(({ data: { session: initialSession } }) => {
+        if (isMounted && !didSetLoading) {
+          didSetLoading = true;
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error('[Auth] Failed to get session:', error);
+        if (isMounted && !didSetLoading) {
+          didSetLoading = true;
+          setLoading(false);
+        }
+      });
 
     // Listen for auth changes
     const {
@@ -34,11 +53,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (isMounted) {
         setSession(newSession);
         setUser(newSession?.user ?? null);
+        // Also set loading false here in case getSession hasn't returned yet
+        if (!didSetLoading) {
+          didSetLoading = true;
+          setLoading(false);
+        }
       }
     });
 
     return () => {
       isMounted = false;
+      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, []);
