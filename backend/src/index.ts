@@ -4,17 +4,12 @@ import { logger } from './logger.js';
 
 const PORT = Number(process.env.PORT) || 3001;
 
-// Health check stays in index.ts, defined before server starts
-app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
-
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server listening on port ${PORT}`);
   logger.info(`Server listening on port ${PORT}`);
 });
 
-// Run Supabase verification asynchronously so it never blocks startup
+// Run Supabase verification asynchronously
 verifySupabaseConnection()
   .then(() => {
     console.log('✅ Supabase connection verified');
