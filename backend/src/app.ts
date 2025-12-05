@@ -8,62 +8,55 @@ import { logger } from './logger.js';
 
 export const app = express();
 
-// 1. Trust proxy for Railway
 app.set('trust proxy', 1);
 
-// 2. Health check - MUST BE FIRST, before any middleware
+// Health check - FIRST, before any middleware
 app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 3. Define allowed origins
-const allowedOrigins = [
-  'https://www.zerpha.ca',
-  'https://zerpha.ca',
-  'http://localhost:5173',
-  'http://localhost:3000',
-];
-
-// 4. MANUAL CORS middleware - guaranteed to set headers
+// MANUAL CORS - NO LIBRARY NEEDED
 app.use((req, res, next) => {
+  const allowedOrigins = [
+    'https://www.zerpha.ca',
+    'https://zerpha.ca',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ];
+
   const origin = req.headers.origin;
 
-  // Check if origin is allowed
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
 
-  // Always set these headers
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept,Origin');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.setHeader('Access-Control-Max-Age', '86400');
 
   // Handle preflight
   if (req.method === 'OPTIONS') {
-    console.log('=== PREFLIGHT ===', req.path, 'Origin:', origin);
-    res.status(200).end();
-    return;
+    return res.status(204).end();
   }
 
   next();
 });
 
-// 5. Body parsers
+// Body parsers AFTER CORS
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 6. Other middleware
+// Other middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
 app.use(pinoHttp({ logger } as any));
 
-// 7. API routes
+// API routes
 app.use('/api', apiRouter);
 
-// 8. CORS test endpoint (temporary)
+// CORS test endpoint
 app.get('/api/cors-test', (req, res) => {
   res.json({
     message: 'CORS is working!',
