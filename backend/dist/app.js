@@ -5,6 +5,7 @@ import { apiRouter } from './routes/index.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { logger } from './logger.js';
 export const app = express();
+console.log('🔥 CORS FIX v2 - NEW BUILD DEPLOYED 🔥');
 // Trust proxy for Railway
 app.set('trust proxy', 1);
 // ============================================================
