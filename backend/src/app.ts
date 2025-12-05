@@ -15,16 +15,47 @@ app.set('trust proxy', 1);
 // =============================================================================
 // CORS CONFIGURATION
 // =============================================================================
-const allowedOrigins = [
+// 
+// For production, set CORS_ORIGIN in Railway:
+//   CORS_ORIGIN=https://www.zerpha.ca,https://zerpha.ca,https://zerpha.netlify.app
+//
+// For local development, localhost origins are included by default.
+// =============================================================================
+
+// Parse CORS_ORIGIN from environment (comma-separated list)
+const envOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean)
+  : [];
+
+// Default allowed origins (always include these for safety)
+const defaultOrigins = [
   'https://www.zerpha.ca',
   'https://zerpha.ca',
   'https://zerpha.netlify.app',
-  'http://localhost:5173',
-  'http://localhost:3000',
+  'http://localhost:5173',  // Vite dev server
+  'http://localhost:3000',  // Fallback dev server
 ];
 
-const corsOptions = {
-  origin: allowedOrigins,
+// Combine env origins with defaults (env takes precedence if set)
+const allowedOrigins = envOrigins.length > 0
+  ? [...new Set([...envOrigins, ...defaultOrigins])]  // Merge and dedupe
+  : defaultOrigins;
+
+const corsOptions: cors.CorsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.error(`🚫 CORS blocked request from: ${origin}`);
+    console.error(`   Allowed origins: ${allowedOrigins.join(', ')}`);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true, // Required for cookies/authorization headers
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],

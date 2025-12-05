@@ -29,6 +29,7 @@ async function authenticatedFetch(url: string, options: RequestInit = {}): Promi
 
   return fetch(url, {
     ...options,
+    credentials: 'include', // Required for cross-origin requests with cookies
     headers: {
       ...headers,
       ...options.headers,

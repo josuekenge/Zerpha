@@ -199,3 +199,138 @@ Use Supabase as managed Postgres.
 ### 3.3 Deployment
 **Features Implemented:**
 *   **Environment:** `dotenv` management and TypeScript build system.
+
+---
+
+# 11. Railway Deployment Guide
+
+## 1. Backend Deployment (Railway)
+
+### 1.1 Project Structure
+The backend must be deployed from the `backend/` directory. Railway needs to know where to find the Dockerfile or build commands.
+
+### 1.2 Required Environment Variables (Railway Dashboard)
+**CRITICAL:** Railway does NOT read your local `.env` file. You MUST manually add these variables in the Railway Dashboard → Your Service → Variables:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `PORT` | Railway sets this automatically | `3001` (or Railway's assigned port) |
+| `SUPABASE_URL` | Your Supabase project URL | `https://xxxxx.supabase.co` |
+| `SUPABASE_ANON_KEY` | Your Supabase anon/public key | `eyJhbGciOiJIUzI1NiIs...` |
+| `ANTHROPIC_API_KEY` | Claude API key for AI features | `sk-ant-api03-...` |
+| `NODE_ENV` | Environment mode | `production` |
+
+### 1.3 Railway Configuration (railway.json or Dashboard)
+```json
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "npm start",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 30
+  }
+}
+```
+
+### 1.4 Backend package.json Scripts
+Ensure these scripts exist in `backend/package.json`:
+```json
+{
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts"
+  }
+}
+```
+
+### 1.5 Health Check Endpoint
+The `/health` endpoint MUST be database-independent to pass Railway's health checks:
+```typescript
+app.get('/health', (_req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    port: process.env.PORT || 3001,
+  });
+});
+```
+
+### 1.6 CORS Configuration
+Backend must allow the frontend origins:
+```typescript
+const allowedOrigins = [
+  'https://www.zerpha.ca',
+  'https://zerpha.ca',
+  'https://zerpha.netlify.app',
+  'http://localhost:5173',  // Local development
+  'http://localhost:3000',
+];
+```
+
+## 2. Frontend Deployment (Netlify)
+
+### 2.1 Required Environment Variables (Netlify Dashboard)
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_API_BASE_URL` | Backend API URL | `https://zerpha-production.up.railway.app` |
+| `VITE_SUPABASE_URL` | Supabase project URL | `https://xxxxx.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon key | `eyJhbGciOiJIUzI1NiIs...` |
+
+### 2.2 Local Development Override
+Create `frontend/.env.local` to override production URLs locally:
+```
+VITE_API_BASE_URL=http://localhost:3001
+```
+This file is gitignored and takes precedence over `.env` for local development.
+
+### 2.3 API Client Configuration
+The frontend API client (`frontend/src/api/config.ts`) should:
+1. Use `VITE_API_BASE_URL` environment variable
+2. Fallback to `http://localhost:3001` for local development
+3. Log the connection URL for debugging
+
+## 3. Troubleshooting
+
+### 3.1 "CORS Error" but Backend is Down
+**Symptom:** Browser shows CORS errors, but the real issue is a 502 Bad Gateway.
+**Cause:** When the backend crashes, Railway returns an HTML error page without CORS headers.
+**Solution:** Check Railway logs for the actual error (usually missing environment variables).
+
+### 3.2 Railway 502 Bad Gateway
+**Common Causes:**
+1. Missing `SUPABASE_URL` or `SUPABASE_ANON_KEY` in Railway Variables
+2. Health check failing (ensure `/health` doesn't depend on database)
+3. Build failed (check Railway build logs)
+4. Wrong start command (should be `npm start`, not `npm run dev`)
+
+### 3.3 Frontend Hitting Wrong Backend URL
+**Symptom:** Local frontend calls production Railway URL instead of localhost.
+**Solution:**
+1. Create `frontend/.env.local` with `VITE_API_BASE_URL=http://localhost:3001`
+2. Restart Vite dev server (it only reads env files at startup)
+3. Clear Vite cache: `rm -rf node_modules/.vite`
+
+### 3.4 Verifying Local Setup
+Run these checks:
+1. Backend health: `curl http://localhost:3001/health`
+2. Frontend console should show: `🔌 API Client connecting to: http://localhost:3001`
+3. Network tab should show requests to `localhost:3001`, not `railway.app`
+
+## 4. Deployment Checklist
+
+### Before Deploying Backend to Railway:
+- [ ] Add `SUPABASE_URL` to Railway Variables
+- [ ] Add `SUPABASE_ANON_KEY` to Railway Variables
+- [ ] Add `ANTHROPIC_API_KEY` to Railway Variables
+- [ ] Verify `/health` endpoint works without database
+- [ ] Verify CORS includes production frontend URLs
+
+### Before Deploying Frontend to Netlify:
+- [ ] Set `VITE_API_BASE_URL` to Railway backend URL
+- [ ] Set `VITE_SUPABASE_URL` in Netlify
+- [ ] Set `VITE_SUPABASE_ANON_KEY` in Netlify
+- [ ] Verify build command: `npm run build`
+- [ ] Verify publish directory: `dist`

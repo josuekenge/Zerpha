@@ -12,6 +12,7 @@ Zerpha is a full-stack application for discovering and analyzing companies using
 - [Frontend Setup](#frontend-setup)
 - [Database Setup](#database-setup)
 - [Running the Application](#running-the-application)
+- [Production Deployment](#production-deployment)
 - [Environment Variables Reference](#environment-variables-reference)
 - [Troubleshooting](#troubleshooting)
 
@@ -56,7 +57,8 @@ Zerpha/
 │   │   ├── lib/             # Supabase client, auth, utils
 │   │   └── types/           # TypeScript types
 │   ├── package.json
-│   └── .env                 # Frontend environment variables
+│   ├── .env                 # Frontend environment variables (production)
+│   └── .env.local           # Local development overrides (gitignored)
 │
 ├── supabase/
 │   └── migrations/          # SQL migration files
@@ -77,18 +79,6 @@ npm install
 
 ### 2. Create Environment File
 
-<<<<<<< HEAD
-3.  **Configure Environment:**
-    Create a `.env` file in the `frontend/` directory (see `.env.example` for reference):
-
-    ```env
-    VITE_SUPABASE_URL=https://your-project.supabase.co
-    VITE_SUPABASE_ANON_KEY=your_anon_public_key_here
-    VITE_API_BASE_URL=http://localhost:3001
-    ```
-
-    > **Note:** Variables must start with `VITE_` to be exposed to the frontend. The backend should be running separately on port `3001` during local development.
-=======
 Create `backend/.env` with the following variables:
 
 ```env
@@ -99,7 +89,6 @@ PORT=3001
 # Supabase (Required)
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
->>>>>>> parent of e7a4b16f (Update README.md)
 
 # AI APIs (Required)
 CLAUDE_API_KEY=sk-ant-api03-...
@@ -114,20 +103,12 @@ GOOGLE_SLIDES_TEMPLATE_ID=1abc123...
 
 # Apify (Optional - for contact scraping)
 APIFY_TOKEN=apify_api_xxxxxxxxxxxxx
+
+# CORS (Optional - defaults to zerpha.ca, zerpha.netlify.app, localhost)
+# CORS_ORIGIN=https://www.zerpha.ca,https://zerpha.ca,https://zerpha.netlify.app
 ```
 
-### 3. Get Your API Keys
-
-| Variable | Where to get it |
-|----------|-----------------|
-| `SUPABASE_URL` | Supabase Dashboard → Settings → API → Project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Settings → API → service_role (secret) |
-| `CLAUDE_API_KEY` | [Anthropic Console](https://console.anthropic.com/) |
-| `GEMINI_API_KEY` | [Google AI Studio](https://makersuite.google.com/app/apikey) |
-| `GOOGLE_*` | [Google Cloud Console](https://console.cloud.google.com/) → Service Accounts |
-| `APIFY_TOKEN` | [Apify Console](https://console.apify.com/) → Settings → Integrations |
-
-### 4. Start the Backend
+### 3. Start the Backend
 
 ```bash
 cd backend
@@ -138,7 +119,7 @@ You should see:
 
 ```
 [supabase] Connection verified
-[12:00:00.000] INFO: 🚀 Backend ready on http://localhost:3001
+🚀 Server running on port 3001
 ```
 
 ---
@@ -152,28 +133,30 @@ cd frontend
 npm install
 ```
 
-### 2. Create Environment File
+### 2. Create Environment Files
 
-Create `frontend/.env` in the frontend root directory (next to `package.json`):
+**For Local Development:** Create `frontend/.env.local`:
 
 ```env
+VITE_API_BASE_URL=http://localhost:3001
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**For Production:** Create `frontend/.env` (or set in Netlify Dashboard):
+
+```env
+VITE_API_BASE_URL=https://zerpha-production.up.railway.app
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 > ⚠️ **Important:** 
-> - Frontend uses `VITE_` prefix (Vite requirement)
+> - `.env.local` takes precedence over `.env` for local development
+> - Variables must start with `VITE_` prefix (Vite requirement)
 > - Use the **anon/public** key, NOT the service role key
-> - The `.env` file must be in `frontend/` directory, not `frontend/src/`
 
-### 3. Get Your Frontend Keys
-
-| Variable | Where to get it |
-|----------|-----------------|
-| `VITE_SUPABASE_URL` | Supabase Dashboard → Settings → API → Project URL |
-| `VITE_SUPABASE_ANON_KEY` | Supabase Dashboard → Settings → API → anon (public) |
-
-### 4. Start the Frontend
+### 3. Start the Frontend
 
 ```bash
 cd frontend
@@ -183,87 +166,63 @@ npm run dev
 You should see:
 
 ```
-  VITE v5.x.x  ready in xxx ms
-
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: use --host to expose
+VITE v5.x.x  ready in xxx ms
+➜  Local:   http://localhost:5173/
+🔌 API Client connecting to: http://localhost:3001
 ```
 
 ---
 
-<<<<<<< HEAD
-## 🚂 Railway Deployment
+## Production Deployment
 
-Deploy Zerpha to Railway as two separate services (backend + frontend).
+### Frontend (Netlify)
 
-### Backend Service
+**Environment Variables (Netlify Dashboard → Site Settings → Environment):**
 
-1. **Create a new service** in Railway and connect your GitHub repo
-2. **Set the root directory** to `backend`
-3. **Add environment variables:**
-   ```
-   NODE_ENV=production
-   PORT=3001
-   SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-   CLAUDE_API_KEY=your-claude-api-key
-   FRONTEND_URL=https://your-frontend.railway.app
-   APIFY_TOKEN=your-apify-token (optional)
-   ```
-4. Railway will auto-detect and deploy using the `railway.json` config
+| Variable | Value |
+|----------|-------|
+| `VITE_API_BASE_URL` | `https://zerpha-production.up.railway.app` |
+| `VITE_SUPABASE_URL` | `https://your-project.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIs...` (your anon key) |
 
-### Frontend Service
+**Build Settings:**
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Base directory: `frontend`
 
-1. **Create another service** in Railway and connect the same repo
-2. **Set the root directory** to `frontend`
-3. **Add environment variables:**
-   ```
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
-   VITE_API_BASE_URL=https://your-backend.railway.app
-   ```
-4. Railway will auto-detect and deploy using the `railway.json` config
+### Backend (Railway)
 
-### Important Notes
+**Environment Variables (Railway Dashboard → Service → Variables):**
 
-- **CORS:** Make sure `FRONTEND_URL` in the backend matches your deployed frontend URL
-- **Supabase Auth:** Add your Railway frontend URL to Supabase's allowed redirect URLs:
-  - Go to **Authentication > URL Configuration**
-  - Add `https://your-frontend.railway.app` to Site URL and Redirect URLs
-- **Health Check:** Backend has a `/health` endpoint for Railway health checks
+| Variable | Value |
+|----------|-------|
+| `NODE_ENV` | `production` |
+| `PORT` | (set automatically by Railway) |
+| `CORS_ORIGIN` | `https://www.zerpha.ca,https://zerpha.ca,https://zerpha.netlify.app` |
+| `SUPABASE_URL` | `https://your-project.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your service role key |
+| `CLAUDE_API_KEY` | Your Claude API key |
+| `GEMINI_API_KEY` | Your Gemini API key |
+| `GOOGLE_PROJECT_ID` | Your Google project ID |
+| `GOOGLE_CLIENT_EMAIL` | Service account email |
+| `GOOGLE_PRIVATE_KEY` | Service account private key |
+| `APIFY_TOKEN` | (optional) Apify token |
 
----
+**Health Check:** Railway should check `/health` endpoint.
 
-## 🌐 Netlify Deployment
+### Supabase Auth Settings
 
-You can also deploy the frontend independently on Netlify while the backend lives on Railway.
+Add your production URLs to Supabase:
 
-1. **Site configuration**
-   - Build command: `npm run build`
-   - Publish directory: `dist`
-   - Base directory / repository root: `frontend`
-2. **Environment variables (Netlify → Site Configuration → Environment):**
-   ```
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
-   VITE_API_BASE_URL=https://your-backend.onrailway.app
-   ```
-3. The `frontend/netlify.toml` file already configures the build/publish settings and includes an SPA redirect so client-side routing works.
-4. For local development, run the backend separately on port `3001` and set `VITE_API_BASE_URL=http://localhost:3001`.
+1. Go to **Authentication → URL Configuration**
+2. Add to **Site URL**: `https://www.zerpha.ca`
+3. Add to **Redirect URLs**:
+   - `https://www.zerpha.ca`
+   - `https://zerpha.ca`
+   - `https://zerpha.netlify.app`
 
 ---
 
-## ❓ Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| **Backend won't start** | Check if `.env` exists in `backend/` and has all keys. |
-| **Frontend "Supabase env missing"** | Ensure `.env` is in `frontend/` and keys start with `VITE_`. Restart server. |
-| **Port 3001 in use** | Kill the process: `npx kill-port 3001` or change `PORT` in `.env`. |
-| **Google Login fails** | Check Redirect URL in Google Cloud Console matches Supabase config. |
-| **Railway build fails** | Make sure root directory is set correctly (`backend` or `frontend`). |
-| **CORS errors on Railway** | Set `FRONTEND_URL` env var in backend to your frontend Railway URL. |
-=======
 ## Database Setup
 
 ### 1. Install Supabase CLI
@@ -284,28 +243,19 @@ supabase login
 supabase link --project-ref your-project-ref
 ```
 
-> Find your project ref in Supabase Dashboard URL: `https://supabase.com/dashboard/project/[PROJECT_REF]`
-
 ### 4. Apply Migrations
 
 ```bash
 supabase db push
 ```
 
-This will create the following tables:
+This creates: `searches`, `companies`, `people`, `reports` tables.
 
-- `searches` - Search history
-- `companies` - Discovered companies
-- `people` - Contact information
-- `reports` - Generated reports
+### 5. Enable Google Auth
 
-### 5. Enable Google Auth in Supabase
-
-1. Go to Supabase Dashboard → Authentication → Providers
+1. Supabase Dashboard → Authentication → Providers
 2. Enable **Google** provider
-3. Add your Google OAuth credentials
-4. Set redirect URL to: `https://your-project.supabase.co/auth/v1/callback`
->>>>>>> parent of e7a4b16f (Update README.md)
+3. Add OAuth credentials from Google Cloud Console
 
 ---
 
@@ -331,13 +281,7 @@ npm run dev
 
 - **Frontend:** http://localhost:5173
 - **Backend API:** http://localhost:3001
-
-### Authentication Flow
-
-1. Visit http://localhost:5173
-2. Click any CTA button on the landing page
-3. Login with Google or email
-4. You'll be redirected to the workspace at `/workspace`
+- **Health Check:** http://localhost:3001/health
 
 ---
 
@@ -347,79 +291,70 @@ npm run dev
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NODE_ENV` | No | `development`, `test`, or `production` (default: `development`) |
+| `NODE_ENV` | No | `development` or `production` |
 | `PORT` | No | Server port (default: `3001`) |
-| `SUPABASE_URL` | ✅ Yes | Your Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Yes | Supabase service role key (secret) |
+| `CORS_ORIGIN` | No | Comma-separated allowed origins |
+| `SUPABASE_URL` | ✅ Yes | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Yes | Service role key (secret) |
 | `CLAUDE_API_KEY` | ✅ Yes | Anthropic Claude API key |
 | `GEMINI_API_KEY` | ✅ Yes | Google Gemini API key |
-| `GOOGLE_PROJECT_ID` | ✅ Yes | Google Cloud project ID |
-| `GOOGLE_APPLICATION_CREDENTIALS` | ✅ Yes | Path to service account JSON |
-| `GOOGLE_CLIENT_EMAIL` | ✅ Yes | Service account email |
-| `GOOGLE_PRIVATE_KEY` | ✅ Yes | Service account private key |
-| `GOOGLE_SLIDES_TEMPLATE_ID` | ✅ Yes | Google Slides template ID |
-| `APIFY_TOKEN` | No | Apify API token (for contact scraping) |
+| `GOOGLE_*` | ✅ Yes | Google Cloud credentials |
+| `APIFY_TOKEN` | No | Apify API token |
 
-### Frontend (`frontend/.env`)
+### Frontend (`frontend/.env` or `.env.local`)
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `VITE_SUPABASE_URL` | ✅ Yes | Your Supabase project URL |
+| `VITE_API_BASE_URL` | ✅ Yes | Backend API URL |
+| `VITE_SUPABASE_URL` | ✅ Yes | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | ✅ Yes | Supabase anon/public key |
 
 ---
 
 ## Troubleshooting
 
-### Backend won't start
+### CORS Errors
 
-**Error:** `❌ Invalid or missing environment variables`
+**Symptom:** Browser shows "CORS policy" errors.
 
-**Solution:** Check that all required variables are set in `backend/.env`. See the table above.
+**Solutions:**
+1. Check `CORS_ORIGIN` is set correctly in Railway
+2. Verify frontend is using `VITE_API_BASE_URL` (check console for `🔌 API Client connecting to:`)
+3. If backend returns 502, check Railway logs for the real error
 
----
+### Frontend Calling Wrong URL
 
-**Error:** `Error: listen EADDRINUSE: address already in use :::3001`
+**Symptom:** Network tab shows requests to `www.zerpha.ca/api/...` instead of Railway.
 
-**Solution:** Another process is using port 3001. Either:
-- Kill the existing process: `npx kill-port 3001`
-- Or change `PORT` in your `.env`
+**Solutions:**
+1. Set `VITE_API_BASE_URL=https://zerpha-production.up.railway.app` in Netlify
+2. Redeploy the site (Netlify → Deploys → Trigger Deploy)
 
----
+### Railway 502 Bad Gateway
 
-### Frontend shows "Supabase environment variables are not set"
+**Common Causes:**
+1. Missing environment variables (especially `SUPABASE_URL`)
+2. Build failed - check Railway build logs
+3. Health check failing
 
-**Solution:**
-1. Ensure `frontend/.env` exists (not `frontend/src/.env`)
-2. Variables must start with `VITE_`
-3. Restart the Vite dev server after changing `.env`
+### Local Backend Works But Production Doesn't
 
----
-
-### Google Auth not working
-
-**Solution:**
-1. Ensure Google provider is enabled in Supabase Dashboard
-2. Check redirect URL is correct in Google Cloud Console
-3. Verify OAuth consent screen is configured
-
----
-
-### People section is empty
-
-**Solution:**
-1. Add `APIFY_TOKEN` to `backend/.env`
-2. Run a new search
-3. Check backend logs for `[people] scraped people from Apify`
+**Checklist:**
+- [ ] `VITE_API_BASE_URL` set in Netlify to Railway URL
+- [ ] `CORS_ORIGIN` set in Railway to include Netlify URLs
+- [ ] `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set in Railway
+- [ ] Site redeployed after changing env vars
 
 ---
 
-### Database errors
+## Verification Checklist
 
-**Solution:**
-1. Run migrations: `supabase db push`
-2. Check RLS policies are applied (migration `0005_add_user_id_rls.sql`)
-3. Verify `user_id` column exists in `companies` and `people` tables
+After deployment, verify:
+
+1. ✅ **Netlify Console:** No errors, `🔌 API Client connecting to: https://zerpha-production.up.railway.app`
+2. ✅ **Network Tab:** API requests go to `https://zerpha-production.up.railway.app/api/...`
+3. ✅ **Railway Health:** `https://zerpha-production.up.railway.app/health` returns `{"status":"ok"}`
+4. ✅ **Railway Logs:** Shows `🔒 CORS Configured for: [your origins]`
 
 ---
 
@@ -427,16 +362,11 @@ npm run dev
 
 **NEVER commit `.env` files or credentials to Git.**
 
-The `.gitignore` is configured to block:
+The `.gitignore` blocks:
 - `.env`, `.env.local`, `.env.*`
 - `*.service-account.json`
 - `*credentials*.json`
 - `*-key.json`
-
-If you accidentally commit a secret:
-1. Immediately rotate/delete the key
-2. Remove from Git: `git rm --cached filename`
-3. Consider using `git filter-repo` to scrub history
 
 ---
 

@@ -25,6 +25,7 @@ async function authenticatedFetch(
   const headers = await getAuthHeaders();
   return fetch(url, {
     ...options,
+    credentials: 'include', // Required for cross-origin requests with cookies
     headers: {
       ...headers,
       ...options.headers,
