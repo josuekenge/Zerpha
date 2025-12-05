@@ -1,4 +1,4 @@
-import cors, { type CorsOptions } from 'cors';
+import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
@@ -9,24 +9,13 @@ import { logger } from './logger.js';
 
 export const app = express();
 
-// Health check endpoint MUST be before any middleware that could block it
-// Railway's healthcheck comes from hostname "healthcheck.railway.app"
-// See: https://docs.railway.com/guides/healthchecks#healthcheck-hostname
+// Health check endpoint MUST be first and before ALL middleware
 app.get('/health', (_req, res) => {
-  console.log('Healthcheck hit');
-  logger.info('Healthcheck hit');
   res.status(200).send('ok');
 });
 
-app.use(
-  pinoHttp({
-    logger,
-  } as any),
-);
-
-// CORS Configuration
-// Per MDN: When using credentials, you MUST specify explicit origins (not wildcards)
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#credentialed_requests_and_wildcards
+// CORS MUST be the very first middleware after health check
+// CRITICAL: Must come BEFORE helmet, body parsers, and logging
 const allowedOrigins = [
   'https://www.zerpha.ca',
   'https://zerpha.ca',
@@ -34,36 +23,32 @@ const allowedOrigins = [
   'http://localhost:3000',
 ];
 
-const corsOptions: CorsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+// Simplified CORS - let the library handle it properly
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    optionsSuccessStatus: 200,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    preflightContinue: false, // Let CORS middleware handle preflight fully
+  }),
+);
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // Allow cookies and credentials
-  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-// Enable CORS for all routes
-app.use(cors(corsOptions));
-
-// Handle preflight requests globally (per Express CORS docs)
-// https://github.com/expressjs/cors#enabling-cors-pre-flight
-app.options('*', cors(corsOptions));
+// NOW apply other middleware AFTER CORS is set up
+app.use(
+  pinoHttp({
+    logger,
+  } as any),
+);
 
 app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// API routes
 app.use('/api', apiRouter);
 
+// Error handlers last
 app.use(notFoundHandler);
 app.use(errorHandler);
-
