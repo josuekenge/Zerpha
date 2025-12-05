@@ -1,17 +1,14 @@
 # Zerpha Backend Dockerfile (for Railway deployment from monorepo root)
 # Stage 1: Builder
-FROM node:20.18.0-slim AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
-# Copy package files from backend directory
-COPY backend/package*.json ./
+# Copy package files from backend directory (including package-lock.json)
+COPY backend/package.json backend/package-lock.json ./
 
-# Install all dependencies (including devDependencies for tsc)
-RUN npm install
-
-# Ensure local binaries are executable
-RUN chmod +x node_modules/.bin/* || true
+# Install all dependencies (including devDependencies for TypeScript build)
+RUN npm ci
 
 # Copy backend source files
 COPY backend/. .
@@ -19,21 +16,23 @@ COPY backend/. .
 # Build TypeScript
 RUN npm run build
 
-# Stage 2: Runner
-FROM node:20.18.0-slim AS runner
+# Stage 2: Production
+FROM node:20-slim
 
 WORKDIR /app
 
 # Copy package files
-COPY backend/package*.json ./
+COPY backend/package.json backend/package-lock.json ./
 
 # Install only production dependencies
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 
-# Expose port (Railway will override with PORT env var)
+# Railway sets PORT automatically
+ENV PORT=3001
+
 EXPOSE 3001
 
 # Start the server
