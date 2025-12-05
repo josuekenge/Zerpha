@@ -1,5 +1,5 @@
-import cors from 'cors';
 import express from 'express';
+import cors from 'cors';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 
@@ -9,15 +9,14 @@ import { logger } from './logger.js';
 
 export const app = express();
 
-// STEP 1: Trust proxy for Railway
+// ============================================================
+// STEP 1: TRUST PROXY (Railway uses proxies)
+// ============================================================
 app.set('trust proxy', 1);
 
-// Health check endpoint - stays here for Railway
-app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
-
-// STEP 2: Define allowed origins
+// ============================================================
+// STEP 2: ALLOWED ORIGINS
+// ============================================================
 const allowedOrigins = [
   'https://www.zerpha.ca',
   'https://zerpha.ca',
@@ -25,15 +24,24 @@ const allowedOrigins = [
   'http://localhost:3000',
 ];
 
-// STEP 3: CORS middleware - MUST BE FIRST (before any other middleware except trust proxy)
+// ============================================================
+// STEP 3: CORS MIDDLEWARE - MUST BE FIRST
+// ============================================================
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, curl, etc.)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (mobile apps, Postman, server-to-server)
+    if (!origin) {
+      console.log('⚠️  Request with no origin header');
+      return callback(null, true);
+    }
+
+    console.log('🌍 Request from origin:', origin);
 
     if (allowedOrigins.includes(origin)) {
+      console.log('✅ Origin allowed');
       callback(null, true);
     } else {
+      console.log('❌ Origin blocked:', origin);
       callback(new Error(`Origin ${origin} not allowed by CORS`));
     }
   },
@@ -41,42 +49,55 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  maxAge: 86400, // 24 hours - cache preflight for 1 day
+  maxAge: 86400, // 24 hours
+  optionsSuccessStatus: 204,
 }));
 
-// STEP 4: Explicit OPTIONS handler for all routes
+// ============================================================
+// STEP 4: EXPLICIT OPTIONS HANDLER - CRITICAL FOR PREFLIGHT
+// ============================================================
 app.options('*', cors());
 
-// STEP 5: Add temporary debugging middleware (remove after verification)
+// ============================================================
+// STEP 5: PREFLIGHT DEBUG LOGGER (TEMPORARY - REMOVE AFTER FIX)
+// ============================================================
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
-    console.log('=== PREFLIGHT REQUEST ===');
-    console.log('Origin:', req.headers.origin);
-    console.log('Method:', req.method);
-    console.log('Path:', req.path);
-    console.log('Access-Control-Request-Method:', req.headers['access-control-request-method']);
-    console.log('Access-Control-Request-Headers:', req.headers['access-control-request-headers']);
+    console.log('\n==================== PREFLIGHT REQUEST ====================');
+    console.log('⏰ Time:', new Date().toISOString());
+    console.log('🎯 Path:', req.path);
+    console.log('🌍 Origin:', req.headers.origin || 'NO ORIGIN HEADER');
+    console.log('📋 Request Method:', req.headers['access-control-request-method']);
+    console.log('📋 Request Headers:', req.headers['access-control-request-headers']);
 
-    // Log response headers after they're set
-    res.on('finish', () => {
-      console.log('=== PREFLIGHT RESPONSE ===');
-      console.log('Status:', res.statusCode);
-      console.log('Access-Control-Allow-Origin:', res.getHeader('access-control-allow-origin'));
-      console.log('Access-Control-Allow-Methods:', res.getHeader('access-control-allow-methods'));
-      console.log('Access-Control-Allow-Headers:', res.getHeader('access-control-allow-headers'));
-      console.log('Access-Control-Allow-Credentials:', res.getHeader('access-control-allow-credentials'));
-    });
+    // Capture response headers when response finishes
+    const originalSend = res.send;
+    res.send = function (data) {
+      console.log('\n==================== PREFLIGHT RESPONSE ====================');
+      console.log('📊 Status Code:', res.statusCode);
+      console.log('✅ Access-Control-Allow-Origin:', res.getHeader('access-control-allow-origin') || 'MISSING ❌');
+      console.log('✅ Access-Control-Allow-Methods:', res.getHeader('access-control-allow-methods') || 'MISSING ❌');
+      console.log('✅ Access-Control-Allow-Headers:', res.getHeader('access-control-allow-headers') || 'MISSING ❌');
+      console.log('✅ Access-Control-Allow-Credentials:', res.getHeader('access-control-allow-credentials') || 'MISSING ❌');
+      console.log('===========================================================\n');
+      return originalSend.call(this, data);
+    };
   }
   next();
 });
 
-// STEP 6: Body parsers MUST come AFTER CORS
+// ============================================================
+// STEP 6: BODY PARSERS - AFTER CORS
+// ============================================================
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// STEP 7: Other middleware (helmet, logging, etc.) comes AFTER body parsers
+// ============================================================
+// STEP 7: OTHER MIDDLEWARE - AFTER BODY PARSERS
+// ============================================================
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
 }));
 
 app.use(
@@ -85,21 +106,34 @@ app.use(
   } as any),
 );
 
-// STEP 8: API routes
-app.use('/api', apiRouter);
+// ============================================================
+// STEP 8: HEALTH CHECK (before routes)
+// ============================================================
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
-// Temporary CORS testing endpoint - remove after verification
+// ============================================================
+// STEP 9: TEST ENDPOINT (TEMPORARY - REMOVE AFTER FIX)
+// ============================================================
 app.get('/api/cors-test', (req, res) => {
   res.json({
-    message: 'CORS is working!',
+    success: true,
+    message: '🎉 CORS is working!',
     origin: req.headers.origin,
     timestamp: new Date().toISOString(),
     corsHeaders: {
       'access-control-allow-origin': res.getHeader('access-control-allow-origin'),
       'access-control-allow-credentials': res.getHeader('access-control-allow-credentials'),
+      'access-control-allow-methods': res.getHeader('access-control-allow-methods'),
     }
   });
 });
+
+// ============================================================
+// STEP 10: YOUR EXISTING ROUTES
+// ============================================================
+app.use('/api', apiRouter);
 
 // Error handlers last
 app.use(notFoundHandler);
