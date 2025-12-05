@@ -9,9 +9,11 @@ const app = express();
 // Trust proxy (Railway, Heroku, etc.)
 app.set('trust proxy', 1);
 
-// ============ CORS - SIMPLE ============
-// This handles all CORS including OPTIONS preflight
-app.use(cors());
+// ============ CORS ============
+app.use(cors({
+  origin: true,       // Reflects request origin (works with credentials)
+  credentials: true   // Allow cookies/auth headers
+}));
 
 // ============ MIDDLEWARE ============
 app.use(express.json({ limit: '10mb' }));
