@@ -15,58 +15,48 @@ app.set('trust proxy', 1);
 // =============================================================================
 // CORS CONFIGURATION
 // =============================================================================
-// 
-// For production, set CORS_ORIGIN in Railway:
-//   CORS_ORIGIN=https://www.zerpha.ca,https://zerpha.ca,https://zerpha.netlify.app
-//
-// For local development, localhost origins are included by default.
-// =============================================================================
 
-// Parse CORS_ORIGIN from environment (comma-separated list)
-const envOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean)
-  : [];
-
-// Default allowed origins (always include these for safety)
-const defaultOrigins = [
+// Define allowed origins explicitly including production and local
+const allowedOrigins = [
   'https://www.zerpha.ca',
   'https://zerpha.ca',
   'https://zerpha.netlify.app',
-  'http://localhost:5173',  // Vite dev server
-  'http://localhost:3000',  // Fallback dev server
-];
+  'http://localhost:5173',
+  'http://localhost:3000',
+  ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [])
+].map(o => o.trim()).filter(Boolean);
 
-// Combine env origins with defaults (env takes precedence if set)
-const allowedOrigins = envOrigins.length > 0
-  ? [...new Set([...envOrigins, ...defaultOrigins])]  // Merge and dedupe
-  : defaultOrigins;
+// Deduplicate origins
+const uniqueOrigins = [...new Set(allowedOrigins)];
+
+console.log('🔒 CORS Configured for:', uniqueOrigins);
 
 const corsOptions: cors.CorsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) {
+    if (!origin) return callback(null, true);
+
+    if (uniqueOrigins.includes(origin)) {
+      // console.log(`✅ CORS allowed: ${origin}`); // Optional: Uncomment for verbose logs
       return callback(null, true);
     }
 
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    console.error(`🚫 CORS blocked request from: ${origin}`);
-    console.error(`   Allowed origins: ${allowedOrigins.join(', ')}`);
+    console.error(`🚫 CORS blocked: ${origin}`);
+    console.error(`   Allowed: ${uniqueOrigins.join(', ')}`);
     return callback(new Error('Not allowed by CORS'));
   },
-  credentials: true, // Required for cookies/authorization headers
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 };
 
-console.log('🔒 CORS Configured for:', allowedOrigins);
-
-// 1. Apply CORS to all routes
+// 1. Apply CORS globally BEFORE any routes
 app.use(cors(corsOptions));
 
-// 2. Handle Preflight (OPTIONS) requests explicitly using the SAME options
+// 2. Explicitly handle OPTIONS requests
+// This ensures that the browser gets the correct headers for preflight checks
 app.options('*', cors(corsOptions));
 
 // =============================================================================
