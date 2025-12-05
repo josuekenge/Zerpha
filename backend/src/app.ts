@@ -10,6 +10,7 @@ import { logger } from './logger.js';
 export const app = express();
 
 // Health check endpoint MUST be first and before ALL middleware
+// v2 - Dec 4 2025
 app.get('/health', (_req, res) => {
   res.status(200).send('ok');
 });
