@@ -84,7 +84,7 @@ companyRouter.get('/companies', requireAuth, async (req: Request, res: Response,
     const { data, error } = await query.limit(200);
 
     if (error) {
-      logger.error({ err: error, query: parsedQuery }, 'Failed to fetch saved companies');
+      logger.error({ err: error, query: parsedQuery, userId: user.id }, 'Failed to fetch saved companies');
       throw new Error(error.message);
     }
 
@@ -92,8 +92,15 @@ companyRouter.get('/companies', requireAuth, async (req: Request, res: Response,
       (data ?? []).map((row) => mapToSavedCompany(row as DatabaseCompany)),
     );
 
+    logger.info(
+      { userId: user.id, companyCount: mapped.length, filters: parsedQuery },
+      '[companies] returning saved companies'
+    );
+
     res.json(mapped);
   } catch (error) {
+    const authReq = req as AuthenticatedRequest;
+    logger.error({ err: error, userId: authReq.user?.id }, '[companies] error fetching saved companies');
     next(error);
   }
 });

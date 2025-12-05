@@ -242,7 +242,7 @@ export const searchRouter = Router();
 
 searchRouter.post('/search', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   const searchStartTime = Date.now();
-  
+
   try {
     const user = (req as AuthenticatedRequest).user;
     if (!user) throw new Error('User not authenticated');
@@ -556,7 +556,7 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
           .from('searches')
           .update({ global_opportunities: globalOpportunities })
           .eq('id', searchInsert.id);
-        
+
         logger.info({ searchId: searchInsert.id }, '[search] global opportunities saved');
       } catch (err) {
         logger.error({ err, searchId: searchInsert.id }, '[search] failed to generate global opportunities');
@@ -588,7 +588,7 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
     });
 
     const totalDurationMs = Date.now() - searchStartTime;
-    
+
     logger.info(
       {
         searchId: searchInsert.id,
@@ -814,8 +814,15 @@ searchRouter.get('/search-history', requireAuth, async (req: Request, res: Respo
       })),
     );
 
+    logger.info(
+      { userId: user.id, historyCount: historyItems.length },
+      '[search-history] returning search history'
+    );
+
     res.json(historyItems);
   } catch (error) {
+    const authReq = req as AuthenticatedRequest;
+    logger.error({ err: error, userId: authReq.user?.id }, '[search-history] error fetching history');
     next(error);
   }
 });
