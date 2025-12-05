@@ -1,57 +1,47 @@
 import express from 'express';
+import cors from 'cors';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import { apiRouter } from './routes/index.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { logger } from './logger.js';
 export const app = express();
-console.log('🔥 CORS FIX v3 - OPTIONS ROUTE HANDLER 🔥');
-// Trust proxy for Railway
+console.log('🔥 CORS FIX v4 - Using cors package correctly 🔥');
+// Trust Railway proxy
 app.set('trust proxy', 1);
-// HANDLE ALL OPTIONS REQUESTS FIRST - BEFORE ANYTHING ELSE
-app.options('*', (req, res) => {
-    const allowedOrigins = [
-        'https://www.zerpha.ca',
-        'https://zerpha.ca',
-        'http://localhost:5173',
-        'http://localhost:3000'
-    ];
-    const origin = req.headers.origin;
-    console.log('OPTIONS request received from:', origin);
-    if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Max-Age', '86400');
-    res.status(204).end();
-});
-// Health check
+const allowedOrigins = [
+    'https://www.zerpha.ca',
+    'https://zerpha.ca',
+    'http://localhost:5173',
+    'http://localhost:3000',
+];
+const corsOptions = {
+    origin(origin, callback) {
+        // Allow tools like curl or Postman which send no Origin
+        if (!origin)
+            return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        // Block everything else without throwing
+        return callback(null, false);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    optionsSuccessStatus: 204,
+};
+// Health check endpoint
 app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
 });
-// CORS middleware for non-OPTIONS requests
-app.use((req, res, next) => {
-    const allowedOrigins = [
-        'https://www.zerpha.ca',
-        'https://zerpha.ca',
-        'http://localhost:5173',
-        'http://localhost:3000'
-    ];
-    const origin = req.headers.origin;
-    if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    next();
-});
+// CORS must run before body parsers, helmet, logging, or routes
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 // Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Helmet (with CORS-friendly config)
+// Helmet
 app.use(helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
