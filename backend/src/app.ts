@@ -1,5 +1,4 @@
 import express from 'express';
-import cors from 'cors';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 
@@ -25,56 +24,46 @@ const allowedOrigins = [
   'http://localhost:3000',
 ];
 
-// 4. CORS middleware - after health check
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`Origin ${origin} not allowed by CORS`));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  maxAge: 86400,
-}));
-
-// 5. Explicit OPTIONS handler
-app.options('*', cors());
-
-// 6. Debug logging for OPTIONS (temporary)
+// 4. MANUAL CORS middleware - guaranteed to set headers
 app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    console.log('=== PREFLIGHT REQUEST ===');
-    console.log('Origin:', req.headers.origin);
-    console.log('Path:', req.path);
-    res.on('finish', () => {
-      console.log('=== PREFLIGHT RESPONSE ===');
-      console.log('Status:', res.statusCode);
-      console.log('Access-Control-Allow-Origin:', res.getHeader('access-control-allow-origin'));
-    });
+  const origin = req.headers.origin;
+
+  // Check if origin is allowed
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
   }
+
+  // Always set these headers
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Max-Age', '86400');
+
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    console.log('=== PREFLIGHT ===', req.path, 'Origin:', origin);
+    res.status(200).end();
+    return;
+  }
+
   next();
 });
 
-// 7. Body parsers
+// 5. Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 8. Other middleware
+// 6. Other middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
 app.use(pinoHttp({ logger } as any));
 
-// 9. API routes
+// 7. API routes
 app.use('/api', apiRouter);
 
-// 10. CORS test endpoint (temporary)
+// 8. CORS test endpoint (temporary)
 app.get('/api/cors-test', (req, res) => {
   res.json({
     message: 'CORS is working!',
