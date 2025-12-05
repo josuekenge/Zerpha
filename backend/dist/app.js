@@ -20,44 +20,53 @@ const buildAllowedOrigins = () => {
     if (process.env.NODE_ENV !== 'production') {
         origins.push('http://localhost:5173', 'http://localhost:3000');
     }
+    // Fallback: always allow zerpha.ca domains in production for safety
+    if (process.env.NODE_ENV === 'production') {
+        const productionOrigins = [
+            'https://www.zerpha.ca',
+            'https://zerpha.ca',
+            'https://zerpha.netlify.app',
+        ];
+        for (const origin of productionOrigins) {
+            if (!origins.includes(origin)) {
+                origins.push(origin);
+            }
+        }
+    }
     return origins;
 };
 const allowedOrigins = buildAllowedOrigins();
 // Log allowed origins on startup
 console.log('🔒 CORS Configuration:');
 console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
-console.log(`   Allowed Origins: ${allowedOrigins.length > 0 ? allowedOrigins.join(', ') : '(none - all blocked)'}`);
-const corsOptions = {
-    origin(origin, callback) {
-        // Allow requests with no origin (like mobile apps or Postman)
-        if (!origin) {
-            return callback(null, true);
-        }
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-        // Log blocked origins for debugging
-        console.warn(`[CORS] Blocked request from origin: ${origin}`);
-        return callback(null, false);
-    },
+console.log(`   CORS_ORIGIN env: ${process.env.CORS_ORIGIN || '(not set)'}`);
+console.log(`   Allowed Origins: ${allowedOrigins.join(', ')}`);
+// Simple CORS setup - allow all origins in the list
+app.use(cors({
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-    exposedHeaders: ['Content-Range', 'X-Content-Range'],
-    optionsSuccessStatus: 204,
-    maxAge: 86400,
-};
-// CORS must be first
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+    optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+}));
+// Handle preflight requests explicitly
+app.options('*', cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    optionsSuccessStatus: 200,
+}));
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-// Security headers
+// Security headers - configured to not interfere with CORS
 app.use(helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginResourcePolicy: false, // Disable - we handle this ourselves
+    crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
 }));
-// Request logging - use pinoHttp without passing logger to avoid type conflicts
+// Request logging
 app.use(pinoHttp());
 // Health check endpoint
 app.get('/health', (_req, res) => {
