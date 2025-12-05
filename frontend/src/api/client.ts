@@ -107,7 +107,8 @@ export interface SavedCompanyQuery {
 }
 
 export async function fetchSavedCompanies(params: SavedCompanyQuery = {}): Promise<SavedCompany[]> {
-  const url = new URL(buildApiUrl('/api/companies'), window.location.origin);
+  const baseUrl = buildApiUrl('/api/companies');
+  const url = new URL(baseUrl, window.location.origin);
 
   if (params.searchId) {
     url.searchParams.set('searchId', params.searchId);
