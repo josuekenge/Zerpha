@@ -9,19 +9,38 @@ import { logger } from './logger.js';
 
 export const app = express();
 
-console.log('🔥 Zerpha CORS baseline v1 starting');
-
+// Trust proxy for Railway/Heroku deployments
 app.set('trust proxy', 1);
 
-const allowedOrigins = [
-  'https://www.zerpha.ca',
-  'https://zerpha.ca',
-  'http://localhost:5173',
-  'http://localhost:3000',
-];
+// Build allowed origins from environment variable
+const buildAllowedOrigins = (): string[] => {
+  const origins: string[] = [];
+
+  // Add CORS_ORIGIN from environment (comma-separated for multiple origins)
+  const corsOrigin = process.env.CORS_ORIGIN;
+  if (corsOrigin) {
+    const envOrigins = corsOrigin.split(',').map((o) => o.trim()).filter(Boolean);
+    origins.push(...envOrigins);
+  }
+
+  // In development, also allow localhost
+  if (process.env.NODE_ENV !== 'production') {
+    origins.push('http://localhost:5173', 'http://localhost:3000');
+  }
+
+  return origins;
+};
+
+const allowedOrigins = buildAllowedOrigins();
+
+// Log allowed origins on startup
+console.log('🔒 CORS Configuration:');
+console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+console.log(`   Allowed Origins: ${allowedOrigins.length > 0 ? allowedOrigins.join(', ') : '(none - all blocked)'}`);
 
 const corsOptions: CorsOptions = {
   origin(origin, callback) {
+    // Allow requests with no origin (like mobile apps or Postman)
     if (!origin) {
       return callback(null, true);
     }
@@ -30,7 +49,8 @@ const corsOptions: CorsOptions = {
       return callback(null, true);
     }
 
-    // Disallow other origins, no crash
+    // Log blocked origins for debugging
+    console.warn(`[CORS] Blocked request from origin: ${origin}`);
     return callback(null, false);
   },
   credentials: true,
@@ -41,18 +61,12 @@ const corsOptions: CorsOptions = {
   maxAge: 86400,
 };
 
-// Log every request so we see OPTIONS hitting the app
-app.use((req, _res, next) => {
-  console.log(`[REQ] ${req.method} ${req.path} origin=${req.headers.origin ?? 'none'}`);
-  next();
-});
-
-// CORS first
+// CORS must be first
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 // Body parsers
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Security headers
@@ -62,21 +76,22 @@ app.use(
   }),
 );
 
-// Logging
+// Request logging
 app.use(
   pinoHttp({
     logger,
   }) as any,
 );
 
-// Health check, still behind CORS
+// Health check endpoint
 app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'ok' });
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // API routes
 app.use('/api', apiRouter);
 
-// Not found and error handling
+// Error handling
 app.use(notFoundHandler);
 app.use(errorHandler);
+
