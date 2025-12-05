@@ -5,7 +5,6 @@ import pinoHttp from 'pino-http';
 
 import { apiRouter } from './routes/index.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
-import { logger } from './logger.js';
 
 export const app = express();
 
@@ -76,12 +75,8 @@ app.use(
   }),
 );
 
-// Request logging
-app.use(
-  pinoHttp({
-    logger,
-  }) as any,
-);
+// Request logging - use pinoHttp without passing logger to avoid type conflicts
+app.use(pinoHttp());
 
 // Health check endpoint
 app.get('/health', (_req, res) => {

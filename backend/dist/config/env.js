@@ -14,7 +14,7 @@ const envSchema = z.object({
     GOOGLE_PRIVATE_KEY: z.string().optional().default(''),
     GOOGLE_SLIDES_TEMPLATE_ID: z.string().optional().default(''),
     APIFY_TOKEN: z.string().optional().default(''),
-    FRONTEND_URL: z.string().optional().default(''),
+    CORS_ORIGIN: z.string().optional().default(''),
 });
 const parsed = envSchema.safeParse({
     NODE_ENV: process.env.NODE_ENV,
@@ -29,7 +29,7 @@ const parsed = envSchema.safeParse({
     GOOGLE_PRIVATE_KEY: process.env.GOOGLE_PRIVATE_KEY,
     GOOGLE_SLIDES_TEMPLATE_ID: process.env.GOOGLE_SLIDES_TEMPLATE_ID,
     APIFY_TOKEN: process.env.APIFY_TOKEN,
-    FRONTEND_URL: process.env.FRONTEND_URL,
+    CORS_ORIGIN: process.env.CORS_ORIGIN,
 });
 if (!parsed.success) {
     console.error('❌ Invalid or missing environment variables (continuing anyway):');
@@ -51,6 +51,6 @@ const fallbackEnv = {
     GOOGLE_PRIVATE_KEY: process.env.GOOGLE_PRIVATE_KEY ?? '',
     GOOGLE_SLIDES_TEMPLATE_ID: process.env.GOOGLE_SLIDES_TEMPLATE_ID ?? '',
     APIFY_TOKEN: process.env.APIFY_TOKEN ?? '',
-    FRONTEND_URL: process.env.FRONTEND_URL ?? '',
+    CORS_ORIGIN: process.env.CORS_ORIGIN ?? '',
 };
 export const env = parsed.success ? parsed.data : fallbackEnv;
