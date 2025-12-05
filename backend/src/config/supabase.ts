@@ -2,54 +2,73 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { logger } from '../logger.js';
 
 // Get environment variables
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-// Validate required environment variables
-if (!supabaseUrl) {
-  console.error('❌ SUPABASE_URL is not set');
-  throw new Error('Missing SUPABASE_URL environment variable');
-}
+// Track if config is valid
+const isConfigured = Boolean(supabaseUrl && supabaseServiceRoleKey);
 
-if (!supabaseServiceRoleKey) {
-  console.error('❌ SUPABASE_SERVICE_ROLE_KEY is not set');
-  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
-}
-
-// Log configuration (without exposing secrets)
+// Log configuration status (without exposing secrets)
 console.log('🔧 Supabase Configuration:');
-console.log(`   URL: ${supabaseUrl}`);
-console.log(`   Service Role Key: ${supabaseServiceRoleKey.substring(0, 20)}...`);
+if (supabaseUrl) {
+  console.log(`   URL: ${supabaseUrl}`);
+} else {
+  console.warn('   ⚠️ SUPABASE_URL is not set!');
+}
+if (supabaseServiceRoleKey) {
+  console.log(`   Service Role Key: ${supabaseServiceRoleKey.substring(0, 20)}...`);
+} else {
+  console.warn('   ⚠️ SUPABASE_SERVICE_ROLE_KEY is not set!');
+}
+
+// Create the client - use dummy values if not configured (will fail on actual use)
+const supabaseClient: SupabaseClient = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseServiceRoleKey || 'placeholder-key',
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  }
+);
+
+if (isConfigured) {
+  console.log('   ✅ Supabase client initialized');
+} else {
+  console.warn('   ⚠️ Supabase client created with placeholder values (API calls will fail)');
+}
 
 /**
- * Admin client with service role key - use for:
- * - Inserts
- * - Updates
- * - Deletes
- * - Any operation that requires elevated privileges
+ * Admin client with service role key - use for writes
  */
-export const supabaseAdmin: SupabaseClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
+export const supabaseAdmin: SupabaseClient = supabaseClient;
 
 /**
- * Standard client - same as admin in backend context since we use service role key
- * In a full setup, this could use the anon key for reads
- * For now, we use the same client for simplicity
+ * Standard client - same as admin in backend context
  */
-export const supabase: SupabaseClient = supabaseAdmin;
+export const supabase: SupabaseClient = supabaseClient;
+
+/**
+ * Check if Supabase is properly configured
+ */
+export function isSupabaseConfigured(): boolean {
+  return isConfigured;
+}
 
 /**
  * Verify Supabase connection on startup
  */
 export async function verifySupabaseConnection(): Promise<void> {
+  if (!isConfigured) {
+    console.warn('⚠️ Skipping Supabase verification (not configured)');
+    return;
+  }
+
   try {
-    const { data, error } = await supabase.from('searches').select('id').limit(1);
+    const { data, error } = await supabaseClient.from('searches').select('id').limit(1);
     if (error) {
-      logger.warn({ err: error }, '[supabase] Verification query failed - table may not exist yet');
+      logger.warn({ err: error }, '[supabase] Verification query failed');
       console.warn('⚠️ Supabase verification query failed:', error.message);
     } else {
       console.info('✅ Supabase connection verified');

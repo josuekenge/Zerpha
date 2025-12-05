@@ -1,5 +1,5 @@
 import { type Request, type Response, type NextFunction } from 'express';
-import { supabase } from '../config/supabase.js';
+import { supabase, isSupabaseConfigured } from '../config/supabase.js';
 import { logger } from '../logger.js';
 
 export interface AuthenticatedRequest extends Request {
@@ -10,6 +10,15 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
+  // Check if Supabase is configured
+  if (!isSupabaseConfigured()) {
+    logger.error('Supabase not configured - cannot authenticate');
+    return res.status(503).json({
+      message: 'Service temporarily unavailable',
+      error: 'Database not configured'
+    });
+  }
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -37,7 +46,3 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     res.status(500).json({ message: 'Internal server error' });
   }
 }
-
-
-
-
