@@ -14,70 +14,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Prevent duplicate initialization
-    if (initialized) return;
-
     let isMounted = true;
 
-    // Set up auth state listener FIRST before checking session
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      console.log('[Auth] State change:', event);
-
-      if (!isMounted) return;
-
-      // Update state based on event
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-
-      // Only set loading to false after we've processed the initial session
-      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      if (isMounted) {
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
         setLoading(false);
       }
     });
 
-    // Mark as initialized
-    setInitialized(true);
-
-    // Also do an explicit session check as fallback
-    const checkSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('[Auth] Session check error:', error);
-        }
-        if (!isMounted) return;
-
-        // If onAuthStateChange hasn't fired yet, use this session
-        if (loading && data.session) {
-          setSession(data.session);
-          setUser(data.session.user);
-          setLoading(false);
-        } else if (loading && !data.session) {
-          // No session exists
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('[Auth] Session check failed:', err);
-        if (isMounted) {
-          setLoading(false);
-        }
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (isMounted) {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
       }
-    };
-
-    // Small delay to let onAuthStateChange fire first
-    const timer = setTimeout(checkSession, 100);
+    });
 
     return () => {
       isMounted = false;
-      clearTimeout(timer);
       subscription.unsubscribe();
     };
-  }, [initialized, loading]);
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -132,5 +96,3 @@ export async function signOut() {
     throw error;
   }
 }
-
-
