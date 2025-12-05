@@ -8,16 +8,13 @@ import { logger } from './logger.js';
 
 export const app = express();
 
-console.log('🔥 CORS FIX v2 - NEW BUILD DEPLOYED 🔥');
+console.log('🔥 CORS FIX v3 - OPTIONS ROUTE HANDLER 🔥');
 
 // Trust proxy for Railway
 app.set('trust proxy', 1);
 
-// ============================================================
-// MANUAL CORS HANDLER - FIXES PREFLIGHT ACCESS-CONTROL ISSUE
-// ============================================================
-app.use((req, res, next) => {
-  // List of allowed origins
+// HANDLE ALL OPTIONS REQUESTS FIRST - BEFORE ANYTHING ELSE
+app.options('*', (req, res) => {
   const allowedOrigins = [
     'https://www.zerpha.ca',
     'https://zerpha.ca',
@@ -25,34 +22,45 @@ app.use((req, res, next) => {
     'http://localhost:3000'
   ];
 
-  // Get the request origin
   const origin = req.headers.origin;
+  console.log('OPTIONS request received from:', origin);
 
-  // Check if origin is allowed and set header
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
 
-  // Set other CORS headers
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Max-Age', '86400');
-
-  // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    console.log('CORS Preflight request from:', origin);
-    return res.status(204).end();
-  }
-
-  // Continue to next middleware
-  next();
+  res.status(204).end();
 });
-// ============================================================
 
 // Health check
 app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok' });
+});
+
+// CORS middleware for non-OPTIONS requests
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    'https://www.zerpha.ca',
+    'https://zerpha.ca',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ];
+
+  const origin = req.headers.origin;
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  next();
 });
 
 // Body parsers
@@ -67,7 +75,7 @@ app.use(helmet({
 // Logging
 app.use(pinoHttp({ logger } as any));
 
-// Your routes
+// API routes
 app.use('/api', apiRouter);
 
 // Error handlers
