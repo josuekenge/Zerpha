@@ -1,38 +1,38 @@
 # Stage 1: Builder
-FROM node:20.18.0-slim AS builder
-
-WORKDIR /app
-
-# Copy only package files first for better caching
-COPY backend/package*.json ./
-
-# Install all dependencies (including devDependencies for tsc)
-RUN npm install
-# Ensure local binaries are executable (fixes sh: tsc permission denied)
-RUN chmod +x node_modules/.bin/* || true
-
-# Copy source files AFTER installing dependencies (preserves node_modules)
-COPY backend/. .
-
-# Build TypeScript
-RUN npm run build
-
-# Stage 2: Runner
-FROM node:20.18.0-slim AS runner
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
 # Copy package files
-COPY backend/package*.json ./
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies for TypeScript build)
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build TypeScript
+RUN npm run build
+
+# Stage 2: Production
+FROM node:20-slim
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
 
 # Install only production dependencies
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 
-# Copy built files from builder
+# Copy built JavaScript from builder
 COPY --from=builder /app/dist ./dist
 
-# Expose port (Railway will override with PORT env var)
+# Railway sets PORT automatically
+ENV PORT=3001
+
 EXPOSE 3001
 
-# Start the server
+# Start the application
 CMD ["npm", "start"]
