@@ -23,7 +23,10 @@ app.use(
     logger,
   } as any),
 );
-// CORS
+
+// CORS Configuration
+// Per MDN: When using credentials, you MUST specify explicit origins (not wildcards)
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#credentialed_requests_and_wildcards
 const allowedOrigins = [
   'https://www.zerpha.ca',
   'https://zerpha.ca',
@@ -32,14 +35,28 @@ const allowedOrigins = [
 ];
 
 const corsOptions: CorsOptions = {
-  origin: allowedOrigins,
-  credentials: true,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Allow cookies and credentials
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
+// Enable CORS for all routes
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Use same config for preflight requests
+
+// Handle preflight requests globally (per Express CORS docs)
+// https://github.com/expressjs/cors#enabling-cors-pre-flight
+app.options('*', cors(corsOptions));
 
 app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
