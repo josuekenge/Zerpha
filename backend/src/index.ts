@@ -33,13 +33,24 @@ console.log('------------------------------------------------');
 // Import app AFTER env vars are loaded
 import { app } from './app.js';
 
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
-const server = app.listen(PORT, () => {
-  console.log(`\n🚀 Server running on port ${PORT}`);
-  console.log(`➜  Health Check: http://localhost:${PORT}/health`);
-  console.log(`➜  Debug Info:   http://localhost:${PORT}/debug-health\n`);
-});
+const startServer = async () => {
+  try {
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      const addr = server.address();
+      const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr?.port}`;
+      console.log(`\n🚀 Server running on ${bind} (Bound to 0.0.0.0)`);
+      console.log(`➜  Health Check: http://0.0.0.0:${PORT}/health`);
+      console.log(`➜  Debug Info:   http://0.0.0.0:${PORT}/debug-health\n`);
+    });
+  } catch (err) {
+    console.error('❌ Failed to start server:', err);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // 2. PREVENT CRASHES FROM KILLING THE SERVER
 // If Supabase fails to connect, this keeps the server alive so you see the error instead of a 502
