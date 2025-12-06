@@ -14,25 +14,48 @@ import {
   X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../lib/auth';
+import { useAuth, signInWithGoogle } from '../lib/auth';
 import { TypewriterEffect } from './TypewriterEffect';
 import { AboutMe } from './AboutMe';
+
+// Storage key for pending search query (used to persist search across auth flow)
+const PENDING_SEARCH_KEY = 'pendingSearchQuery';
 
 export function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (user) {
+      // User is authenticated - navigate directly to workspace with query
       if (searchQuery.trim()) {
         navigate(`/workspace?q=${encodeURIComponent(searchQuery)}`);
       } else {
         navigate('/workspace');
       }
     } else {
-      navigate('/login');
+      // User is NOT authenticated - save query and trigger Google OAuth
+      if (searchQuery.trim()) {
+        try {
+          sessionStorage.setItem(PENDING_SEARCH_KEY, searchQuery.trim());
+        } catch {
+          // sessionStorage might be unavailable in some contexts, proceed anyway
+        }
+      }
+
+      setIsAuthLoading(true);
+      try {
+        await signInWithGoogle();
+        // Note: signInWithGoogle redirects to Google OAuth, so we won't reach here normally
+      } catch (error) {
+        console.error('Failed to initiate Google sign-in:', error);
+        setIsAuthLoading(false);
+        // Fallback: navigate to login page if OAuth fails
+        navigate('/login');
+      }
     }
   };
 
@@ -211,7 +234,7 @@ export function LandingPage() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    onKeyDown={(e) => e.key === 'Enter' && !isAuthLoading && void handleSearch()}
                     className="block w-full rounded-xl border-0 py-5 pl-14 pr-20 text-slate-900 shadow-2xl shadow-indigo-900/10 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6 bg-white/95 backdrop-blur-xl transition-all font-medium"
                     placeholder='What market will you disrupt today?'
                   />
@@ -219,13 +242,17 @@ export function LandingPage() {
                     <button
                       type="button"
                       onClick={handleArrowClick}
-                      disabled={!searchQuery.trim()}
-                      className={`inline-flex items-center justify-center rounded-lg px-3 py-2 text-white transition-all shadow-md ${searchQuery.trim()
+                      disabled={!searchQuery.trim() || isAuthLoading}
+                      className={`inline-flex items-center justify-center rounded-lg px-3 py-2 text-white transition-all shadow-md ${searchQuery.trim() && !isAuthLoading
                         ? 'bg-indigo-600 hover:bg-indigo-700 cursor-pointer'
                         : 'bg-slate-300 cursor-not-allowed'
                         }`}
                     >
-                      <ArrowRight className="h-5 w-5" />
+                      {isAuthLoading ? (
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      ) : (
+                        <ArrowRight className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -234,10 +261,12 @@ export function LandingPage() {
 
             <motion.div variants={fadeInUp} className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-8 px-4">
               <button
-                onClick={handleSearch}
-                className="w-full sm:w-auto rounded-xl bg-indigo-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-600/25 hover:bg-indigo-500 hover:scale-105 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                onClick={() => void handleSearch()}
+                disabled={isAuthLoading}
+                className={`w-full sm:w-auto rounded-xl px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-600/25 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${isAuthLoading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 hover:scale-105'
+                  }`}
               >
-                Start Your Journey
+                {isAuthLoading ? 'Connecting...' : 'Start Your Journey'}
               </button>
             </motion.div>
           </motion.div>
@@ -522,11 +551,13 @@ export function LandingPage() {
 
             <div className="mt-16 flex justify-center">
               <button
-                onClick={handleSearch}
-                className="group relative inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-600/25 hover:bg-indigo-500 hover:-translate-y-0.5 transition-all duration-200"
+                onClick={() => void handleSearch()}
+                disabled={isAuthLoading}
+                className={`group relative inline-flex items-center gap-2 rounded-xl px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-600/25 transition-all duration-200 ${isAuthLoading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 hover:-translate-y-0.5'
+                  }`}
               >
-                Start Discovering Targets
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                {isAuthLoading ? 'Connecting...' : 'Start Discovering Targets'}
+                {!isAuthLoading && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}
               </button>
             </div>
           </div>

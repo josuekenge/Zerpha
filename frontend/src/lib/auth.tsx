@@ -17,49 +17,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
-    let didSetLoading = false;
 
-    // Timeout to ensure we never get stuck loading forever
-    const timeout = setTimeout(() => {
-      if (isMounted && !didSetLoading) {
-        console.warn('[Auth] Session check timed out, setting loading to false');
-        didSetLoading = true;
-        setLoading(false);
-      }
-    }, 3000); // 3 second timeout
+    // Check if we're in an OAuth callback (Supabase appends #access_token=... after OAuth)
+    const hasOAuthCallback = typeof window !== 'undefined' && (
+      window.location.hash.includes('access_token') ||
+      window.location.hash.includes('refresh_token') ||
+      window.location.hash.includes('error')
+    );
 
-    // Get initial session
-    supabase.auth.getSession()
-      .then(({ data: { session: initialSession } }) => {
-        if (isMounted && !didSetLoading) {
-          didSetLoading = true;
-          setSession(initialSession);
-          setUser(initialSession?.user ?? null);
-          setLoading(false);
-        }
-      })
-      .catch((error) => {
-        console.error('[Auth] Failed to get session:', error);
-        if (isMounted && !didSetLoading) {
-          didSetLoading = true;
-          setLoading(false);
-        }
-      });
-
-    // Listen for auth changes
+    // Set up the auth state change listener FIRST
+    // This is crucial because onAuthStateChange will fire when Supabase processes the OAuth tokens
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      if (isMounted) {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        // Also set loading false here in case getSession hasn't returned yet
-        if (!didSetLoading) {
-          didSetLoading = true;
-          setLoading(false);
-        }
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (!isMounted) return;
+
+      // Update session and user state
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+
+      // For OAuth callbacks, we wait for the SIGNED_IN event before setting loading=false
+      // For other cases (page refresh, etc.), we set loading=false on any auth change
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        setLoading(false);
       }
     });
+
+    // Then check for existing session
+    // If we're in an OAuth callback, Supabase will automatically process the tokens
+    // and trigger onAuthStateChange, so we don't need to manually call getSession
+    if (!hasOAuthCallback) {
+      supabase.auth.getSession()
+        .then(({ data: { session: initialSession } }) => {
+          if (isMounted) {
+            setSession(initialSession);
+            setUser(initialSession?.user ?? null);
+            setLoading(false);
+          }
+        })
+        .catch((error) => {
+          console.error('[Auth] Failed to get session:', error);
+          if (isMounted) {
+            setLoading(false);
+          }
+        });
+    }
+
+    // Timeout to ensure we never get stuck loading forever (important for OAuth errors)
+    const timeout = setTimeout(() => {
+      if (isMounted) {
+        setLoading(false);
+      }
+    }, 5000); // 5 second timeout for OAuth callback processing
 
     return () => {
       isMounted = false;

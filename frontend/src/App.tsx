@@ -712,11 +712,29 @@ export function WorkspaceApp() {
     void executeSearch(value);
   };
 
-  // Handle URL search params
+  // Storage key for pending search query (must match LandingPage.tsx)
+  const PENDING_SEARCH_KEY = 'pendingSearchQuery';
+
+  // Handle URL search params and pending search from sessionStorage (after OAuth redirect)
   useEffect(() => {
-    const q = searchParams.get('q');
-    if (q && !hasSearched && !isSearching) {
-      void executeSearch(q);
+    // Priority 1: URL query parameter
+    const urlQuery = searchParams.get('q');
+    if (urlQuery && !hasSearched && !isSearching) {
+      void executeSearch(urlQuery);
+      return; // Don't check sessionStorage if URL param is present
+    }
+
+    // Priority 2: Pending search from sessionStorage (set before OAuth redirect)
+    try {
+      const pendingQuery = sessionStorage.getItem(PENDING_SEARCH_KEY);
+      if (pendingQuery && pendingQuery.trim() && !hasSearched && !isSearching) {
+        // Clear the pending query immediately to prevent re-execution
+        sessionStorage.removeItem(PENDING_SEARCH_KEY);
+        // Execute the saved search
+        void executeSearch(pendingQuery.trim());
+      }
+    } catch {
+      // sessionStorage might not be available in some contexts
     }
   }, [searchParams]);
 
