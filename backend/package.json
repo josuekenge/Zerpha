@@ -4,12 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:local": "cross-env NODE_ENV=development tsx watch src/index.ts",
     "build": "node ./node_modules/typescript/bin/tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "lint": "eslint \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
-    "typescript": "^5.6.3",
     "@anthropic-ai/sdk": "^0.27.1",
     "@google/genai": "^1.30.0",
     "@supabase/supabase-js": "^2.47.10",
@@ -27,6 +27,7 @@
     "pino-http": "^9.0.0",
     "pino-pretty": "^11.2.2",
     "tailwind-merge": "^3.4.0",
+    "typescript": "^5.6.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -37,6 +38,7 @@
     "@types/node": "^20.11.17",
     "@types/pdf-parse": "^1.1.5",
     "@types/pino-http": "^6.1.0",
+    "cross-env": "^10.1.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
