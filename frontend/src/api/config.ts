@@ -43,9 +43,8 @@ const normalizedBaseUrl = rawBaseUrl?.replace(/\/+$/, '') ?? '';
 
 export const API_BASE_URL = normalizedBaseUrl;
 
-// Log the API URL so developers can verify where requests are going
-// This is intentional and helps debug production issues
-console.log(`🔌 API Client connecting to: ${API_BASE_URL || '(NOT SET - API calls will fail!)'}`);
+// Log that API client is ready (without exposing the URL)
+console.log('🔌 API client initialized');
 
 /**
  * Build a full API URL from a relative path.
