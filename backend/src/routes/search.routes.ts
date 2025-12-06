@@ -17,6 +17,7 @@ import { getCachedExtraction, setCachedExtraction, normalizeDomain } from '../se
 import {
   deriveNicheKey,
   getSeenDomains,
+  getSavedCompanyDomains,
   selectDiverseCompanies,
   recordSeenCompanies,
 } from '../services/diversityService.js';
@@ -341,7 +342,14 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
       '[search] fetched seen domains for diversity',
     );
 
-    // Discover 5 companies
+    // Get saved company domains to deprioritize in results
+    const savedDomains = await getSavedCompanyDomains(user.id);
+    logger.info(
+      { savedDomainsCount: savedDomains.size },
+      '[search] fetched saved company domains for filtering',
+    );
+
+    // Discover companies (up to 20 candidates for filtering)
     const allCandidates = await discoverCompanies(query, {
       temperature: 0.3, // Add some randomness for variety
     });
@@ -365,12 +373,13 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
       });
     }
 
-    // Select diverse companies, prioritizing unseen ones
+    // Select diverse companies, prioritizing unseen and unsaved ones
     const { selected: discovered, stats: diversityStats } = selectDiverseCompanies(
       allCandidates,
       seenDomains,
       DEFAULT_RESULT_COUNT,
       true, // Enable randomness
+      savedDomains, // Filter out saved companies when possible
     );
 
     logger.info(

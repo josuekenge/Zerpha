@@ -24,6 +24,20 @@ export function deriveNicheKey(query: string): string {
 }
 
 /**
+ * Normalize a company name for comparison.
+ * Useful when domain is missing or null.
+ */
+export function normalizeCompanyName(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s]/g, '') // Remove punctuation
+    .replace(/\s+/g, ' ')    // Collapse whitespace
+    .replace(/\b(inc|llc|ltd|corp|corporation|company|co)\b/gi, '') // Remove common suffixes
+    .trim();
+}
+
+/**
  * Get domains that have been shown to a user for a specific niche.
  */
 export async function getSeenDomains(
@@ -43,6 +57,32 @@ export async function getSeenDomains(
 
   const domains = new Set((data ?? []).map((row) => row.company_domain));
   logger.debug({ userId, nicheKey, seenCount: domains.size }, '[diversity] fetched seen domains');
+  return domains;
+}
+
+/**
+ * Get domains of companies the user has already saved.
+ */
+export async function getSavedCompanyDomains(userId: string): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('website')
+    .eq('user_id', userId)
+    .eq('is_saved', true);
+
+  if (error) {
+    logger.warn({ err: error, userId }, '[diversity] failed to fetch saved company domains');
+    return new Set();
+  }
+
+  const domains = new Set<string>();
+  for (const row of data ?? []) {
+    if (row.website) {
+      domains.add(normalizeDomain(row.website));
+    }
+  }
+
+  logger.debug({ userId, savedCount: domains.size }, '[diversity] fetched saved company domains');
   return domains;
 }
 
@@ -83,16 +123,6 @@ export async function recordSeenCompanies(
 }
 
 /**
- * Apply a small random jitter to scores for variety.
- * Keeps relative ordering mostly intact but allows some shuffling.
- */
-function applyScoreJitter(score: number): number {
-  // Add random jitter of ±0.5 points
-  const jitter = (Math.random() - 0.5) * 1.0;
-  return score + jitter;
-}
-
-/**
  * Shuffle an array using Fisher-Yates algorithm.
  */
 function shuffleArray<T>(array: T[]): T[] {
@@ -104,81 +134,141 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
+/**
+ * Weighted shuffle - items with higher weight stay closer to original position.
+ * Adds randomness while preserving relative quality ordering.
+ */
+function weightedShuffle<T>(items: T[], jitterAmount: number = 0.3): T[] {
+  if (items.length <= 1) return [...items];
+
+  // Assign a score to each item based on position + random jitter
+  const scored = items.map((item, index) => ({
+    item,
+    score: index + (Math.random() - 0.5) * items.length * jitterAmount,
+  }));
+
+  // Sort by score
+  scored.sort((a, b) => a.score - b.score);
+
+  return scored.map((s) => s.item);
+}
+
 export interface DiversityResult {
   selected: DiscoveredCompany[];
   stats: {
     totalCandidates: number;
+    uniqueCandidates: number;
     unseenCount: number;
     seenCount: number;
+    unsavedCount: number;
+    savedCount: number;
     selectedUnseen: number;
     selectedSeen: number;
   };
 }
 
 /**
- * Select diverse companies from candidates, prioritizing unseen ones.
+ * Select diverse companies from candidates, prioritizing unseen and unsaved ones.
  * 
  * @param candidates - All discovered company candidates
  * @param seenDomains - Set of domains already shown to this user for this niche
  * @param targetCount - Number of companies to return
  * @param addRandomness - Whether to shuffle within quality bands
+ * @param savedDomains - Set of domains the user has already saved (optional)
  */
 export function selectDiverseCompanies(
   candidates: DiscoveredCompany[],
   seenDomains: Set<string>,
   targetCount: number,
   addRandomness: boolean = true,
+  savedDomains: Set<string> = new Set(),
 ): DiversityResult {
-  // Deduplicate candidates by domain
+  // Deduplicate candidates by domain AND normalized name
   const domainsSeen = new Set<string>();
+  const namesSeen = new Set<string>();
   const uniqueCandidates: DiscoveredCompany[] = [];
 
   for (const candidate of candidates) {
     const domain = normalizeDomain(candidate.website || '');
-    if (!domainsSeen.has(domain)) {
-      domainsSeen.add(domain);
-      uniqueCandidates.push(candidate);
-    }
+    const normalizedName = normalizeCompanyName(candidate.name);
+
+    // Skip if we've seen this domain (when domain exists) or this name
+    const hasDomain = domain && domain.length > 0;
+    if (hasDomain && domainsSeen.has(domain)) continue;
+    if (namesSeen.has(normalizedName)) continue;
+
+    if (hasDomain) domainsSeen.add(domain);
+    namesSeen.add(normalizedName);
+    uniqueCandidates.push(candidate);
   }
 
-  // Split into unseen and seen
-  const unseen: DiscoveredCompany[] = [];
-  const seen: DiscoveredCompany[] = [];
+  // Categorize by priority: unseen+unsaved > unseen+saved > seen+unsaved > seen+saved
+  const unseenUnsaved: DiscoveredCompany[] = [];
+  const unseenSaved: DiscoveredCompany[] = [];
+  const seenUnsaved: DiscoveredCompany[] = [];
+  const seenSaved: DiscoveredCompany[] = [];
 
   for (const candidate of uniqueCandidates) {
     const domain = normalizeDomain(candidate.website || '');
-    if (seenDomains.has(domain)) {
-      seen.push(candidate);
+    const isSeen = seenDomains.has(domain);
+    const isSaved = savedDomains.has(domain);
+
+    if (!isSeen && !isSaved) {
+      unseenUnsaved.push(candidate);
+    } else if (!isSeen && isSaved) {
+      unseenSaved.push(candidate);
+    } else if (isSeen && !isSaved) {
+      seenUnsaved.push(candidate);
     } else {
-      unseen.push(candidate);
+      seenSaved.push(candidate);
     }
   }
 
-  // Apply randomness if enabled
-  const processedUnseen = addRandomness ? shuffleArray(unseen) : unseen;
-  const processedSeen = addRandomness ? shuffleArray(seen) : seen;
+  // Apply weighted randomness to each category if enabled
+  const processCategory = (items: DiscoveredCompany[]) =>
+    addRandomness ? weightedShuffle(items, 0.3) : items;
 
-  // Build final selection: unseen first, then seen as fallback
+  const processedUnseenUnsaved = processCategory(unseenUnsaved);
+  const processedUnseenSaved = processCategory(unseenSaved);
+  const processedSeenUnsaved = processCategory(seenUnsaved);
+  const processedSeenSaved = processCategory(seenSaved);
+
+  // Build final selection in priority order
   const selected: DiscoveredCompany[] = [];
 
-  // Take from unseen first
-  for (const company of processedUnseen) {
+  // Priority 1: Unseen and unsaved (best - fresh and not yet saved by user)
+  for (const company of processedUnseenUnsaved) {
     if (selected.length >= targetCount) break;
     selected.push(company);
   }
 
-  // Backfill from seen if needed
-  for (const company of processedSeen) {
+  // Priority 2: Seen but unsaved (user saw but didn't save - might still be interested)
+  for (const company of processedSeenUnsaved) {
+    if (selected.length >= targetCount) break;
+    selected.push(company);
+  }
+
+  // Priority 3: Unseen but saved (new appearance of something user already has - less useful)
+  for (const company of processedUnseenSaved) {
+    if (selected.length >= targetCount) break;
+    selected.push(company);
+  }
+
+  // Priority 4: Seen and saved (fallback only)
+  for (const company of processedSeenSaved) {
     if (selected.length >= targetCount) break;
     selected.push(company);
   }
 
   const stats = {
     totalCandidates: candidates.length,
-    unseenCount: unseen.length,
-    seenCount: seen.length,
-    selectedUnseen: Math.min(unseen.length, targetCount),
-    selectedSeen: Math.max(0, selected.length - Math.min(unseen.length, targetCount)),
+    uniqueCandidates: uniqueCandidates.length,
+    unseenCount: unseenUnsaved.length + unseenSaved.length,
+    seenCount: seenUnsaved.length + seenSaved.length,
+    unsavedCount: unseenUnsaved.length + seenUnsaved.length,
+    savedCount: unseenSaved.length + seenSaved.length,
+    selectedUnseen: Math.min(unseenUnsaved.length + unseenSaved.length, targetCount),
+    selectedSeen: Math.max(0, selected.length - (unseenUnsaved.length + unseenSaved.length)),
   };
 
   logger.info(
