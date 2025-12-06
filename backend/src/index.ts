@@ -27,8 +27,9 @@ import { app } from './app.js';
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server listening on http://0.0.0.0:${PORT}`);
-  console.log(`➜  Health: http://0.0.0.0:${PORT}/health`);
+  console.log(`🚀 Server listening on port ${PORT}`);
+  console.log(`➜  Local:   http://localhost:${PORT}/health`);
+  console.log(`➜  Network: http://0.0.0.0:${PORT}/health`);
 });
 
 // 5. CATCH CRASHES (for debugging)
