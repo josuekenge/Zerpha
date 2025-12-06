@@ -15,7 +15,7 @@ interface OpportunityInput {
   query: string;
   companies: Array<{
     name: string;
-    reason: string;
+    description: string;  // Changed from 'reason'
   }>;
 }
 
@@ -24,7 +24,7 @@ export async function generateGlobalOpportunities({
   companies,
 }: OpportunityInput): Promise<string> {
   const list = companies
-    .map((company) => `- ${company.name}: ${company.reason}`)
+    .map((company) => `- ${company.name}: ${company.description}`)
     .join('\n');
 
   const prompt = `Market query: ${query}

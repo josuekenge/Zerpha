@@ -60,7 +60,7 @@ export async function recordSeenCompanies(
   const records = companies.map((company) => ({
     user_id: userId,
     niche_key: nicheKey,
-    company_domain: normalizeDomain(company.website),
+    company_domain: normalizeDomain(company.website || ''),
     last_seen_at: new Date().toISOString(),
   }));
 
@@ -132,9 +132,9 @@ export function selectDiverseCompanies(
   // Deduplicate candidates by domain
   const domainsSeen = new Set<string>();
   const uniqueCandidates: DiscoveredCompany[] = [];
-  
+
   for (const candidate of candidates) {
-    const domain = normalizeDomain(candidate.website);
+    const domain = normalizeDomain(candidate.website || '');
     if (!domainsSeen.has(domain)) {
       domainsSeen.add(domain);
       uniqueCandidates.push(candidate);
@@ -146,7 +146,7 @@ export function selectDiverseCompanies(
   const seen: DiscoveredCompany[] = [];
 
   for (const candidate of uniqueCandidates) {
-    const domain = normalizeDomain(candidate.website);
+    const domain = normalizeDomain(candidate.website || '');
     if (seenDomains.has(domain)) {
       seen.push(candidate);
     } else {
@@ -160,7 +160,7 @@ export function selectDiverseCompanies(
 
   // Build final selection: unseen first, then seen as fallback
   const selected: DiscoveredCompany[] = [];
-  
+
   // Take from unseen first
   for (const company of processedUnseen) {
     if (selected.length >= targetCount) break;

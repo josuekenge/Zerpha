@@ -62,7 +62,9 @@ interface ProcessedCompany {
   name: string;
   website: string;
   status: 'success' | 'failed';
-  reason: string;
+  description: string;  // From discovery - why company fits the query
+  industry?: string;    // From discovery
+  country?: string;     // From discovery
   extracted?: ExtractedCompany;
 }
 
@@ -339,9 +341,8 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
       '[search] fetched seen domains for diversity',
     );
 
-    // Discover more candidates than needed for diversity (15+ candidates)
+    // Discover 5 companies
     const allCandidates = await discoverCompanies(query, {
-      maxCandidates: 15,
       temperature: 0.3, // Add some randomness for variety
     });
 
@@ -389,7 +390,8 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
     const processCompany = async (company: (typeof discovered)[number]) => {
       try {
         // Check cache first for this domain
-        const cachedExtraction = getCachedExtraction(company.website);
+        const website = company.website || '';
+        const cachedExtraction = getCachedExtraction(website);
         let extracted: ExtractedCompany;
 
         if (cachedExtraction) {
@@ -401,11 +403,11 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
           extracted = {
             ...cachedExtraction,
             name: company.name,
-            website: company.website,
+            website: website,
           };
         } else {
           // No cache - scrape and extract
-          const scrapeResult = await scrapeCompanySite(company.website);
+          const scrapeResult = await scrapeCompanySite(website);
 
           if (scrapeResult.pages.length === 0) {
             const errorMessage = 'No content could be scraped from the site';
@@ -429,12 +431,12 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
 
           extracted = await extractCompanyInsights({
             companyName: company.name,
-            website: company.website,
+            website: website,
             combinedText,
           });
 
           // Cache the extraction for future use
-          setCachedExtraction(company.website, extracted);
+          setCachedExtraction(website, extracted);
         }
 
         logger.info(
@@ -455,7 +457,9 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
           searchId: searchInsert.id,
           verticalQuery: query,
           extracted,
-          reason: company.reason,
+          description: company.description,
+          industry: company.industry,
+          country: company.country,
         });
 
         // Run enrichment in background - do not await
@@ -463,28 +467,31 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
 
         processedCompanies.push({
           name: company.name,
-          website: company.website,
+          website: website,
           status: 'success',
-          reason: company.reason,
+          description: company.description,
+          industry: company.industry,
+          country: company.country,
           extracted,
         });
 
       } catch (error) {
+        const websiteFallback = company.website || '';
         processedCompanies.push({
           name: company.name,
-          website: company.website,
+          website: websiteFallback,
           status: 'failed',
-          reason: company.reason,
+          description: company.description,
         });
 
         failedCompanyRecords.push({
           user_id: user.id,
           search_id: searchInsert.id,
           name: company.name,
-          website: company.website,
+          website: websiteFallback,
           vertical_query: query,
           raw_json: {
-            reason: company.reason,
+            description: company.description,
             error: (error as Error).message,
           },
           acquisition_fit_score: null,
@@ -548,7 +555,7 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
           query,
           companies: processedCompanies.map((company) => ({
             name: company.name,
-            reason: company.reason,
+            description: company.description,
           })),
         });
 

@@ -7,7 +7,9 @@ interface SaveCompanyParams {
   searchId: string;
   verticalQuery: string;
   extracted: ExtractedCompany;
-  reason?: string;
+  description?: string;  // From discovery - why company fits the query
+  industry?: string;     // From discovery
+  country?: string;      // From discovery
 }
 
 function normalizeString(value?: string | null): string | null {
@@ -35,7 +37,9 @@ export async function saveExtractedCompany({
   searchId,
   verticalQuery,
   extracted,
-  reason,
+  description,
+  industry,
+  country,
 }: SaveCompanyParams) {
   const summary = normalizeString(extracted.summary);
   const payload = {
@@ -46,7 +50,9 @@ export async function saveExtractedCompany({
     vertical_query: verticalQuery,
     raw_json: {
       ...extracted,
-      ...(reason ? { reason } : {}),
+      ...(description ? { description } : {}),
+      ...(industry ? { discovery_industry: industry } : {}),
+      ...(country ? { discovery_country: country } : {}),
     },
     acquisition_fit_score: extracted.acquisition_fit_score,
     acquisition_fit_reason: normalizeString(extracted.acquisition_fit_reason),
