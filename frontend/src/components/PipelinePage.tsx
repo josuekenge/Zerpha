@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Loader2, AlertCircle, GripVertical, ExternalLink, FileText } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Loader2, AlertCircle, GripVertical, ExternalLink, Search, StickyNote, Check, LayoutGrid, BarChart2, Calendar } from 'lucide-react';
 import {
     DndContext,
     DragOverlay,
@@ -27,7 +27,11 @@ import {
     PipelineStageData
 } from '../api/client';
 import { PipelineDetailModal } from './PipelineDetailModal';
+import { PipelineSummary } from './PipelineSummary';
+import { PipelineTimeline } from './PipelineTimeline';
 import { cn } from '../lib/utils';
+
+type PipelineView = 'board' | 'summary' | 'timeline';
 
 interface PipelinePageProps {
     onCompanyClick?: (companyId: string) => void;
@@ -49,6 +53,9 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
     const [activeCard, setActiveCard] = useState<PipelineCompany | null>(null);
     const [updateError, setUpdateError] = useState<string | null>(null);
     const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [successToast, setSuccessToast] = useState<string | null>(null);
+    const [activeView, setActiveView] = useState<PipelineView>('board');
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -70,6 +77,25 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
     useEffect(() => {
         loadPipeline();
     }, [loadPipeline]);
+
+    // Filter companies based on search query
+    const filteredPipeline = useMemo(() => {
+        if (!pipeline || !searchQuery.trim()) return pipeline;
+
+        const query = searchQuery.toLowerCase().trim();
+        return {
+            stages: pipeline.stages.map(stage => ({
+                ...stage,
+                companies: stage.companies.filter(company =>
+                    company.name.toLowerCase().includes(query) ||
+                    company.domain.toLowerCase().includes(query) ||
+                    (company.industry?.toLowerCase().includes(query)) ||
+                    (company.notesTitle?.toLowerCase().includes(query)) ||
+                    (company.notes?.toLowerCase().includes(query))
+                ),
+            })),
+        };
+    }, [pipeline, searchQuery]);
 
     const handleDragStart = (event: DragStartEvent) => {
         const { active } = event;
@@ -148,12 +174,19 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
         setSelectedCompanyId(companyId);
     };
 
+    const handleNotesClick = (companyId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSelectedCompanyId(companyId);
+    };
+
     const handleModalClose = () => {
         setSelectedCompanyId(null);
     };
 
     const handleModalUpdate = () => {
         loadPipeline();
+        setSuccessToast('Notes updated');
+        setTimeout(() => setSuccessToast(null), 3000);
     };
 
     if (loading) {
@@ -202,10 +235,71 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
     return (
         <div className="h-full flex flex-col overflow-hidden p-6 bg-slate-50">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900">Pipeline</h1>
                     <p className="text-sm text-slate-500">{totalCompanies} companies in your pipeline</p>
+                </div>
+                {/* View Toggle */}
+                <div className="flex bg-white rounded-lg border border-slate-200 p-1">
+                    <button
+                        onClick={() => setActiveView('board')}
+                        className={cn(
+                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                            activeView === 'board'
+                                ? "bg-indigo-100 text-indigo-700"
+                                : "text-slate-600 hover:text-slate-900"
+                        )}
+                    >
+                        <LayoutGrid className="w-4 h-4" />
+                        Board
+                    </button>
+                    <button
+                        onClick={() => setActiveView('summary')}
+                        className={cn(
+                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                            activeView === 'summary'
+                                ? "bg-indigo-100 text-indigo-700"
+                                : "text-slate-600 hover:text-slate-900"
+                        )}
+                    >
+                        <BarChart2 className="w-4 h-4" />
+                        Summary
+                    </button>
+                    <button
+                        onClick={() => setActiveView('timeline')}
+                        className={cn(
+                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                            activeView === 'timeline'
+                                ? "bg-indigo-100 text-indigo-700"
+                                : "text-slate-600 hover:text-slate-900"
+                        )}
+                    >
+                        <Calendar className="w-4 h-4" />
+                        Timeline
+                    </button>
+                </div>
+            </div>
+
+            {/* Search Bar */}
+            <div className="mb-4">
+                <div className="relative max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                        type="text"
+                        placeholder="Search companies, notes..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
+                        >
+                            Clear
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -216,27 +310,52 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                 </div>
             )}
 
-            {/* Kanban Board */}
-            <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-            >
-                <div className="flex-1 flex gap-4 overflow-x-auto pb-4">
-                    {pipeline.stages.map(stage => (
-                        <PipelineColumn
-                            key={stage.id}
-                            stage={stage}
-                            onCompanyClick={handleCardClick}
-                        />
-                    ))}
+            {/* Success toast */}
+            {successToast && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 flex items-center gap-2">
+                    <Check className="w-4 h-4" />
+                    {successToast}
                 </div>
+            )}
 
-                <DragOverlay>
-                    {activeCard && <PipelineCard company={activeCard} isDragging />}
-                </DragOverlay>
-            </DndContext>
+            {/* Kanban Board */}
+            {activeView === 'board' && (
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                >
+                    <div className="flex-1 flex gap-4 overflow-x-auto pb-4">
+                        {filteredPipeline?.stages.map(stage => (
+                            <PipelineColumn
+                                key={stage.id}
+                                stage={stage}
+                                onCompanyClick={handleCardClick}
+                                onNotesClick={handleNotesClick}
+                            />
+                        ))}
+                    </div>
+
+                    <DragOverlay>
+                        {activeCard && <PipelineCard company={activeCard} isDragging />}
+                    </DragOverlay>
+                </DndContext>
+            )}
+
+            {/* Summary View */}
+            {activeView === 'summary' && (
+                <div className="flex-1 overflow-y-auto">
+                    <PipelineSummary pipeline={pipeline} />
+                </div>
+            )}
+
+            {/* Timeline View */}
+            {activeView === 'timeline' && (
+                <div className="flex-1 overflow-y-auto">
+                    <PipelineTimeline pipeline={pipeline} onCompanyClick={handleCardClick} />
+                </div>
+            )}
 
             {/* Detail Modal */}
             {selectedCompanyId && (
@@ -254,9 +373,10 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
 interface PipelineColumnProps {
     stage: PipelineStageData;
     onCompanyClick?: (companyId: string) => void;
+    onNotesClick?: (companyId: string, e: React.MouseEvent) => void;
 }
 
-function PipelineColumn({ stage, onCompanyClick }: PipelineColumnProps) {
+function PipelineColumn({ stage, onCompanyClick, onNotesClick }: PipelineColumnProps) {
     const { setNodeRef } = useDroppable({ id: stage.id });
 
     return (
@@ -297,6 +417,7 @@ function PipelineColumn({ stage, onCompanyClick }: PipelineColumnProps) {
                                 key={company.id}
                                 company={company}
                                 onCompanyClick={onCompanyClick}
+                                onNotesClick={onNotesClick}
                             />
                         ))
                     )}
@@ -310,9 +431,10 @@ function PipelineColumn({ stage, onCompanyClick }: PipelineColumnProps) {
 interface SortableCardProps {
     company: PipelineCompany;
     onCompanyClick?: (companyId: string) => void;
+    onNotesClick?: (companyId: string, e: React.MouseEvent) => void;
 }
 
-function SortableCard({ company, onCompanyClick }: SortableCardProps) {
+function SortableCard({ company, onCompanyClick, onNotesClick }: SortableCardProps) {
     const {
         attributes,
         listeners,
@@ -330,7 +452,7 @@ function SortableCard({ company, onCompanyClick }: SortableCardProps) {
 
     return (
         <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-            <PipelineCard company={company} onCompanyClick={onCompanyClick} />
+            <PipelineCard company={company} onCompanyClick={onCompanyClick} onNotesClick={onNotesClick} />
         </div>
     );
 }
@@ -340,9 +462,10 @@ interface PipelineCardProps {
     company: PipelineCompany;
     isDragging?: boolean;
     onCompanyClick?: (companyId: string) => void;
+    onNotesClick?: (companyId: string, e: React.MouseEvent) => void;
 }
 
-function PipelineCard({ company, isDragging, onCompanyClick }: PipelineCardProps) {
+function PipelineCard({ company, isDragging, onCompanyClick, onNotesClick }: PipelineCardProps) {
     const getScoreColor = (score: number | null) => {
         if (score === null) return 'text-slate-400 bg-slate-100';
         if (score >= 7.5) return 'text-teal-700 bg-teal-100';
@@ -392,10 +515,30 @@ function PipelineCard({ company, isDragging, onCompanyClick }: PipelineCardProps
                     </a>
                 </div>
 
-                {hasNotes && (
-                    <FileText className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                )}
+                {/* Quick Notes Action */}
+                <button
+                    onClick={(e) => onNotesClick?.(company.id, e)}
+                    className={cn(
+                        "p-1 rounded hover:bg-slate-100 flex-shrink-0 transition-colors",
+                        hasNotes ? "text-indigo-500" : "text-slate-300 hover:text-slate-500"
+                    )}
+                    title={hasNotes ? "View notes" : "Add notes"}
+                >
+                    <StickyNote className="w-4 h-4" />
+                </button>
             </div>
+
+            {/* Notes Preview */}
+            {hasNotes && (
+                <div className="mt-2 p-2 bg-slate-50 rounded-md border border-slate-100">
+                    {company.notesTitle && (
+                        <p className="text-xs font-medium text-slate-700 truncate">{company.notesTitle}</p>
+                    )}
+                    {company.notes && (
+                        <p className="text-xs text-slate-500 truncate mt-0.5">{company.notes}</p>
+                    )}
+                </div>
+            )}
 
             <div className="mt-2 flex items-center justify-between">
                 {company.industry && (
@@ -413,4 +556,3 @@ function PipelineCard({ company, isDragging, onCompanyClick }: PipelineCardProps
         </div>
     );
 }
-

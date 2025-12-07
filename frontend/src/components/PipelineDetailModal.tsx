@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2, ExternalLink, ChevronDown, Check, Clock } from 'lucide-react';
+import { X, Loader2, ExternalLink, ChevronDown, Check, Clock, Users, Mail, Linkedin } from 'lucide-react';
 import {
     fetchPipelineCompany,
     updatePipelineCompany,
     PipelineCompanyDetail,
     PipelineStage
 } from '../api/client';
+import { getPeopleByCompanyId } from '../api/people';
+import { Person } from '../types';
 import { cn } from '../lib/utils';
 
 const PIPELINE_STAGES: { id: PipelineStage; label: string }[] = [
@@ -27,6 +29,8 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate }: PipelineDe
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [contacts, setContacts] = useState<Person[]>([]);
+    const [contactsLoading, setContactsLoading] = useState(true);
 
     const [notesTitle, setNotesTitle] = useState('');
     const [notes, setNotes] = useState('');
@@ -49,6 +53,21 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate }: PipelineDe
             }
         };
         loadCompany();
+    }, [companyId]);
+
+    // Load contacts for this company
+    useEffect(() => {
+        const loadContacts = async () => {
+            try {
+                const people = await getPeopleByCompanyId(companyId);
+                setContacts(people);
+            } catch (err) {
+                console.error('Failed to load contacts:', err);
+            } finally {
+                setContactsLoading(false);
+            }
+        };
+        loadContacts();
     }, [companyId]);
 
     const handleSave = async () => {
@@ -216,10 +235,11 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate }: PipelineDe
                         </div>
                     </div>
 
-                    {/* Right Panel - Details */}
-                    <div className="w-72 p-6 bg-slate-50">
+                    {/* Right Panel - Details & Contacts */}
+                    <div className="w-80 p-6 bg-slate-50 overflow-y-auto">
+                        {/* Details Section */}
                         <h3 className="text-sm font-medium text-slate-700 mb-4">Details</h3>
-                        <div className="space-y-4">
+                        <div className="space-y-4 mb-6">
                             <DetailRow label="Industry" value={company.industry} />
                             <DetailRow
                                 label="Fit Score"
@@ -233,6 +253,33 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate }: PipelineDe
                             <DetailRow label="Headquarters" value={company.headquarters} />
                             <DetailRow label="Headcount" value={company.headcount} />
                             <DetailRow label="Stage" value={PIPELINE_STAGES.find(s => s.id === selectedStage)?.label} />
+                        </div>
+
+                        {/* Key Contacts Section */}
+                        <div className="border-t border-slate-200 pt-5">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Users className="w-4 h-4 text-slate-500" />
+                                <h3 className="text-sm font-medium text-slate-700">Key Contacts</h3>
+                            </div>
+
+                            {contactsLoading ? (
+                                <div className="flex items-center justify-center py-4">
+                                    <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                                </div>
+                            ) : contacts.length === 0 ? (
+                                <p className="text-xs text-slate-400 py-2">No contacts added yet</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {contacts.slice(0, 5).map((contact) => (
+                                        <ContactCard key={contact.id} contact={contact} />
+                                    ))}
+                                    {contacts.length > 5 && (
+                                        <p className="text-xs text-slate-500 pt-1">
+                                            +{contacts.length - 5} more contacts
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -276,3 +323,39 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
         </div>
     );
 }
+
+function ContactCard({ contact }: { contact: Person }) {
+    const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ');
+
+    return (
+        <div className="bg-white rounded-lg border border-slate-200 p-3">
+            <p className="text-sm font-medium text-slate-900 truncate">{fullName}</p>
+            {contact.role && (
+                <p className="text-xs text-slate-500 truncate">{contact.role}</p>
+            )}
+            <div className="flex items-center gap-2 mt-2">
+                {contact.email && (
+                    <a
+                        href={`mailto:${contact.email}`}
+                        className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600"
+                        title={contact.email}
+                    >
+                        <Mail className="w-3.5 h-3.5" />
+                    </a>
+                )}
+                {contact.linkedin_url && (
+                    <a
+                        href={contact.linkedin_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600"
+                        title="LinkedIn"
+                    >
+                        <Linkedin className="w-3.5 h-3.5" />
+                    </a>
+                )}
+            </div>
+        </div>
+    );
+}
+
