@@ -14,38 +14,35 @@ interface FitScoreBarProps {
  * - Low (<5): Coral #DC2626
  * - No score (0): Gray #94A3B8
  */
-export function FitScoreBar({ score, showLabel = false, size = 'md' }: FitScoreBarProps) {
+export function FitScoreBar({ score, size = 'md' }: FitScoreBarProps) {
     const displayScore = score ?? 0;
     const percentage = Math.min((displayScore / 10) * 100, 100);
 
     // Determine color based on score tier
     let barColor = 'bg-slate-300'; // No score / 0
-    let textColor = 'text-slate-400';
-    let label = '';
+    let textColor = 'text-slate-500';
 
     if (score !== null && score > 0) {
         if (score >= 7.5) {
-            barColor = 'bg-teal-600';
-            textColor = 'text-teal-700';
-            label = 'High';
+            barColor = 'bg-teal-500';
+            textColor = 'text-slate-700';
         } else if (score >= 5) {
             barColor = 'bg-amber-500';
-            textColor = 'text-amber-600';
-            label = 'Medium';
+            textColor = 'text-slate-700';
         } else {
             barColor = 'bg-red-500';
-            textColor = 'text-red-600';
-            label = 'Low';
+            textColor = 'text-slate-700';
         }
     }
 
-    const barHeight = size === 'sm' ? 'h-1.5' : 'h-2';
+    const barHeight = size === 'sm' ? 'h-1' : 'h-1.5';
     const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
+    const barWidth = size === 'sm' ? 'w-[50px]' : 'w-[70px]';
 
     return (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
             {/* Progress bar */}
-            <div className={cn("flex-1 bg-slate-100 rounded-full overflow-hidden", barHeight, size === 'sm' ? 'min-w-[40px] max-w-[60px]' : 'min-w-[60px] max-w-[80px]')}>
+            <div className={cn("bg-slate-100 rounded-full overflow-hidden", barHeight, barWidth)}>
                 <div
                     className={cn("h-full rounded-full transition-all duration-300", barColor)}
                     style={{ width: `${percentage}%` }}
@@ -53,16 +50,9 @@ export function FitScoreBar({ score, showLabel = false, size = 'md' }: FitScoreB
             </div>
 
             {/* Score number */}
-            <span className={cn("font-semibold tabular-nums", textSize, textColor)}>
+            <span className={cn("font-medium tabular-nums", textSize, textColor)}>
                 {score !== null ? score.toFixed(1) : '0.0'}
             </span>
-
-            {/* Optional label */}
-            {showLabel && label && (
-                <span className={cn("text-xs font-medium", textColor)}>
-                    {label}
-                </span>
-            )}
         </div>
     );
 }

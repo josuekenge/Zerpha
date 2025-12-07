@@ -1020,11 +1020,11 @@ export function WorkspaceApp() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'search'
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-200"
+                    ? "bg-violet-100 text-indigo-700"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 )}
               >
-                <Search className={cn("w-4 h-4", activeView === 'search' ? "text-white" : "text-slate-400 group-hover:text-slate-600")} />
+                <Search className={cn("w-4 h-4", activeView === 'search' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
                 New Search
               </button>
 
@@ -1033,11 +1033,11 @@ export function WorkspaceApp() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'companies'
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-200"
+                    ? "bg-violet-100 text-indigo-700"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 )}
               >
-                <Building2 className={cn("w-4 h-4", activeView === 'companies' ? "text-white" : "text-slate-400 group-hover:text-slate-600")} />
+                <Building2 className={cn("w-4 h-4", activeView === 'companies' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
                 Companies
               </button>
 
@@ -1046,11 +1046,11 @@ export function WorkspaceApp() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'people'
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-200"
+                    ? "bg-violet-100 text-indigo-700"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 )}
               >
-                <Users className={cn("w-4 h-4", activeView === 'people' ? "text-white" : "text-slate-400 group-hover:text-slate-600")} />
+                <Users className={cn("w-4 h-4", activeView === 'people' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
                 People
               </button>
 
@@ -1059,11 +1059,11 @@ export function WorkspaceApp() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'history'
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-200"
+                    ? "bg-violet-100 text-indigo-700"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 )}
               >
-                <History className={cn("w-4 h-4", activeView === 'history' ? "text-white" : "text-slate-400 group-hover:text-slate-600")} />
+                <History className={cn("w-4 h-4", activeView === 'history' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
                 Search history
               </button>
             </nav>
@@ -2301,6 +2301,9 @@ export function WorkspaceApp() {
       </main>
 
       {/* Removed duplicate detail panel logic - it's now handled inside the activeView === 'companies' block above */}
+
+      {/* Floating Chat Widget - Always available */}
+      <ChatWidget mode="floating" context={chatContext} />
 
     </Layout >
   );

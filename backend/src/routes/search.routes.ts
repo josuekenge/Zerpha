@@ -55,6 +55,9 @@ export const savedCompanySchema = z.object({
   saved_category: z.string().nullable(),
   created_at: z.string().nullable(),
   raw_json: z.record(z.any()),
+  primary_industry: z.string().nullable().optional(),
+  secondary_industry: z.string().nullable().optional(),
+  favicon_url: z.string().nullable().optional(),
 });
 
 export type SavedCompany = z.infer<typeof savedCompanySchema>;

@@ -113,7 +113,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
           <div className="flex items-center gap-3">
             {/* Fit Score Bar */}
             <div className="min-w-[120px]">
-              <FitScoreBar score={score} showLabel />
+              <FitScoreBar score={score} />
             </div>
             <button
               onClick={handleExport}

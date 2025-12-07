@@ -245,6 +245,9 @@ function mapToSavedCompany(row: DatabaseCompany): SavedCompany {
     saved_category: apiCompany.saved_category,
     created_at: apiCompany.created_at ?? null,
     raw_json: apiCompany.raw_json,
+    primary_industry: apiCompany.primary_industry ?? null,
+    secondary_industry: apiCompany.secondary_industry ?? null,
+    favicon_url: apiCompany.favicon_url ?? null,
   };
 }
 
