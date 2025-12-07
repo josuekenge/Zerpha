@@ -65,17 +65,17 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
   }, [company.id]);
 
   const score = company.acquisition_fit_score ?? null;
-  let fitLabel = 'Low Fit';
-  // Premium enterprise color palette using inline styles
-  let fitStyle = { backgroundColor: '#FDEDED', color: '#B91C1C', borderColor: '#DC2626' };
+  let fitLabel = 'Low';
+  // Premium gradient pill styling by score tier
+  let gradientClass = 'bg-gradient-to-r from-[#FCA5A5] to-[#B91C1C]'; // Low (default)
 
   if (score !== null) {
     if (score >= 7.5) {
-      fitLabel = 'High Fit';
-      fitStyle = { backgroundColor: '#E6F4F1', color: '#0F766E', borderColor: '#0D9488' };
+      fitLabel = 'High';
+      gradientClass = 'bg-gradient-to-r from-[#2DD4BF] to-[#0F766E]';
     } else if (score >= 5) {
-      fitLabel = 'Medium Fit';
-      fitStyle = { backgroundColor: '#FFF7E6', color: '#B45309', borderColor: '#D97706' };
+      fitLabel = 'Medium';
+      gradientClass = 'bg-gradient-to-r from-[#FCD34D] to-[#B45309]';
     }
   }
 
@@ -124,14 +124,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
           </div>
           <div className="flex gap-2">
             {score !== null && (
-              <span
-                className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold"
-                style={{
-                  backgroundColor: fitStyle.backgroundColor,
-                  color: fitStyle.color,
-                  border: `1px solid ${fitStyle.borderColor}`
-                }}
-              >
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white shadow-sm ${gradientClass}`}>
                 {fitLabel} {score}
               </span>
             )}

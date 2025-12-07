@@ -11,33 +11,26 @@ interface CompanyListItemProps {
 }
 
 function FitBadge({ score }: { score: number | null }) {
-  if (score === null) return <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md border border-slate-200">Fit N/A</span>;
+  if (score === null) {
+    return (
+      <span className="inline-block px-3 py-1 text-sm font-medium text-slate-500 bg-slate-100 rounded-full shadow-sm">
+        N/A
+      </span>
+    );
+  }
 
-  // Premium enterprise color palette
-  let bgColor = '#FDEDED';
-  let textColor = '#B91C1C';
-  let borderColor = '#DC2626';
+  // Premium gradient pill styling by score tier
+  let gradientClass = 'bg-gradient-to-r from-[#FCA5A5] to-[#B91C1C]'; // Low (default)
 
   if (score >= 7.5) {
-    bgColor = '#E6F4F1';
-    textColor = '#0F766E';
-    borderColor = '#0D9488';
+    gradientClass = 'bg-gradient-to-r from-[#2DD4BF] to-[#0F766E]'; // High
   } else if (score >= 5) {
-    bgColor = '#FFF7E6';
-    textColor = '#B45309';
-    borderColor = '#D97706';
+    gradientClass = 'bg-gradient-to-r from-[#FCD34D] to-[#B45309]'; // Medium
   }
 
   return (
-    <span
-      className="text-xs font-bold px-2 py-0.5 rounded-md"
-      style={{
-        backgroundColor: bgColor,
-        color: textColor,
-        border: `1px solid ${borderColor}`
-      }}
-    >
-      Fit {score}/10
+    <span className={`inline-block px-3 py-1 text-sm font-medium text-white rounded-full shadow-sm ${gradientClass}`}>
+      {score}/10
     </span>
   );
 }

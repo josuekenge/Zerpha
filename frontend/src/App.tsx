@@ -1385,14 +1385,13 @@ export function WorkspaceApp() {
                                     </td>
                                     <td className="py-3 px-4 text-right">
                                       <span
-                                        className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
-                                        style={(() => {
+                                        className={`inline-block px-3 py-1 text-sm font-medium text-white rounded-full shadow-sm ${(() => {
                                           const s = company.acquisition_fit_score ?? 0;
-                                          if (s >= 7.5) return { backgroundColor: '#E6F4F1', color: '#0F766E', border: '1px solid #0D9488' };
-                                          if (s >= 5) return { backgroundColor: '#FFF7E6', color: '#B45309', border: '1px solid #D97706' };
-                                          if (s > 0) return { backgroundColor: '#FDEDED', color: '#B91C1C', border: '1px solid #DC2626' };
-                                          return { backgroundColor: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0' };
-                                        })()}
+                                          if (s >= 7.5) return 'bg-gradient-to-r from-[#2DD4BF] to-[#0F766E]';
+                                          if (s >= 5) return 'bg-gradient-to-r from-[#FCD34D] to-[#B45309]';
+                                          if (s > 0) return 'bg-gradient-to-r from-[#FCA5A5] to-[#B91C1C]';
+                                          return 'bg-slate-100 text-slate-500';
+                                        })()}`}
                                       >
                                         {company.acquisition_fit_score ?? '-'}
                                       </span>
@@ -1581,14 +1580,13 @@ export function WorkspaceApp() {
                               <div className="flex items-center gap-2">
                                 <span className="text-xs text-slate-500">Score:</span>
                                 <span
-                                  className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium"
-                                  style={(() => {
+                                  className={`inline-block px-3 py-1 text-sm font-medium text-white rounded-full shadow-sm ${(() => {
                                     const s = company.fitScore ?? 0;
-                                    if (s >= 7.5) return { backgroundColor: '#E6F4F1', color: '#0F766E', border: '1px solid #0D9488' };
-                                    if (s >= 5) return { backgroundColor: '#FFF7E6', color: '#B45309', border: '1px solid #D97706' };
-                                    if (s > 0) return { backgroundColor: '#FDEDED', color: '#B91C1C', border: '1px solid #DC2626' };
-                                    return { backgroundColor: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0' };
-                                  })()}
+                                    if (s >= 7.5) return 'bg-gradient-to-r from-[#2DD4BF] to-[#0F766E]';
+                                    if (s >= 5) return 'bg-gradient-to-r from-[#FCD34D] to-[#B45309]';
+                                    if (s > 0) return 'bg-gradient-to-r from-[#FCA5A5] to-[#B91C1C]';
+                                    return 'bg-slate-100 text-slate-500';
+                                  })()}`}
                                 >
                                   {company.fitScore ?? '—'}
                                 </span>
@@ -1669,14 +1667,13 @@ export function WorkspaceApp() {
                               </td>
                               <td className="py-3 pr-4 text-right font-medium hidden md:table-cell">
                                 <span
-                                  className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
-                                  style={(() => {
+                                  className={`inline-block px-3 py-1 text-sm font-medium text-white rounded-full shadow-sm ${(() => {
                                     const s = company.fitScore ?? 0;
-                                    if (s >= 7.5) return { backgroundColor: '#E6F4F1', color: '#0F766E', border: '1px solid #0D9488' };
-                                    if (s >= 5) return { backgroundColor: '#FFF7E6', color: '#B45309', border: '1px solid #D97706' };
-                                    if (s > 0) return { backgroundColor: '#FDEDED', color: '#B91C1C', border: '1px solid #DC2626' };
-                                    return { backgroundColor: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0' };
-                                  })()}
+                                    if (s >= 7.5) return 'bg-gradient-to-r from-[#2DD4BF] to-[#0F766E]';
+                                    if (s >= 5) return 'bg-gradient-to-r from-[#FCD34D] to-[#B45309]';
+                                    if (s > 0) return 'bg-gradient-to-r from-[#FCA5A5] to-[#B91C1C]';
+                                    return 'bg-slate-100 text-slate-500';
+                                  })()}`}
                                 >
                                   {company.fitScore ?? '—'}
                                 </span>
@@ -1823,14 +1820,13 @@ export function WorkspaceApp() {
                                   </td>
                                   <td className="py-3 px-4 text-right">
                                     <span
-                                      className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
-                                      style={(() => {
+                                      className={`inline-block px-3 py-1 text-sm font-medium text-white rounded-full shadow-sm ${(() => {
                                         const s = company.acquisition_fit_score ?? 0;
-                                        if (s >= 7.5) return { backgroundColor: '#E6F4F1', color: '#0F766E', border: '1px solid #0D9488' };
-                                        if (s >= 5) return { backgroundColor: '#FFF7E6', color: '#B45309', border: '1px solid #D97706' };
-                                        if (s > 0) return { backgroundColor: '#FDEDED', color: '#B91C1C', border: '1px solid #DC2626' };
-                                        return { backgroundColor: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0' };
-                                      })()}
+                                        if (s >= 7.5) return 'bg-gradient-to-r from-[#2DD4BF] to-[#0F766E]';
+                                        if (s >= 5) return 'bg-gradient-to-r from-[#FCD34D] to-[#B45309]';
+                                        if (s > 0) return 'bg-gradient-to-r from-[#FCA5A5] to-[#B91C1C]';
+                                        return 'bg-slate-100 text-slate-500';
+                                      })()}`}
                                     >
                                       {company.acquisition_fit_score ?? '-'}
                                     </span>
