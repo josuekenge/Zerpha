@@ -20,7 +20,8 @@ import {
   ExternalLink,
   Menu,
   X,
-  TrendingUp
+  TrendingUp,
+  Kanban
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -37,6 +38,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoadingStats } from './components/LoadingStats';
 import { ChatWidget } from './components/ChatWidget';
 import { InsightsPage } from './components/InsightsPage';
+import { PipelinePage } from './components/PipelinePage';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
 import { useAuth, signOut } from './lib/auth';
@@ -53,7 +55,7 @@ import { Company, CompanyWithPeople, InfographicPage, Person, SavedCompany, Sear
 import { getAllPeople } from './api/people';
 import { cn } from './lib/utils';
 
-type WorkspaceView = 'search' | 'companies' | 'insights' | 'people' | 'history';
+type WorkspaceView = 'search' | 'companies' | 'insights' | 'pipeline' | 'people' | 'history';
 type FitFilter = 'all' | 'high' | 'medium' | 'low';
 
 const INDUSTRIES = [
@@ -1076,6 +1078,19 @@ export function WorkspaceApp() {
               </button>
 
               <button
+                onClick={() => handleNavigation('pipeline')}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                  activeView === 'pipeline'
+                    ? "bg-violet-100 text-indigo-700"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                )}
+              >
+                <Kanban className={cn("w-4 h-4", activeView === 'pipeline' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
+                Pipeline
+              </button>
+
+              <button
                 onClick={() => handleNavigation('people')}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
@@ -1777,6 +1792,17 @@ export function WorkspaceApp() {
                 industryFilter={industryFilter}
                 locationFilter={locationFilter}
                 fitFilter={workspaceFitFilter}
+                onCompanyClick={(companyId) => {
+                  setSelectedWorkspaceCompanyId(companyId);
+                  setActiveView('companies');
+                }}
+              />
+            </div>
+          )}
+
+          {activeView === 'pipeline' && (
+            <div className="flex-1 overflow-hidden">
+              <PipelinePage
                 onCompanyClick={(companyId) => {
                   setSelectedWorkspaceCompanyId(companyId);
                   setActiveView('companies');

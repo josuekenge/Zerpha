@@ -6,6 +6,7 @@ import { companyRouter } from './company.routes.js';
 import { peopleRouter } from './people.routes.js';
 import { chatRouter } from './chat.routes.js';
 import { insightsRouter } from './insights.routes.js';
+import { pipelineRouter } from './pipeline.routes.js';
 
 export const apiRouter = Router();
 
@@ -22,4 +23,6 @@ apiRouter.use(companyRouter);
 apiRouter.use(peopleRouter);
 apiRouter.use(chatRouter);
 apiRouter.use(insightsRouter);
+apiRouter.use(pipelineRouter);
+
 

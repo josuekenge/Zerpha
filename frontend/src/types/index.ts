@@ -27,6 +27,7 @@ export interface Company {
   primary_industry?: string;
   secondary_industry?: string;
   favicon_url?: string | null;
+  pipeline_stage?: 'new' | 'researching' | 'contacted' | 'in_diligence' | 'closed' | null;
 }
 
 export interface SearchResponse {
@@ -63,6 +64,7 @@ export interface SavedCompany {
   primary_industry?: string;
   secondary_industry?: string;
   favicon_url?: string | null;
+  pipeline_stage?: 'new' | 'researching' | 'contacted' | 'in_diligence' | 'closed' | null;
 }
 
 export interface InfographicPage {

@@ -225,3 +225,45 @@ export async function fetchInsights(params: InsightsQuery = {}): Promise<Insight
   const response = await authenticatedFetch(url.toString());
   return handleResponse<InsightsResponse>(response, 'Failed to load insights');
 }
+
+// Pipeline types
+export type PipelineStage = 'new' | 'researching' | 'contacted' | 'in_diligence' | 'closed';
+
+export interface PipelineCompany {
+  id: string;
+  name: string;
+  domain: string;
+  industry: string | null;
+  fitScore: number | null;
+  digScore: number | null;
+  faviconUrl: string | null;
+}
+
+export interface PipelineStageData {
+  id: PipelineStage;
+  label: string;
+  companies: PipelineCompany[];
+}
+
+export interface PipelineResponse {
+  stages: PipelineStageData[];
+}
+
+export async function fetchPipeline(): Promise<PipelineResponse> {
+  const response = await authenticatedFetch(buildApiUrl('/api/pipeline'));
+  return handleResponse<PipelineResponse>(response, 'Failed to load pipeline');
+}
+
+export async function updatePipelineStage(
+  companyId: string,
+  pipelineStage: PipelineStage | null
+): Promise<{ id: string; pipelineStage: string | null }> {
+  const response = await authenticatedFetch(buildApiUrl(`/api/pipeline/${companyId}`), {
+    method: 'PATCH',
+    body: JSON.stringify({ pipelineStage }),
+  });
+  return handleResponse<{ id: string; pipelineStage: string | null }>(
+    response,
+    'Failed to update pipeline stage'
+  );
+}

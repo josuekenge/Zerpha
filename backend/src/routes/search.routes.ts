@@ -101,6 +101,7 @@ export interface DatabaseCompany {
   top_competitors?: unknown;
   has_summary?: boolean | null;
   favicon_url?: string | null;
+  pipeline_stage?: string | null;
 }
 
 export type ApiCompany = Omit<
