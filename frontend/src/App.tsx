@@ -75,6 +75,23 @@ const INDUSTRIES = [
   "Hardware Enabled SaaS"
 ];
 
+// Common locations for autocomplete
+const LOCATIONS = [
+  // US Cities
+  "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Phoenix, AZ",
+  "San Francisco, CA", "Seattle, WA", "Denver, CO", "Boston, MA", "Austin, TX",
+  "San Diego, CA", "Dallas, TX", "Miami, FL", "Atlanta, GA", "Portland, OR",
+  // US States
+  "California", "Texas", "New York", "Florida", "Illinois", "Pennsylvania",
+  "Ohio", "Georgia", "North Carolina", "Michigan", "Washington", "Colorado",
+  // Canadian Cities/Provinces
+  "Toronto, ON", "Vancouver, BC", "Montreal, QC", "Calgary, AB", "Ottawa, ON",
+  "Ontario", "British Columbia", "Quebec", "Alberta",
+  // Countries
+  "United States", "Canada", "United Kingdom", "Germany", "France", "Australia",
+  "India", "Israel", "Singapore", "Netherlands", "Sweden", "Ireland", "Switzerland"
+];
+
 /**
  * Check if a company matches the selected industry filter.
  * Mirrors the pattern used by matchesFitScore.
@@ -176,7 +193,9 @@ export function WorkspaceApp() {
   const [workspaceCategory, setWorkspaceCategory] = useState<string>('all');
   const [workspaceFitFilter, setWorkspaceFitFilter] = useState<FitFilter>('all');
   const [industryFilter, setIndustryFilter] = useState<string>('all');
+  const [isIndustryDropdownOpen, setIsIndustryDropdownOpen] = useState(false);
   const [locationFilter, setLocationFilter] = useState<string>('');
+  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [selectedWorkspaceCompanyId, setSelectedWorkspaceCompanyId] = useState<string | null>(
     null,
   );
@@ -1126,20 +1145,39 @@ export function WorkspaceApp() {
 
                 <div>
                   <span className="text-xs font-medium text-slate-500 mb-1.5 block px-2">Industry</span>
-                  <div className="relative z-50">
-                    <select
-                      value={industryFilter}
-                      onChange={(e) => setIndustryFilter(e.target.value)}
-                      className="w-full appearance-none bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-8 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsIndustryDropdownOpen(!isIndustryDropdownOpen)}
+                      className="w-full flex items-center justify-between bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-2 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                     >
-                      <option value="all">All Industries</option>
-                      {INDUSTRIES.map((industry) => (
-                        <option key={industry} value={industry}>
-                          {industry}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                      <span className="truncate">{industryFilter === 'all' ? 'All Industries' : industryFilter}</span>
+                      <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform", isIndustryDropdownOpen && "rotate-180")} />
+                    </button>
+                    {isIndustryDropdownOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setIsIndustryDropdownOpen(false)} />
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[280px] overflow-y-auto">
+                          <button
+                            type="button"
+                            onClick={() => { setIndustryFilter('all'); setIsIndustryDropdownOpen(false); }}
+                            className={cn("w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 transition-colors", industryFilter === 'all' && "bg-indigo-50 text-indigo-700 font-medium")}
+                          >
+                            All Industries
+                          </button>
+                          {INDUSTRIES.map((industry) => (
+                            <button
+                              key={industry}
+                              type="button"
+                              onClick={() => { setIndustryFilter(industry); setIsIndustryDropdownOpen(false); }}
+                              className={cn("w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 transition-colors", industryFilter === industry && "bg-indigo-50 text-indigo-700 font-medium")}
+                            >
+                              {industry}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -1150,9 +1188,42 @@ export function WorkspaceApp() {
                       type="text"
                       placeholder="City, State, Province..."
                       value={locationFilter}
-                      onChange={(e) => setLocationFilter(e.target.value)}
-                      className="w-full bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-3 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                      onChange={(e) => {
+                        setLocationFilter(e.target.value);
+                        setIsLocationDropdownOpen(e.target.value.length > 0);
+                      }}
+                      onFocus={() => locationFilter.length > 0 && setIsLocationDropdownOpen(true)}
+                      className="w-full bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-8 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                     />
+                    {locationFilter && (
+                      <button
+                        type="button"
+                        onClick={() => { setLocationFilter(''); setIsLocationDropdownOpen(false); }}
+                        className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                    {isLocationDropdownOpen && locationFilter.length > 0 && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setIsLocationDropdownOpen(false)} />
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[200px] overflow-y-auto">
+                          {LOCATIONS.filter(loc => loc.toLowerCase().includes(locationFilter.toLowerCase())).slice(0, 8).map((loc) => (
+                            <button
+                              key={loc}
+                              type="button"
+                              onClick={() => { setLocationFilter(loc); setIsLocationDropdownOpen(false); }}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 transition-colors"
+                            >
+                              {loc}
+                            </button>
+                          ))}
+                          {LOCATIONS.filter(loc => loc.toLowerCase().includes(locationFilter.toLowerCase())).length === 0 && (
+                            <div className="px-3 py-2 text-sm text-slate-400">No matches found</div>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1645,8 +1716,10 @@ export function WorkspaceApp() {
                                   {company.domain}
                                 </a>
                               </td>
-                              <td className="py-3 pr-4 hidden md:table-cell">
-                                <FitScoreBar score={company.fitScore} size="sm" />
+                              <td className="py-3 pr-4 hidden md:table-cell text-right">
+                                <div className="flex justify-end">
+                                  <FitScoreBar score={company.fitScore} size="sm" />
+                                </div>
                               </td>
                               <td className="py-3 pr-4 text-right">
                                 <button

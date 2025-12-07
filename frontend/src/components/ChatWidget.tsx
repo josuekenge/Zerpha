@@ -259,7 +259,7 @@ function ChatInterface({
             {/* Header */}
             <div className="px-4 py-3 flex items-center justify-between bg-white border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shadow-indigo-500/20">
                         Z
                     </div>
                     <div>
