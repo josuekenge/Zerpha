@@ -9,7 +9,7 @@ const anthropic = new Anthropic({
 });
 export async function generateGlobalOpportunities({ query, companies, }) {
     const list = companies
-        .map((company) => `- ${company.name}: ${company.reason}`)
+        .map((company) => `- ${company.name}: ${company.description}`)
         .join('\n');
     const prompt = `Market query: ${query}
 

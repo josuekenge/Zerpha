@@ -1,5 +1,6 @@
 import { Company } from '../types';
 import { cn, formatDomain } from '../lib/utils';
+import { CompanyAvatar } from './CompanyAvatar';
 
 interface CompanyListItemProps {
   company: Company;
@@ -11,7 +12,7 @@ interface CompanyListItemProps {
 
 function FitBadge({ score }: { score: number | null }) {
   if (score === null) return <span className="text-xs font-medium text-muted bg-background px-2 py-1 rounded">Fit N/A</span>;
-  
+
   let colorClass = 'bg-background text-muted border-border';
   if (score >= 8) colorClass = 'bg-success/10 text-success border-success/20';
   else if (score >= 5) colorClass = 'bg-warning/10 text-warning border-warning/20';
@@ -44,16 +45,23 @@ export function CompanyListItem({
       )}
     >
       <div className="flex justify-between items-start gap-2">
-        <div className="min-w-0">
-          <h3
-            className={cn(
-              'font-semibold text-sm truncate',
-              isSelected ? 'text-primary' : 'text-text',
-            )}
-          >
-            {company.name}
-          </h3>
-          <div className="text-xs text-muted font-medium truncate">{websiteLabel}</div>
+        <div className="flex items-start gap-3 min-w-0">
+          <CompanyAvatar
+            name={company.name}
+            faviconUrl={company.favicon_url}
+            size={32}
+          />
+          <div className="min-w-0">
+            <h3
+              className={cn(
+                'font-semibold text-sm truncate',
+                isSelected ? 'text-primary' : 'text-text',
+              )}
+            >
+              {company.name}
+            </h3>
+            <div className="text-xs text-muted font-medium truncate">{websiteLabel}</div>
+          </div>
         </div>
         <div className="flex flex-col items-end gap-2">
           <FitBadge score={company.acquisition_fit_score} />

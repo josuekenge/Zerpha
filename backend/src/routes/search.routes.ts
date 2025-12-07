@@ -97,6 +97,7 @@ export interface DatabaseCompany {
   opportunities?: unknown;
   top_competitors?: unknown;
   has_summary?: boolean | null;
+  favicon_url?: string | null;
 }
 
 export type ApiCompany = Omit<

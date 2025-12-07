@@ -10,7 +10,7 @@ import { saveExtractedCompany } from '../services/companySaveService.js';
 import { scrapePeople } from '../services/apifyService.js';
 import { requireAuth } from '../middleware/auth.js';
 import { getCachedExtraction, setCachedExtraction } from '../services/cacheService.js';
-import { deriveNicheKey, getSeenDomains, selectDiverseCompanies, recordSeenCompanies, } from '../services/diversityService.js';
+import { deriveNicheKey, getSeenDomains, getSavedCompanyDomains, selectDiverseCompanies, recordSeenCompanies, } from '../services/diversityService.js';
 const searchRequestSchema = z.object({
     query: z.string().min(2).max(200),
 });
@@ -221,9 +221,11 @@ searchRouter.post('/search', requireAuth, async (req, res, next) => {
         // Get previously seen domains for this user/niche
         const seenDomains = await getSeenDomains(user.id, nicheKey);
         logger.info({ nicheKey, seenDomainsCount: seenDomains.size }, '[search] fetched seen domains for diversity');
-        // Discover more candidates than needed for diversity (15+ candidates)
+        // Get saved company domains to deprioritize in results
+        const savedDomains = await getSavedCompanyDomains(user.id);
+        logger.info({ savedDomainsCount: savedDomains.size }, '[search] fetched saved company domains for filtering');
+        // Discover companies (up to 20 candidates for filtering)
         const allCandidates = await discoverCompanies(query, {
-            maxCandidates: 15,
             temperature: 0.3, // Add some randomness for variety
         });
         logger.info({
@@ -240,8 +242,9 @@ searchRouter.post('/search', requireAuth, async (req, res, next) => {
                 companies: [],
             });
         }
-        // Select diverse companies, prioritizing unseen ones
-        const { selected: discovered, stats: diversityStats } = selectDiverseCompanies(allCandidates, seenDomains, DEFAULT_RESULT_COUNT, true);
+        // Select diverse companies, prioritizing unseen and unsaved ones
+        const { selected: discovered, stats: diversityStats } = selectDiverseCompanies(allCandidates, seenDomains, DEFAULT_RESULT_COUNT, true, // Enable randomness
+        savedDomains);
         logger.info({
             query,
             searchId: searchInsert.id,
@@ -254,7 +257,8 @@ searchRouter.post('/search', requireAuth, async (req, res, next) => {
         const processCompany = async (company) => {
             try {
                 // Check cache first for this domain
-                const cachedExtraction = getCachedExtraction(company.website);
+                const website = company.website || '';
+                const cachedExtraction = getCachedExtraction(website);
                 let extracted;
                 if (cachedExtraction) {
                     logger.info({ company: company.name, website: company.website }, '[search] using cached extraction');
@@ -262,12 +266,12 @@ searchRouter.post('/search', requireAuth, async (req, res, next) => {
                     extracted = {
                         ...cachedExtraction,
                         name: company.name,
-                        website: company.website,
+                        website: website,
                     };
                 }
                 else {
                     // No cache - scrape and extract
-                    const scrapeResult = await scrapeCompanySite(company.website);
+                    const scrapeResult = await scrapeCompanySite(website);
                     if (scrapeResult.pages.length === 0) {
                         const errorMessage = 'No content could be scraped from the site';
                         logger.warn({
@@ -285,11 +289,11 @@ searchRouter.post('/search', requireAuth, async (req, res, next) => {
                         .slice(0, 15000); // Reduced from 20k to 15k
                     extracted = await extractCompanyInsights({
                         companyName: company.name,
-                        website: company.website,
+                        website: website,
                         combinedText,
                     });
                     // Cache the extraction for future use
-                    setCachedExtraction(company.website, extracted);
+                    setCachedExtraction(website, extracted);
                 }
                 logger.info({
                     company: company.name,
@@ -305,33 +309,38 @@ searchRouter.post('/search', requireAuth, async (req, res, next) => {
                     searchId: searchInsert.id,
                     verticalQuery: query,
                     extracted,
-                    reason: company.reason,
+                    description: company.description,
+                    industry: company.industry,
+                    country: company.country,
                 });
                 // Run enrichment in background - do not await
                 void enrichCompanyPeople(savedCompany.id, savedCompany.name, savedCompany.website, user.id);
                 processedCompanies.push({
                     name: company.name,
-                    website: company.website,
+                    website: website,
                     status: 'success',
-                    reason: company.reason,
+                    description: company.description,
+                    industry: company.industry,
+                    country: company.country,
                     extracted,
                 });
             }
             catch (error) {
+                const websiteFallback = company.website || '';
                 processedCompanies.push({
                     name: company.name,
-                    website: company.website,
+                    website: websiteFallback,
                     status: 'failed',
-                    reason: company.reason,
+                    description: company.description,
                 });
                 failedCompanyRecords.push({
                     user_id: user.id,
                     search_id: searchInsert.id,
                     name: company.name,
-                    website: company.website,
+                    website: websiteFallback,
                     vertical_query: query,
                     raw_json: {
-                        reason: company.reason,
+                        description: company.description,
                         error: error.message,
                     },
                     acquisition_fit_score: null,
@@ -383,7 +392,7 @@ searchRouter.post('/search', requireAuth, async (req, res, next) => {
                     query,
                     companies: processedCompanies.map((company) => ({
                         name: company.name,
-                        reason: company.reason,
+                        description: company.description,
                     })),
                 });
                 await supabase
@@ -597,9 +606,12 @@ searchRouter.get('/search-history', requireAuth, async (req, res, next) => {
             created_at: row.created_at,
             company_count: companyCounts[row.id] ?? 0,
         })));
+        logger.info({ userId: user.id, historyCount: historyItems.length }, '[search-history] returning search history');
         res.json(historyItems);
     }
     catch (error) {
+        const authReq = req;
+        logger.error({ err: error, userId: authReq.user?.id }, '[search-history] error fetching history');
         next(error);
     }
 });

@@ -26,6 +26,7 @@ import { motion } from 'framer-motion';
 import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { CompanyDetailPanel } from './components/CompanyDetailPanel';
+import { CompanyAvatar } from './components/CompanyAvatar';
 
 import { InfographicModal } from './components/InfographicModal';
 import { LandingPage } from './components/LandingPage';
@@ -1369,8 +1370,13 @@ export function WorkspaceApp() {
                                     )}
                                   >
                                     <td className="py-3 px-4">
-                                      <div className="font-medium text-slate-900">{company.name}</div>
-                                      <div className="text-xs text-slate-500">{company.website}</div>
+                                      <div className="flex items-center gap-2">
+                                        <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} size={24} />
+                                        <div>
+                                          <div className="font-medium text-slate-900">{company.name}</div>
+                                          <div className="text-xs text-slate-500">{company.website}</div>
+                                        </div>
+                                      </div>
                                     </td>
                                     <td className="py-3 px-4">
                                       <span className="text-xs text-slate-600">
@@ -1540,9 +1546,12 @@ export function WorkspaceApp() {
                             )}
 
                             {/* Company Name */}
-                            <h3 className="font-semibold text-slate-900 mb-2 pr-8 truncate text-base">
-                              {company.name}
-                            </h3>
+                            <div className="flex items-center gap-2 mb-2 pr-8">
+                              <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} size={28} />
+                              <h3 className="font-semibold text-slate-900 truncate text-base">
+                                {company.name}
+                              </h3>
+                            </div>
 
                             {/* Domain */}
                             <a
@@ -1634,7 +1643,10 @@ export function WorkspaceApp() {
                                 </div>
                               </td>
                               <td className="py-3 pr-4 font-medium text-slate-900">
-                                <div className="truncate max-w-[180px]">{company.name}</div>
+                                <div className="flex items-center gap-2">
+                                  <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} size={20} />
+                                  <div className="truncate max-w-[160px]">{company.name}</div>
+                                </div>
                               </td>
                               <td className="py-3 pr-4 hidden sm:table-cell">
                                 <a
@@ -1789,8 +1801,13 @@ export function WorkspaceApp() {
                                   )}
                                 >
                                   <td className="py-3 px-4">
-                                    <div className="font-medium text-slate-900">{company.name}</div>
-                                    <div className="text-xs text-slate-500 truncate max-w-[200px]">{company.website}</div>
+                                    <div className="flex items-center gap-2">
+                                      <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} size={24} />
+                                      <div>
+                                        <div className="font-medium text-slate-900">{company.name}</div>
+                                        <div className="text-xs text-slate-500 truncate max-w-[200px]">{company.website}</div>
+                                      </div>
+                                    </div>
                                   </td>
                                   <td className="py-3 px-4 text-right">
                                     <span className={cn(

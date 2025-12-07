@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabase.js';
 import { logger } from '../logger.js';
 import type { ExtractedCompany } from '../types/company.js';
+import { buildFaviconUrlFromWebsite } from '../utils/favicon.js';
 
 interface SaveCompanyParams {
   userId: string;
@@ -71,6 +72,7 @@ export async function saveExtractedCompany({
     risks: normalizeStringArray(extracted.risks),
     opportunities: normalizeStringArray(extracted.opportunities),
     top_competitors: normalizeStringArray(extracted.top_competitors),
+    favicon_url: buildFaviconUrlFromWebsite(extracted.website),
   };
 
   const { data, error } = await supabase.from('companies').insert(payload).select('*').single();

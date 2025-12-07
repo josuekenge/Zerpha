@@ -26,6 +26,7 @@ export interface Company {
   created_at?: string;
   primary_industry?: string;
   secondary_industry?: string;
+  favicon_url?: string | null;
 }
 
 export interface SearchResponse {
@@ -61,6 +62,7 @@ export interface SavedCompany {
   raw_json: CompanyRawJson;
   primary_industry?: string;
   secondary_industry?: string;
+  favicon_url?: string | null;
 }
 
 export interface InfographicPage {

@@ -13,6 +13,7 @@ import { cn, downloadInfographicPdf } from '../lib/utils';
 import { useEffect, useState } from 'react';
 import { exportInfographic } from '../api/client';
 import { getPeopleByCompanyId } from '../api/people';
+import { CompanyAvatar } from './CompanyAvatar';
 
 interface CompanyDetailPanelProps {
   company: Company;
@@ -66,7 +67,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
   const score = company.acquisition_fit_score ?? null;
   let fitLabel = 'Low Fit';
   let fitColor = 'bg-red-50 text-red-700 border-red-100';
-  
+
   if (score !== null) {
     if (score >= 8) {
       fitLabel = 'High Fit';
@@ -100,17 +101,24 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
       {/* Sticky Header */}
       <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 py-5 z-20">
         <div className="flex items-start justify-between mb-3">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-900 tracking-tight">{company.name}</h2>
-            <a 
-              href={company.website} 
-              target="_blank" 
-              rel="noreferrer"
-              className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1 mt-0.5"
-            >
-              {company.website.replace(/^https?:\/\//, '').replace(/\/$/, '')} 
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+          <div className="flex items-center gap-3">
+            <CompanyAvatar
+              name={company.name}
+              faviconUrl={company.favicon_url}
+              size={40}
+            />
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900 tracking-tight">{company.name}</h2>
+              <a
+                href={company.website}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1 mt-0.5"
+              >
+                {company.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
           </div>
           <div className="flex gap-2">
             {score !== null && (
@@ -118,7 +126,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
                 {fitLabel} {score}
               </span>
             )}
-            <button 
+            <button
               onClick={handleExport}
               disabled={isExporting}
               className="text-slate-400 hover:text-slate-600 transition-colors"
@@ -130,7 +138,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
       </div>
 
       <div className="p-6 space-y-8">
-        
+
         {/* Section: Executive Summary */}
         <section>
           <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-3 flex items-center gap-2">
@@ -182,27 +190,27 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
           </div>
         </section>
 
-         {/* Section: Operations */}
-         <section className="border border-slate-200 rounded-lg overflow-hidden">
-            <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                <h3 className="text-sm font-semibold text-slate-900">Operations</h3>
+        {/* Section: Operations */}
+        <section className="border border-slate-200 rounded-lg overflow-hidden">
+          <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+            <h3 className="text-sm font-semibold text-slate-900">Operations</h3>
+          </div>
+          <div className="divide-y divide-slate-100">
+            <div className="p-4 flex justify-between items-center">
+              <span className="text-sm font-medium text-slate-500">HQ Location</span>
+              <span className="text-sm font-medium text-slate-900">{raw_json.hq_location || 'Unknown'}</span>
             </div>
-            <div className="divide-y divide-slate-100">
-                <div className="p-4 flex justify-between items-center">
-                    <span className="text-sm font-medium text-slate-500">HQ Location</span>
-                    <span className="text-sm font-medium text-slate-900">{raw_json.hq_location || 'Unknown'}</span>
-                </div>
-                <div className="p-4 flex justify-between items-center">
-                    <span className="text-sm font-medium text-slate-500">Headcount</span>
-                    <span className="text-sm font-medium text-slate-900">{raw_json.estimated_headcount || 'Unknown'}</span>
-                </div>
-                <div className="p-4">
-                    <span className="text-sm font-medium text-slate-500 block mb-2">Tech Stack</span>
-                    <div className="flex flex-wrap gap-2">
-                        {renderTechStack(raw_json.tech_stack)}
-                    </div>
-                </div>
+            <div className="p-4 flex justify-between items-center">
+              <span className="text-sm font-medium text-slate-500">Headcount</span>
+              <span className="text-sm font-medium text-slate-900">{raw_json.estimated_headcount || 'Unknown'}</span>
             </div>
+            <div className="p-4">
+              <span className="text-sm font-medium text-slate-500 block mb-2">Tech Stack</span>
+              <div className="flex flex-wrap gap-2">
+                {renderTechStack(raw_json.tech_stack)}
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Section: People */}
@@ -264,24 +272,24 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
                           {person.role || 'Unknown role'}
                         </p>
                       </div>
-                    <div className="text-sm text-slate-600 space-y-1">
-                      {person.email && (
-                        <a
-                          href={`mailto:${person.email}`}
-                          className="flex items-center gap-1 hover:text-indigo-600 transition-colors"
-                        >
-                          <Mail className="w-4 h-4" />
-                          {person.email}
-                        </a>
-                      )}
-                      {person.phone && (
-                        <div className="flex items-center gap-1">
-                          <Phone className="w-4 h-4" />
-                          {person.phone}
-                        </div>
-                      )}
-                    </div>
-                  </li>
+                      <div className="text-sm text-slate-600 space-y-1">
+                        {person.email && (
+                          <a
+                            href={`mailto:${person.email}`}
+                            className="flex items-center gap-1 hover:text-indigo-600 transition-colors"
+                          >
+                            <Mail className="w-4 h-4" />
+                            {person.email}
+                          </a>
+                        )}
+                        {person.phone && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="w-4 h-4" />
+                            {person.phone}
+                          </div>
+                        )}
+                      </div>
+                    </li>
                   );
                 })}
               </ul>
@@ -291,21 +299,21 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
 
         {/* Key Info */}
         <section className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Key Info</h3>
-            <div className="grid grid-cols-1 gap-2">
-                <div className="flex justify-between">
-                    <span className="text-xs text-slate-400 font-mono">ID</span>
-                    <span className="text-xs text-slate-500 font-mono">{company.id.slice(0, 24)}</span>
-                </div>
-                <div className="flex justify-between">
-                    <span className="text-xs text-slate-400">Added</span>
-                    <span className="text-xs text-slate-600">
-                      {company.created_at ? new Date(company.created_at).toLocaleDateString() : 'Unknown'}
-                    </span>
-                </div>
+          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Key Info</h3>
+          <div className="grid grid-cols-1 gap-2">
+            <div className="flex justify-between">
+              <span className="text-xs text-slate-400 font-mono">ID</span>
+              <span className="text-xs text-slate-500 font-mono">{company.id.slice(0, 24)}</span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-slate-400">Added</span>
+              <span className="text-xs text-slate-600">
+                {company.created_at ? new Date(company.created_at).toLocaleDateString() : 'Unknown'}
+              </span>
+            </div>
+          </div>
         </section>
-        
+
         <div className="h-8"></div> {/* Spacing at bottom */}
       </div>
     </>

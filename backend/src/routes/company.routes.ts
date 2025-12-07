@@ -14,6 +14,7 @@ import {
   extractDomain,
   deriveFitBand,
 } from './search.routes.js';
+import { buildFaviconUrlFromWebsite } from '../utils/favicon.js';
 
 const savedCompaniesQuerySchema = z.object({
   category: z.string().min(1).optional(),
@@ -135,6 +136,7 @@ companyRouter.post('/companies', requireAuth, async (req: Request, res: Response
         is_saved: true, // Auto-save created companies
         saved_category: 'manual',
         acquisition_fit_score: 0, // Default
+        favicon_url: buildFaviconUrlFromWebsite(body.domain),
       })
       .select('*')
       .single();
