@@ -9,11 +9,11 @@ interface PipelineBacklogProps {
 }
 
 const STAGE_BADGES: Record<PipelineStage, { label: string; bg: string; text: string }> = {
-    new: { label: 'NEW', bg: 'bg-slate-200', text: 'text-slate-700' },
-    researching: { label: 'RESEARCHING', bg: 'bg-blue-100', text: 'text-blue-700' },
-    contacted: { label: 'CONTACTED', bg: 'bg-amber-100', text: 'text-amber-700' },
-    in_diligence: { label: 'IN DILIGENCE', bg: 'bg-purple-100', text: 'text-purple-700' },
-    closed: { label: 'DONE', bg: 'bg-green-500', text: 'text-white' },
+    new: { label: 'NEW', bg: 'bg-slate-100', text: 'text-slate-600' },
+    researching: { label: 'RESEARCHING', bg: 'bg-blue-50', text: 'text-blue-600' },
+    contacted: { label: 'CONTACTED', bg: 'bg-amber-50', text: 'text-amber-600' },
+    in_diligence: { label: 'IN DILIGENCE', bg: 'bg-purple-50', text: 'text-purple-600' },
+    closed: { label: 'CLOSED', bg: 'bg-green-50', text: 'text-green-600' },
 };
 
 export function PipelineBacklog({ pipeline, onCompanyClick, onDeleteCompany }: PipelineBacklogProps) {
@@ -101,7 +101,7 @@ function BacklogRow({ company, stage, onCompanyClick, onDeleteCompany, getScoreC
             {/* Checkbox area (visual only) */}
             <div className="w-5 h-5 rounded border border-slate-300 mr-3 flex items-center justify-center">
                 {stage === 'closed' && (
-                    <div className="w-3 h-3 rounded-sm bg-green-500" />
+                    <div className="w-3 h-3 rounded-sm bg-green-400" />
                 )}
             </div>
 

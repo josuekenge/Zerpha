@@ -29,6 +29,7 @@ import {
 import { PipelineDetailModal } from './PipelineDetailModal';
 import { PipelineSummary } from './PipelineSummary';
 import { PipelineBacklog } from './PipelineBacklog';
+import { PipelineDetailPanel } from './PipelineDetailPanel';
 import { cn } from '../lib/utils';
 
 type PipelineView = 'board' | 'summary' | 'backlog';
@@ -117,18 +118,46 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
         if (!over || !pipeline) return;
 
         const companyId = active.id as string;
-        const targetStageId = over.id as PipelineStage;
+        const overId = over.id as string;
 
-        // Find source stage
-        let sourceStage: PipelineStage | null = null;
-        for (const stage of pipeline.stages) {
-            if (stage.companies.some(c => c.id === companyId)) {
-                sourceStage = stage.id;
-                break;
+        // Helper to find which stage contains a given ID (could be stage ID or company ID)
+        const findStageForId = (id: string): PipelineStage | null => {
+            // First check if it's a stage ID
+            const validStages: PipelineStage[] = ['new', 'researching', 'contacted', 'in_diligence', 'closed'];
+            if (validStages.includes(id as PipelineStage)) {
+                return id as PipelineStage;
             }
+            // Otherwise, find which stage contains this company
+            for (const stage of pipeline.stages) {
+                if (stage.companies.some(c => c.id === id)) {
+                    return stage.id;
+                }
+            }
+            return null;
+        };
+
+        // Find source stage (where the dragged card came from)
+        const sourceStage = findStageForId(companyId);
+
+        // Find target stage (where we're dropping)
+        const targetStageId = findStageForId(overId);
+
+        console.log('[Pipeline DnD] Drag end:', {
+            companyId,
+            overId,
+            sourceStage,
+            targetStageId,
+        });
+
+        if (!sourceStage || !targetStageId) {
+            console.error('[Pipeline DnD] Could not determine source or target stage');
+            return;
         }
 
-        if (!sourceStage || sourceStage === targetStageId) return;
+        if (sourceStage === targetStageId) {
+            console.log('[Pipeline DnD] Same stage, no update needed');
+            return;
+        }
 
         // Optimistic update
         const previousPipeline = pipeline;
@@ -159,11 +188,18 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
             return { stages: newStages };
         });
 
-        // API call
+        // API call to persist the change
         try {
+            console.log('[Pipeline DnD] Calling API:', {
+                companyId,
+                pipelineStage: targetStageId,
+            });
+
             await updatePipelineCompany(companyId, { pipelineStage: targetStageId });
             setUpdateError(null);
+            console.log('[Pipeline DnD] API call successful');
         } catch (err) {
+            console.error('[Pipeline DnD] API call failed:', err);
             setPipeline(previousPipeline);
             setUpdateError('Failed to update stage. Please try again.');
             setTimeout(() => setUpdateError(null), 3000);
@@ -365,19 +401,45 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                 </div>
             )}
 
-            {/* Timeline View */}
+            {/* Backlog View with Side Panel */}
             {activeView === 'backlog' && (
-                <div className="flex-1 overflow-y-auto">
-                    <PipelineBacklog
-                        pipeline={pipeline}
-                        onCompanyClick={handleCardClick}
-                        onDeleteCompany={handleDeleteCompany}
-                    />
+                <div className="flex-1 flex overflow-hidden">
+                    {/* Backlog List */}
+                    <div className={cn(
+                        "flex-1 overflow-y-auto transition-all",
+                        selectedCompanyId ? "w-1/2" : "w-full"
+                    )}>
+                        <PipelineBacklog
+                            pipeline={pipeline}
+                            onCompanyClick={handleCardClick}
+                            onDeleteCompany={handleDeleteCompany}
+                        />
+                    </div>
+
+                    {/* Detail Panel - slides in from right */}
+                    {selectedCompanyId && (
+                        <div className="w-96 flex-shrink-0">
+                            <PipelineDetailPanel
+                                companyId={selectedCompanyId}
+                                onClose={handleModalClose}
+                                onUpdate={() => {
+                                    loadPipeline();
+                                    setSuccessToast('Updated');
+                                    setTimeout(() => setSuccessToast(null), 3000);
+                                }}
+                                onDelete={() => {
+                                    loadPipeline();
+                                    setSuccessToast('Company removed');
+                                    setTimeout(() => setSuccessToast(null), 3000);
+                                }}
+                            />
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Detail Modal */}
-            {selectedCompanyId && (
+            {/* Detail Modal - Only for Board and Summary views */}
+            {selectedCompanyId && activeView !== 'backlog' && (
                 <PipelineDetailModal
                     companyId={selectedCompanyId}
                     onClose={handleModalClose}
