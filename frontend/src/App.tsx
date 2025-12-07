@@ -19,7 +19,8 @@ import {
   MapPin,
   ExternalLink,
   Menu,
-  X
+  X,
+  TrendingUp
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -35,6 +36,7 @@ import { LoginPage } from './components/LoginPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoadingStats } from './components/LoadingStats';
 import { ChatWidget } from './components/ChatWidget';
+import { InsightsPage } from './components/InsightsPage';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
 import { useAuth, signOut } from './lib/auth';
@@ -51,7 +53,7 @@ import { Company, CompanyWithPeople, InfographicPage, Person, SavedCompany, Sear
 import { getAllPeople } from './api/people';
 import { cn } from './lib/utils';
 
-type WorkspaceView = 'search' | 'companies' | 'people' | 'history';
+type WorkspaceView = 'search' | 'companies' | 'insights' | 'people' | 'history';
 type FitFilter = 'all' | 'high' | 'medium' | 'low';
 
 const INDUSTRIES = [
@@ -1061,6 +1063,19 @@ export function WorkspaceApp() {
               </button>
 
               <button
+                onClick={() => handleNavigation('insights')}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                  activeView === 'insights'
+                    ? "bg-violet-100 text-indigo-700"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                )}
+              >
+                <TrendingUp className={cn("w-4 h-4", activeView === 'insights' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
+                Insights
+              </button>
+
+              <button
                 onClick={() => handleNavigation('people')}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
@@ -1753,6 +1768,20 @@ export function WorkspaceApp() {
                   )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeView === 'insights' && (
+            <div className="flex-1 overflow-hidden">
+              <InsightsPage
+                industryFilter={industryFilter}
+                locationFilter={locationFilter}
+                fitFilter={workspaceFitFilter}
+                onCompanyClick={(companyId) => {
+                  setSelectedWorkspaceCompanyId(companyId);
+                  setActiveView('companies');
+                }}
+              />
             </div>
           )}
 

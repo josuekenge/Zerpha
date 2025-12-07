@@ -172,4 +172,56 @@ export async function createCompany(params: CreateCompanyParams): Promise<SavedC
   return handleResponse<SavedCompany>(response, 'Failed to create company');
 }
 
+// Insights types
+export interface CompanyTarget {
+  id: string;
+  name: string;
+  domain: string;
+  industry: string;
+  fitScore: number;
+  digScore: number;
+}
 
+export interface IndustryBreakdown {
+  industry: string;
+  count: number;
+  averageFitScore: number;
+  averageDigScore: number;
+}
+
+export interface InsightsResponse {
+  totalCompanies: number;
+  averageFitScore: number | null;
+  averageDigScore: number | null;
+  byIndustry: IndustryBreakdown[];
+  topTargets: CompanyTarget[];
+  hiddenGems: CompanyTarget[];
+}
+
+export interface InsightsQuery {
+  minScore?: number;
+  maxScore?: number;
+  industry?: string;
+  location?: string;
+}
+
+export async function fetchInsights(params: InsightsQuery = {}): Promise<InsightsResponse> {
+  const baseUrl = buildApiUrl('/api/insights/companies');
+  const url = new URL(baseUrl, window.location.origin);
+
+  if (typeof params.minScore === 'number') {
+    url.searchParams.set('minScore', String(params.minScore));
+  }
+  if (typeof params.maxScore === 'number') {
+    url.searchParams.set('maxScore', String(params.maxScore));
+  }
+  if (params.industry && params.industry !== 'all') {
+    url.searchParams.set('industry', params.industry);
+  }
+  if (params.location) {
+    url.searchParams.set('location', params.location);
+  }
+
+  const response = await authenticatedFetch(url.toString());
+  return handleResponse<InsightsResponse>(response, 'Failed to load insights');
+}
