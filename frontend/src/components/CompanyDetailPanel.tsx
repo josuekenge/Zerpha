@@ -66,15 +66,16 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
 
   const score = company.acquisition_fit_score ?? null;
   let fitLabel = 'Low Fit';
-  let fitColor = 'bg-red-50 text-red-700 border-red-100';
+  // Premium enterprise color palette using inline styles
+  let fitStyle = { backgroundColor: '#FDEDED', color: '#B91C1C', borderColor: '#DC2626' };
 
   if (score !== null) {
-    if (score >= 8) {
+    if (score >= 7.5) {
       fitLabel = 'High Fit';
-      fitColor = 'bg-green-50 text-green-700 border-green-100';
+      fitStyle = { backgroundColor: '#E6F4F1', color: '#0F766E', borderColor: '#0D9488' };
     } else if (score >= 5) {
       fitLabel = 'Medium Fit';
-      fitColor = 'bg-yellow-50 text-yellow-700 border-yellow-100';
+      fitStyle = { backgroundColor: '#FFF7E6', color: '#B45309', borderColor: '#D97706' };
     }
   }
 
@@ -123,7 +124,14 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
           </div>
           <div className="flex gap-2">
             {score !== null && (
-              <span className={cn("inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border", fitColor)}>
+              <span
+                className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold"
+                style={{
+                  backgroundColor: fitStyle.backgroundColor,
+                  color: fitStyle.color,
+                  border: `1px solid ${fitStyle.borderColor}`
+                }}
+              >
                 {fitLabel} {score}
               </span>
             )}

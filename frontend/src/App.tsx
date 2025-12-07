@@ -1384,12 +1384,16 @@ export function WorkspaceApp() {
                                       </span>
                                     </td>
                                     <td className="py-3 px-4 text-right">
-                                      <span className={cn(
-                                        "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-                                        (company.acquisition_fit_score ?? 0) >= 8 ? "bg-green-100 text-green-800" :
-                                          (company.acquisition_fit_score ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
-                                            "bg-slate-100 text-slate-600"
-                                      )}>
+                                      <span
+                                        className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
+                                        style={(() => {
+                                          const s = company.acquisition_fit_score ?? 0;
+                                          if (s >= 7.5) return { backgroundColor: '#E6F4F1', color: '#0F766E', border: '1px solid #0D9488' };
+                                          if (s >= 5) return { backgroundColor: '#FFF7E6', color: '#B45309', border: '1px solid #D97706' };
+                                          if (s > 0) return { backgroundColor: '#FDEDED', color: '#B91C1C', border: '1px solid #DC2626' };
+                                          return { backgroundColor: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0' };
+                                        })()}
+                                      >
                                         {company.acquisition_fit_score ?? '-'}
                                       </span>
                                     </td>
@@ -1576,12 +1580,16 @@ export function WorkspaceApp() {
                               {/* Fit Score */}
                               <div className="flex items-center gap-2">
                                 <span className="text-xs text-slate-500">Score:</span>
-                                <span className={cn(
-                                  "inline-flex items-center px-2 py-1 rounded text-xs font-medium",
-                                  (company.fitScore ?? 0) >= 8 ? "bg-green-100 text-green-800" :
-                                    (company.fitScore ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
-                                      (company.fitScore ?? 0) > 0 ? "bg-red-100 text-red-800" : "text-slate-400"
-                                )}>
+                                <span
+                                  className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium"
+                                  style={(() => {
+                                    const s = company.fitScore ?? 0;
+                                    if (s >= 7.5) return { backgroundColor: '#E6F4F1', color: '#0F766E', border: '1px solid #0D9488' };
+                                    if (s >= 5) return { backgroundColor: '#FFF7E6', color: '#B45309', border: '1px solid #D97706' };
+                                    if (s > 0) return { backgroundColor: '#FDEDED', color: '#B91C1C', border: '1px solid #DC2626' };
+                                    return { backgroundColor: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0' };
+                                  })()}
+                                >
                                   {company.fitScore ?? '—'}
                                 </span>
                               </div>
@@ -1660,12 +1668,16 @@ export function WorkspaceApp() {
                                 </a>
                               </td>
                               <td className="py-3 pr-4 text-right font-medium hidden md:table-cell">
-                                <span className={cn(
-                                  "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-                                  (company.fitScore ?? 0) >= 8 ? "bg-green-100 text-green-800" :
-                                    (company.fitScore ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
-                                      (company.fitScore ?? 0) > 0 ? "bg-red-100 text-red-800" : "text-slate-400"
-                                )}>
+                                <span
+                                  className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
+                                  style={(() => {
+                                    const s = company.fitScore ?? 0;
+                                    if (s >= 7.5) return { backgroundColor: '#E6F4F1', color: '#0F766E', border: '1px solid #0D9488' };
+                                    if (s >= 5) return { backgroundColor: '#FFF7E6', color: '#B45309', border: '1px solid #D97706' };
+                                    if (s > 0) return { backgroundColor: '#FDEDED', color: '#B91C1C', border: '1px solid #DC2626' };
+                                    return { backgroundColor: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0' };
+                                  })()}
+                                >
                                   {company.fitScore ?? '—'}
                                 </span>
                               </td>
@@ -1810,12 +1822,16 @@ export function WorkspaceApp() {
                                     </div>
                                   </td>
                                   <td className="py-3 px-4 text-right">
-                                    <span className={cn(
-                                      "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-                                      (company.acquisition_fit_score ?? 0) >= 8 ? "bg-green-100 text-green-800" :
-                                        (company.acquisition_fit_score ?? 0) >= 5 ? "bg-yellow-100 text-yellow-800" :
-                                          "bg-slate-100 text-slate-600"
-                                    )}>
+                                    <span
+                                      className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
+                                      style={(() => {
+                                        const s = company.acquisition_fit_score ?? 0;
+                                        if (s >= 7.5) return { backgroundColor: '#E6F4F1', color: '#0F766E', border: '1px solid #0D9488' };
+                                        if (s >= 5) return { backgroundColor: '#FFF7E6', color: '#B45309', border: '1px solid #D97706' };
+                                        if (s > 0) return { backgroundColor: '#FDEDED', color: '#B91C1C', border: '1px solid #DC2626' };
+                                        return { backgroundColor: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0' };
+                                      })()}
+                                    >
                                       {company.acquisition_fit_score ?? '-'}
                                     </span>
                                   </td>
@@ -2081,7 +2097,10 @@ export function WorkspaceApp() {
                                 )}
                               >
                                 <td className="py-3 px-4 text-slate-600">
-                                  {person.company_name || '—'}
+                                  <div className="flex items-center gap-2">
+                                    <CompanyAvatar name={person.company_name || '?'} website={person.company_website} size={20} />
+                                    <span className="truncate max-w-[150px]">{person.company_name || '—'}</span>
+                                  </div>
                                 </td>
                                 <td className="py-3 px-4">
                                   {person.email ? (
@@ -2228,7 +2247,7 @@ export function WorkspaceApp() {
                               </div>
                               <div className="p-4">
                                 <div className="flex items-center gap-3">
-                                  <Building2 className="w-4 h-4 text-slate-400" />
+                                  <CompanyAvatar name={selectedPerson.company_name || '?'} website={selectedPerson.company_website} size={32} />
                                   <div>
                                     <p className="text-sm font-medium text-slate-900">{selectedPerson.company_name}</p>
                                     {selectedPerson.company_website && (

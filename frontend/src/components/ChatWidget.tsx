@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Sparkles, Bot, Loader2, Paperclip, File as FileIcon } from 'lucide-react';
+import { MessageSquare, X, Send, Sparkles, Loader2, Paperclip, File as FileIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 
@@ -283,10 +283,10 @@ function ChatInterface({
             )}>
                 <div className="flex items-center gap-3">
                     <div className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center backdrop-blur-sm",
-                        mode === 'embedded' ? "bg-indigo-50" : "bg-white/20"
+                        "w-8 h-8 rounded-lg flex items-center justify-center backdrop-blur-sm font-bold text-lg",
+                        mode === 'embedded' ? "bg-indigo-50 text-indigo-600" : "bg-white/20 text-white"
                     )}>
-                        <Bot className={cn("w-5 h-5", mode === 'embedded' ? "text-indigo-600" : "text-white")} />
+                        Z
                     </div>
                     <div>
                         <h3 className={cn("font-semibold text-sm", mode === 'embedded' ? "text-slate-900" : "text-white")}>Zerpha Assistant</h3>

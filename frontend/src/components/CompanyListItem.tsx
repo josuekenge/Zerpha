@@ -11,15 +11,32 @@ interface CompanyListItemProps {
 }
 
 function FitBadge({ score }: { score: number | null }) {
-  if (score === null) return <span className="text-xs font-medium text-muted bg-background px-2 py-1 rounded">Fit N/A</span>;
+  if (score === null) return <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md border border-slate-200">Fit N/A</span>;
 
-  let colorClass = 'bg-background text-muted border-border';
-  if (score >= 8) colorClass = 'bg-success/10 text-success border-success/20';
-  else if (score >= 5) colorClass = 'bg-warning/10 text-warning border-warning/20';
-  else colorClass = 'bg-danger/10 text-danger border-danger/20';
+  // Premium enterprise color palette
+  let bgColor = '#FDEDED';
+  let textColor = '#B91C1C';
+  let borderColor = '#DC2626';
+
+  if (score >= 7.5) {
+    bgColor = '#E6F4F1';
+    textColor = '#0F766E';
+    borderColor = '#0D9488';
+  } else if (score >= 5) {
+    bgColor = '#FFF7E6';
+    textColor = '#B45309';
+    borderColor = '#D97706';
+  }
 
   return (
-    <span className={cn("text-xs font-bold px-2 py-0.5 rounded-full border", colorClass)}>
+    <span
+      className="text-xs font-bold px-2 py-0.5 rounded-md"
+      style={{
+        backgroundColor: bgColor,
+        color: textColor,
+        border: `1px solid ${borderColor}`
+      }}
+    >
       Fit {score}/10
     </span>
   );
