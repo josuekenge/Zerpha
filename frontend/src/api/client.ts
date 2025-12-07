@@ -237,6 +237,17 @@ export interface PipelineCompany {
   fitScore: number | null;
   digScore: number | null;
   faviconUrl: string | null;
+  notesTitle: string | null;
+  notes: string | null;
+  notesUpdatedAt: string | null;
+}
+
+export interface PipelineCompanyDetail extends PipelineCompany {
+  website: string | null;
+  summary: string | null;
+  headquarters: string | null;
+  headcount: string | null;
+  pipelineStage: PipelineStage;
 }
 
 export interface PipelineStageData {
@@ -254,16 +265,24 @@ export async function fetchPipeline(): Promise<PipelineResponse> {
   return handleResponse<PipelineResponse>(response, 'Failed to load pipeline');
 }
 
-export async function updatePipelineStage(
+export async function fetchPipelineCompany(companyId: string): Promise<PipelineCompanyDetail> {
+  const response = await authenticatedFetch(buildApiUrl(`/api/pipeline/${companyId}`));
+  return handleResponse<PipelineCompanyDetail>(response, 'Failed to load company detail');
+}
+
+export interface UpdatePipelineParams {
+  pipelineStage?: PipelineStage | null;
+  notesTitle?: string | null;
+  notes?: string | null;
+}
+
+export async function updatePipelineCompany(
   companyId: string,
-  pipelineStage: PipelineStage | null
-): Promise<{ id: string; pipelineStage: string | null }> {
+  params: UpdatePipelineParams
+): Promise<{ id: string; pipelineStage: string | null; notesTitle: string | null; notes: string | null; notesUpdatedAt: string | null }> {
   const response = await authenticatedFetch(buildApiUrl(`/api/pipeline/${companyId}`), {
     method: 'PATCH',
-    body: JSON.stringify({ pipelineStage }),
+    body: JSON.stringify(params),
   });
-  return handleResponse<{ id: string; pipelineStage: string | null }>(
-    response,
-    'Failed to update pipeline stage'
-  );
+  return handleResponse(response, 'Failed to update pipeline');
 }

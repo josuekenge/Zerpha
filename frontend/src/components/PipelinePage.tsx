@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Loader2, AlertCircle, GripVertical, ExternalLink } from 'lucide-react';
+import { Loader2, AlertCircle, GripVertical, ExternalLink, FileText } from 'lucide-react';
 import {
     DndContext,
     DragOverlay,
@@ -10,6 +10,7 @@ import {
     useSensors,
     DragStartEvent,
     DragEndEvent,
+    useDroppable,
 } from '@dnd-kit/core';
 import {
     SortableContext,
@@ -19,28 +20,20 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
     fetchPipeline,
-    updatePipelineStage,
+    updatePipelineCompany,
     PipelineResponse,
     PipelineCompany,
     PipelineStage,
     PipelineStageData
 } from '../api/client';
+import { PipelineDetailModal } from './PipelineDetailModal';
 import { cn } from '../lib/utils';
 
 interface PipelinePageProps {
     onCompanyClick?: (companyId: string) => void;
 }
 
-// Stage background colors
-const STAGE_COLORS: Record<PipelineStage, string> = {
-    new: 'bg-slate-100 border-slate-200',
-    researching: 'bg-blue-50 border-blue-200',
-    contacted: 'bg-amber-50 border-amber-200',
-    in_diligence: 'bg-purple-50 border-purple-200',
-    closed: 'bg-green-50 border-green-200',
-};
-
-// Header badge colors
+// Header badge colors only - columns are white
 const STAGE_BADGE_COLORS: Record<PipelineStage, string> = {
     new: 'bg-slate-500',
     researching: 'bg-blue-500',
@@ -55,6 +48,7 @@ export function PipelinePage({ onCompanyClick }: PipelinePageProps) {
     const [error, setError] = useState<string | null>(null);
     const [activeCard, setActiveCard] = useState<PipelineCompany | null>(null);
     const [updateError, setUpdateError] = useState<string | null>(null);
+    const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -81,7 +75,6 @@ export function PipelinePage({ onCompanyClick }: PipelinePageProps) {
         const { active } = event;
         if (!pipeline) return;
 
-        // Find the company being dragged
         for (const stage of pipeline.stages) {
             const company = stage.companies.find(c => c.id === active.id);
             if (company) {
@@ -142,14 +135,25 @@ export function PipelinePage({ onCompanyClick }: PipelinePageProps) {
 
         // API call
         try {
-            await updatePipelineStage(companyId, targetStageId);
+            await updatePipelineCompany(companyId, { pipelineStage: targetStageId });
             setUpdateError(null);
         } catch (err) {
-            // Revert on error
             setPipeline(previousPipeline);
             setUpdateError('Failed to update stage. Please try again.');
             setTimeout(() => setUpdateError(null), 3000);
         }
+    };
+
+    const handleCardClick = (companyId: string) => {
+        setSelectedCompanyId(companyId);
+    };
+
+    const handleModalClose = () => {
+        setSelectedCompanyId(null);
+    };
+
+    const handleModalUpdate = () => {
+        loadPipeline();
     };
 
     if (loading) {
@@ -196,7 +200,7 @@ export function PipelinePage({ onCompanyClick }: PipelinePageProps) {
     }
 
     return (
-        <div className="h-full flex flex-col overflow-hidden p-6">
+        <div className="h-full flex flex-col overflow-hidden p-6 bg-slate-50">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
@@ -224,7 +228,7 @@ export function PipelinePage({ onCompanyClick }: PipelinePageProps) {
                         <PipelineColumn
                             key={stage.id}
                             stage={stage}
-                            onCompanyClick={onCompanyClick}
+                            onCompanyClick={handleCardClick}
                         />
                     ))}
                 </div>
@@ -233,6 +237,15 @@ export function PipelinePage({ onCompanyClick }: PipelinePageProps) {
                     {activeCard && <PipelineCard company={activeCard} isDragging />}
                 </DragOverlay>
             </DndContext>
+
+            {/* Detail Modal */}
+            {selectedCompanyId && (
+                <PipelineDetailModal
+                    companyId={selectedCompanyId}
+                    onClose={handleModalClose}
+                    onUpdate={handleModalUpdate}
+                />
+            )}
         </div>
     );
 }
@@ -244,19 +257,19 @@ interface PipelineColumnProps {
 }
 
 function PipelineColumn({ stage, onCompanyClick }: PipelineColumnProps) {
+    const { setNodeRef } = useDroppable({ id: stage.id });
+
     return (
         <div
-            className={cn(
-                "flex-shrink-0 w-72 flex flex-col rounded-xl border",
-                STAGE_COLORS[stage.id]
-            )}
+            ref={setNodeRef}
+            className="flex-shrink-0 w-72 flex flex-col rounded-xl border border-slate-200 bg-white"
         >
             {/* Column Header */}
-            <div className="p-3 border-b border-inherit">
+            <div className="p-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                     <span className={cn("w-2 h-2 rounded-full", STAGE_BADGE_COLORS[stage.id])} />
                     <h3 className="font-semibold text-sm text-slate-800">{stage.label}</h3>
-                    <span className="ml-auto text-xs font-medium text-slate-500 bg-white/60 px-2 py-0.5 rounded-full">
+                    <span className="ml-auto text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
                         {stage.companies.length}
                     </span>
                 </div>
@@ -337,16 +350,17 @@ function PipelineCard({ company, isDragging, onCompanyClick }: PipelineCardProps
         return 'text-red-700 bg-red-100';
     };
 
+    const hasNotes = company.notes || company.notesTitle;
+
     return (
         <div
             className={cn(
-                "bg-white rounded-lg border border-slate-200 p-3 shadow-sm cursor-grab active:cursor-grabbing",
+                "bg-white rounded-lg border border-slate-200 p-3 shadow-sm cursor-grab active:cursor-grabbing hover:border-slate-300 hover:shadow transition-all",
                 isDragging && "shadow-lg ring-2 ring-indigo-500"
             )}
             onClick={() => onCompanyClick?.(company.id)}
         >
             <div className="flex items-start gap-2">
-                {/* Favicon */}
                 {company.faviconUrl ? (
                     <img
                         src={company.faviconUrl}
@@ -377,6 +391,10 @@ function PipelineCard({ company, isDragging, onCompanyClick }: PipelineCardProps
                         <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                 </div>
+
+                {hasNotes && (
+                    <FileText className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                )}
             </div>
 
             <div className="mt-2 flex items-center justify-between">
@@ -385,7 +403,7 @@ function PipelineCard({ company, isDragging, onCompanyClick }: PipelineCardProps
                 )}
                 <span
                     className={cn(
-                        "text-xs font-medium px-1.5 py-0.5 rounded",
+                        "text-xs font-medium px-1.5 py-0.5 rounded ml-auto",
                         getScoreColor(company.fitScore)
                     )}
                 >
@@ -395,3 +413,4 @@ function PipelineCard({ company, isDragging, onCompanyClick }: PipelineCardProps
         </div>
     );
 }
+

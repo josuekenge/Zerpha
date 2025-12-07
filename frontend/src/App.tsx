@@ -1065,6 +1065,19 @@ export function WorkspaceApp() {
               </button>
 
               <button
+                onClick={() => handleNavigation('people')}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                  activeView === 'people'
+                    ? "bg-violet-100 text-indigo-700"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                )}
+              >
+                <Users className={cn("w-4 h-4", activeView === 'people' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
+                People
+              </button>
+
+              <button
                 onClick={() => handleNavigation('insights')}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
@@ -1088,19 +1101,6 @@ export function WorkspaceApp() {
               >
                 <Kanban className={cn("w-4 h-4", activeView === 'pipeline' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
                 Pipeline
-              </button>
-
-              <button
-                onClick={() => handleNavigation('people')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
-                  activeView === 'people'
-                    ? "bg-violet-100 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                )}
-              >
-                <Users className={cn("w-4 h-4", activeView === 'people' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
-                People
               </button>
 
               <button
