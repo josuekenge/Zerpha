@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2, ExternalLink, ChevronDown, Check, Clock, Users, Mail, Linkedin } from 'lucide-react';
+import { X, Loader2, ExternalLink, ChevronDown, Check, Clock, Users, Mail, Linkedin, Trash2 } from 'lucide-react';
 import {
     fetchPipelineCompany,
     updatePipelineCompany,
@@ -22,9 +22,10 @@ interface PipelineDetailModalProps {
     companyId: string;
     onClose: () => void;
     onUpdate: () => void;
+    onDelete?: () => void;
 }
 
-export function PipelineDetailModal({ companyId, onClose, onUpdate }: PipelineDetailModalProps) {
+export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: PipelineDetailModalProps) {
     const [company, setCompany] = useState<PipelineCompanyDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -83,6 +84,21 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate }: PipelineDe
             onUpdate();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to save');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm('Remove this company from your pipeline?')) return;
+
+        setSaving(true);
+        try {
+            await updatePipelineCompany(companyId, { pipelineStage: null });
+            onDelete?.();
+            onClose();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to remove');
         } finally {
             setSaving(false);
         }
@@ -286,8 +302,18 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate }: PipelineDe
 
                 {/* Footer */}
                 <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-slate-50">
-                    <div className="text-xs text-slate-400">
-                        {hasChanges && 'Unsaved changes'}
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleDelete}
+                            disabled={saving}
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            Remove
+                        </button>
+                        {hasChanges && (
+                            <span className="text-xs text-slate-400">Unsaved changes</span>
+                        )}
                     </div>
                     <div className="flex items-center gap-3">
                         <button

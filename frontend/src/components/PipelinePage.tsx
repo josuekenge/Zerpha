@@ -28,10 +28,10 @@ import {
 } from '../api/client';
 import { PipelineDetailModal } from './PipelineDetailModal';
 import { PipelineSummary } from './PipelineSummary';
-import { PipelineTimeline } from './PipelineTimeline';
+import { PipelineBacklog } from './PipelineBacklog';
 import { cn } from '../lib/utils';
 
-type PipelineView = 'board' | 'summary' | 'timeline';
+type PipelineView = 'board' | 'summary' | 'backlog';
 
 interface PipelinePageProps {
     onCompanyClick?: (companyId: string) => void;
@@ -189,6 +189,20 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
         setTimeout(() => setSuccessToast(null), 3000);
     };
 
+    const handleDeleteCompany = async (companyId: string) => {
+        if (!window.confirm('Remove this company from your pipeline?')) return;
+
+        try {
+            await updatePipelineCompany(companyId, { pipelineStage: null });
+            loadPipeline();
+            setSuccessToast('Company removed from pipeline');
+            setTimeout(() => setSuccessToast(null), 3000);
+        } catch (err) {
+            setUpdateError('Failed to remove company');
+            setTimeout(() => setUpdateError(null), 3000);
+        }
+    };
+
     if (loading) {
         return (
             <div className="h-full flex items-center justify-center">
@@ -240,6 +254,29 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                     <h1 className="text-xl font-bold text-slate-900">Pipeline</h1>
                     <p className="text-sm text-slate-500">{totalCompanies} companies in your pipeline</p>
                 </div>
+            </div>
+
+            {/* Search Bar + View Toggle */}
+            <div className="flex items-center gap-4 mb-4">
+                <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                        type="text"
+                        placeholder="Search companies, notes..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
+
                 {/* View Toggle */}
                 <div className="flex bg-white rounded-lg border border-slate-200 p-1">
                     <button
@@ -267,39 +304,17 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                         Summary
                     </button>
                     <button
-                        onClick={() => setActiveView('timeline')}
+                        onClick={() => setActiveView('backlog')}
                         className={cn(
                             "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                            activeView === 'timeline'
+                            activeView === 'backlog'
                                 ? "bg-indigo-100 text-indigo-700"
                                 : "text-slate-600 hover:text-slate-900"
                         )}
                     >
                         <Calendar className="w-4 h-4" />
-                        Timeline
+                        Backlog
                     </button>
-                </div>
-            </div>
-
-            {/* Search Bar */}
-            <div className="mb-4">
-                <div className="relative max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Search companies, notes..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                    {searchQuery && (
-                        <button
-                            onClick={() => setSearchQuery('')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
-                        >
-                            Clear
-                        </button>
-                    )}
                 </div>
             </div>
 
@@ -351,9 +366,13 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
             )}
 
             {/* Timeline View */}
-            {activeView === 'timeline' && (
+            {activeView === 'backlog' && (
                 <div className="flex-1 overflow-y-auto">
-                    <PipelineTimeline pipeline={pipeline} onCompanyClick={handleCardClick} />
+                    <PipelineBacklog
+                        pipeline={pipeline}
+                        onCompanyClick={handleCardClick}
+                        onDeleteCompany={handleDeleteCompany}
+                    />
                 </div>
             )}
 
@@ -363,6 +382,11 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                     companyId={selectedCompanyId}
                     onClose={handleModalClose}
                     onUpdate={handleModalUpdate}
+                    onDelete={() => {
+                        loadPipeline();
+                        setSuccessToast('Company removed from pipeline');
+                        setTimeout(() => setSuccessToast(null), 3000);
+                    }}
                 />
             )}
         </div>
