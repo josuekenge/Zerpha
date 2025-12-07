@@ -42,7 +42,7 @@ const STAGE_BADGE_COLORS: Record<PipelineStage, string> = {
     closed: 'bg-green-500',
 };
 
-export function PipelinePage({ onCompanyClick }: PipelinePageProps) {
+export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePageProps) {
     const [pipeline, setPipeline] = useState<PipelineResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
