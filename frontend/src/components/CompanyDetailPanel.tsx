@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { exportInfographic } from '../api/client';
 import { getPeopleByCompanyId } from '../api/people';
 import { CompanyAvatar } from './CompanyAvatar';
+import { FitScoreBar } from './FitScoreBar';
 
 interface CompanyDetailPanelProps {
   company: Company;
@@ -65,19 +66,6 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
   }, [company.id]);
 
   const score = company.acquisition_fit_score ?? null;
-  let fitLabel = 'Low';
-  // Premium gradient pill styling by score tier
-  let gradientClass = 'bg-gradient-to-r from-[#FCA5A5] to-[#B91C1C]'; // Low (default)
-
-  if (score !== null) {
-    if (score >= 7.5) {
-      fitLabel = 'High';
-      gradientClass = 'bg-gradient-to-r from-[#2DD4BF] to-[#0F766E]';
-    } else if (score >= 5) {
-      fitLabel = 'Medium';
-      gradientClass = 'bg-gradient-to-r from-[#FCD34D] to-[#B45309]';
-    }
-  }
 
   const renderTechStack = (stack: unknown) => {
     if (Array.isArray(stack)) {
@@ -122,12 +110,11 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
               </a>
             </div>
           </div>
-          <div className="flex gap-2">
-            {score !== null && (
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white shadow-sm ${gradientClass}`}>
-                {fitLabel} {score}
-              </span>
-            )}
+          <div className="flex items-center gap-3">
+            {/* Fit Score Bar */}
+            <div className="min-w-[120px]">
+              <FitScoreBar score={score} showLabel />
+            </div>
             <button
               onClick={handleExport}
               disabled={isExporting}
@@ -158,7 +145,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
           <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-3 flex items-center gap-2">
             <Target className="w-4 h-4 text-slate-400" /> Acquisition Fit
           </h3>
-          <div className="text-base text-slate-600 leading-relaxed space-y-4">
+          <div className="text-base text-slate-600 leading-relaxed border border-slate-100 rounded-lg p-4 bg-slate-50/50">
             <p>
               {raw_json.acquisition_fit_reason || 'No detailed fit analysis provided.'}
             </p>
