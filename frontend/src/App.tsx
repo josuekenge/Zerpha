@@ -1371,7 +1371,7 @@ export function WorkspaceApp() {
                                   >
                                     <td className="py-3 px-4">
                                       <div className="flex items-center gap-2">
-                                        <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} size={24} />
+                                        <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.website} size={24} />
                                         <div>
                                           <div className="font-medium text-slate-900">{company.name}</div>
                                           <div className="text-xs text-slate-500">{company.website}</div>
@@ -1547,7 +1547,7 @@ export function WorkspaceApp() {
 
                             {/* Company Name */}
                             <div className="flex items-center gap-2 mb-2 pr-8">
-                              <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} size={28} />
+                              <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.domain} size={28} />
                               <h3 className="font-semibold text-slate-900 truncate text-base">
                                 {company.name}
                               </h3>
@@ -1644,7 +1644,7 @@ export function WorkspaceApp() {
                               </td>
                               <td className="py-3 pr-4 font-medium text-slate-900">
                                 <div className="flex items-center gap-2">
-                                  <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} size={20} />
+                                  <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.domain} size={20} />
                                   <div className="truncate max-w-[160px]">{company.name}</div>
                                 </div>
                               </td>
@@ -1802,7 +1802,7 @@ export function WorkspaceApp() {
                                 >
                                   <td className="py-3 px-4">
                                     <div className="flex items-center gap-2">
-                                      <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} size={24} />
+                                      <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.website} size={24} />
                                       <div>
                                         <div className="font-medium text-slate-900">{company.name}</div>
                                         <div className="text-xs text-slate-500 truncate max-w-[200px]">{company.website}</div>

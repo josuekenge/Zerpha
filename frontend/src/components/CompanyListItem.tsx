@@ -49,6 +49,7 @@ export function CompanyListItem({
           <CompanyAvatar
             name={company.name}
             faviconUrl={company.favicon_url}
+            website={company.website}
             size={32}
           />
           <div className="min-w-0">

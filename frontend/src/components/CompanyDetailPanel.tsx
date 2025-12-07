@@ -105,6 +105,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
             <CompanyAvatar
               name={company.name}
               faviconUrl={company.favicon_url}
+              website={company.website}
               size={40}
             />
             <div>

@@ -3,20 +3,39 @@ import { useState } from 'react';
 interface CompanyAvatarProps {
     name: string;
     faviconUrl?: string | null;
+    /** Website URL or domain (e.g., "https://example.com" or "example.com") - used to generate favicon if faviconUrl is missing */
+    website?: string | null;
     size?: number;
     className?: string;
 }
 
 /**
+ * Build a favicon URL from a website domain using Google's favicon service.
+ * This is used as a fallback when favicon_url is not provided by the backend.
+ */
+function buildFaviconUrl(website: string): string | null {
+    try {
+        const normalizedUrl = website.startsWith('http') ? website : `https://${website}`;
+        const url = new URL(normalizedUrl);
+        const hostname = url.hostname;
+        if (!hostname) return null;
+        return `https://www.google.com/s2/favicons?sz=64&domain_url=${hostname}`;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * CompanyAvatar - Displays a company's favicon or a letter fallback
  * 
- * Uses the company's favicon_url if available. Falls back to a circular
- * avatar with the first letter of the company name if the favicon fails
- * to load or is not provided.
+ * Uses the company's favicon_url if available. If not available but website is provided,
+ * generates a favicon URL using Google's favicon service. Falls back to a circular
+ * avatar with the first letter of the company name if all else fails.
  */
 export function CompanyAvatar({
     name,
     faviconUrl,
+    website,
     size = 24,
     className = '',
 }: CompanyAvatarProps) {
@@ -25,27 +44,13 @@ export function CompanyAvatar({
     // Get the first letter of the company name for fallback
     const initial = name.charAt(0).toUpperCase() || '?';
 
-    // Generate a consistent background color based on the company name
-    const getBackgroundColor = (name: string): string => {
-        const colors = [
-            'bg-indigo-100 text-indigo-600',
-            'bg-purple-100 text-purple-600',
-            'bg-blue-100 text-blue-600',
-            'bg-emerald-100 text-emerald-600',
-            'bg-amber-100 text-amber-600',
-            'bg-rose-100 text-rose-600',
-            'bg-cyan-100 text-cyan-600',
-            'bg-teal-100 text-teal-600',
-        ];
-        // Simple hash based on name to get consistent color
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) {
-            hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return colors[Math.abs(hash) % colors.length];
-    };
+    // Determine the actual favicon URL to use:
+    // 1. Use provided faviconUrl if available
+    // 2. Generate from website if available
+    // 3. Fall back to null (will show letter avatar)
+    const effectiveFaviconUrl = faviconUrl || (website ? buildFaviconUrl(website) : null);
 
-    const showFallback = !faviconUrl || hasError;
+    const showFallback = !effectiveFaviconUrl || hasError;
 
     // Common styles for both image and fallback
     const containerStyle = {
@@ -61,7 +66,7 @@ export function CompanyAvatar({
 
         return (
             <div
-                className={`rounded-full flex items-center justify-center font-semibold ${getBackgroundColor(name)} ${className}`}
+                className={`rounded-full flex items-center justify-center font-semibold bg-indigo-100 text-indigo-600 ${className}`}
                 style={{ ...containerStyle, fontSize }}
                 title={name}
             >
@@ -72,7 +77,7 @@ export function CompanyAvatar({
 
     return (
         <img
-            src={faviconUrl}
+            src={effectiveFaviconUrl}
             alt={name}
             className={`rounded-full object-cover bg-slate-100 ${className}`}
             style={containerStyle}
