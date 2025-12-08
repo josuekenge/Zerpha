@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { InfographicPage } from '../types';
+import { Company, InfographicPage, SavedCompany } from '../types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -14,6 +14,82 @@ export function formatDomain(url?: string | null): string {
     .replace(/^https?:\/\/(www\.)?/i, '')
     .replace(/\/$/, '')
     .trim() || '—';
+}
+
+/**
+ * Format a date string for display
+ */
+export function formatDate(value?: string | null): string {
+  if (!value) return '—';
+  try {
+    return new Date(value).toLocaleDateString();
+  } catch {
+    return value;
+  }
+}
+
+/**
+ * Normalize a domain/URL to have https:// prefix
+ */
+export function normalizeWebsite(domain: string): string {
+  if (!domain) return '';
+  return /^https?:\/\//i.test(domain) ? domain : `https://${domain}`;
+}
+
+/**
+ * Check if a company matches the selected industry filter.
+ */
+export function matchesIndustry(
+  companyIndustry: string | null | undefined,
+  selectedIndustry: string
+): boolean {
+  // "all" means show everything
+  if (selectedIndustry === 'all') {
+    return true;
+  }
+
+  // If company has no industry, it only shows when "all" is selected
+  if (!companyIndustry || typeof companyIndustry !== 'string') {
+    return false;
+  }
+
+  const companyValue = companyIndustry.trim().toLowerCase();
+  const filterValue = selectedIndustry.toLowerCase();
+
+  // Direct match (case-insensitive)
+  if (companyValue === filterValue) {
+    return true;
+  }
+
+  // Handle common variations
+  const normalize = (s: string): string => {
+    return s
+      .replace(/[-_]/g, ' ')  // Replace dashes/underscores with spaces
+      .replace(/\s+/g, '')    // Remove all spaces
+      .toLowerCase();
+  };
+
+  return normalize(companyValue) === normalize(filterValue);
+}
+
+/**
+ * Convert a SavedCompany to a Company type
+ */
+export function savedCompanyToCompany(saved: SavedCompany): Company {
+  return {
+    id: saved.id,
+    name: saved.name,
+    website: normalizeWebsite(saved.domain),
+    vertical_query: saved.category,
+    acquisition_fit_score: saved.fitScore ?? null,
+    summary: saved.summary,
+    raw_json: saved.raw_json ?? {},
+    is_saved: saved.is_saved,
+    saved_category: saved.saved_category,
+    created_at: saved.created_at ?? undefined,
+    primary_industry: saved.primary_industry,
+    secondary_industry: saved.secondary_industry,
+  };
 }
 
 export function downloadInfographicPdf(data: InfographicPage) {
@@ -43,11 +119,11 @@ export function downloadInfographicPdf(data: InfographicPage) {
         <h2>Key Metrics</h2>
         <div class="metrics">
           ${data.key_metrics
-            .map(
-              (metric) =>
-                `<div class="metric"><div class="muted">${metric.label}</div><strong>${metric.value}</strong></div>`,
-            )
-            .join('')}
+      .map(
+        (metric) =>
+          `<div class="metric"><div class="muted">${metric.label}</div><strong>${metric.value}</strong></div>`,
+      )
+      .join('')}
         </div>
         <h2>Strategic Analysis</h2>
         <ul>
@@ -63,3 +139,4 @@ export function downloadInfographicPdf(data: InfographicPage) {
   printWindow.print();
   printWindow.close();
 }
+

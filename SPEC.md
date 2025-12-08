@@ -334,3 +334,211 @@ Run these checks:
 - [ ] Set `VITE_SUPABASE_ANON_KEY` in Netlify
 - [ ] Verify build command: `npm run build`
 - [ ] Verify publish directory: `dist`
+
+---
+
+# 12. Feature Implementations (Updated 2025-12-07)
+
+## 12.1 Pipeline Management System
+
+### Overview
+Full-featured deal pipeline with Kanban board, backlog view, and summary dashboard for tracking acquisition targets through stages.
+
+### Pipeline Stages
+- **NEW** → **RESEARCHING** → **CONTACTED** → **IN DILIGENCE** → **CLOSED**
+
+### Components
+| Component | File | Description |
+|-----------|------|-------------|
+| PipelinePage | `frontend/src/components/PipelinePage.tsx` | Main pipeline view with Board/Summary/Backlog tabs, drag-and-drop Kanban |
+| PipelineBacklog | `frontend/src/components/PipelineBacklog.tsx` | Linear list view of all pipeline companies with stage badges |
+| PipelineSummary | `frontend/src/components/PipelineSummary.tsx` | Pipeline analytics and closed deals display |
+| PipelineDetailPanel | `frontend/src/components/PipelineDetailPanel.tsx` | Jira-style side panel for backlog with inline editing |
+| PipelineDetailModal | `frontend/src/components/PipelineDetailModal.tsx` | Full detail modal for board/summary views |
+
+### Features Implemented
+- **Drag-and-Drop:** DND-Kit integration for moving companies between stages
+- **Notes System:** Per-company notes with title, body, and timestamp (`notes`, `notes_title`, `notes_updated_at`)
+- **Stage Dropdown:** Quick stage changes from detail panels
+- **Delete Functionality:** Remove companies from pipeline with confirmation
+- **Key Contacts:** Displays people associated with each pipeline company
+
+### Database Migrations Required
+```sql
+-- supabase/migrations/0009_add_pipeline_stage.sql
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS pipeline_stage text;
+
+-- supabase/migrations/0010_add_pipeline_notes.sql  
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS notes text;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS notes_title text;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS notes_updated_at timestamptz;
+```
+
+### API Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/pipeline` | Fetch all pipeline companies grouped by stage |
+| GET | `/api/pipeline/:companyId` | Fetch single pipeline company detail |
+| PATCH | `/api/pipeline/:companyId` | Update stage, notes, or remove from pipeline |
+
+---
+
+## 12.2 People/Contacts Management
+
+### Overview
+Contact database scraped from Apify with email discovery, role detection, and company association.
+
+### PeoplePage Component (`frontend/src/components/PeoplePage.tsx`)
+Enhanced contacts table with:
+
+**Columns Displayed:**
+- NAME (full_name) - with CEO/Founder/Executive badges
+- ROLE - job title
+- SENIORITY - C-Level, VP, Director, Manager, Other
+- DEPARTMENT - Engineering, Sales, Marketing, Finance, HR, Operations
+- EMAIL - clickable mailto links
+- LINKEDIN - clickable icon linking to profile
+- CONFIDENCE SCORE - percentage badge (green/yellow/red)
+- SOURCE - data origin (apify, manual, etc.)
+
+**Filtering:**
+- Seniority filter (C-Level, VP, Director, Manager)
+- Department filter (Engineering, Sales, Marketing, Finance, HR, Operations)
+- Full-text search (name, email, role, company)
+
+**Special Features:**
+- Unverified Contacts section at bottom (null `full_name`)
+- Default sorting by confidence_score DESC
+- Delete functionality per contact
+
+### People Database Schema
+```typescript
+interface Person {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  role: string | null;
+  seniority: 'C-Level' | 'VP' | 'Director' | 'Manager' | 'Other' | null;
+  department: string | null;
+  phone: string | null;
+  linkedin_url: string | null;
+  company_name: string | null;
+  company_website: string | null;
+  company_id: string | null;
+  source: string;
+  confidence_score: number | null;
+  is_ceo: boolean;
+  is_founder: boolean;
+  is_executive: boolean;
+  location_city: string | null;
+  location_country: string | null;
+  created_at: string;
+}
+```
+
+### API Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/people` | Fetch all people with optional filters |
+| GET | `/api/people/:id` | Fetch single person detail |
+| GET | `/api/people/company/:companyId` | Fetch people by company |
+| DELETE | `/api/people/:id` | Delete a person |
+
+---
+
+## 12.3 Company Avatar & Favicon System
+
+### CompanyAvatar Component (`frontend/src/components/CompanyAvatar.tsx`)
+Reusable component for displaying company logos/favicons across the application.
+
+**Favicon Resolution Order:**
+1. Use provided `faviconUrl` if available (from backend/database)
+2. Generate from website domain using Google's favicon service: `https://www.google.com/s2/favicons?sz=64&domain_url={hostname}`
+3. Fall back to letter avatar (first letter of company name)
+
+**Props:**
+```typescript
+interface CompanyAvatarProps {
+  name: string;                    // Company name (used for fallback)
+  faviconUrl?: string | null;      // Direct favicon URL
+  website?: string | null;         // Domain used to generate favicon
+  size?: number;                   // Pixel size (default: 24)
+  className?: string;              // Additional CSS classes
+}
+```
+
+**Components Using CompanyAvatar:**
+- PipelinePage (board cards)
+- PipelineBacklog (list rows)
+- PipelineSummary (closed deals)
+- PipelineDetailPanel (header)
+- PipelineDetailModal (header)
+- CompanyListItem (workspace list)
+- CompanyDetailPanel (detail view)
+- PeoplePage (company column)
+
+---
+
+## 12.4 Insights Page
+
+### InsightsPage Component (`frontend/src/components/InsightsPage.tsx`)
+AI-powered market intelligence dashboard showing:
+- Global market opportunities
+- Industry trends
+- Portfolio health metrics
+- Recommended actions
+
+---
+
+## 12.5 Chat Widget
+
+### ChatWidget Component (`frontend/src/components/ChatWidget.tsx`)
+Floating AI assistant with two modes:
+- **Floating Mode:** Collapsible chat bubble in corner
+- **Embedded Mode:** Inline chat panel in detail views
+
+**Features:**
+- Context-aware responses (knows current company/person being viewed)
+- Markdown rendering for responses
+- Zerpha branding with logo
+
+---
+
+## 12.6 UI/UX Enhancements
+
+### Fit Score Pills
+Premium gradient pill badges for acquisition fit scores:
+- **High (7.5-10):** Teal gradient (`#2DD4BF` → `#0F766E`)
+- **Medium (5-7.4):** Amber gradient (`#FCD34D` → `#B45309`)
+- **Low (0-4.9):** Red gradient (`#FCA5A5` → `#B91C1C`)
+
+### View Modes
+- **Table View:** Traditional list with sortable columns
+- **Cards View:** Grid layout with company cards
+
+### Responsive Design
+- Mobile hamburger menu
+- Collapsible sidebar navigation
+- Responsive table columns (hidden on smaller screens)
+
+---
+
+## 12.7 Search Enhancements
+
+### Discovery Service Updates
+- Returns up to 10 companies per search (increased from 5)
+- Deduplication: Avoids returning companies user has already saved
+- Result variety: Small randomness for repeated searches
+- Enhanced fields: `description`, `industry`, `country`
+
+---
+
+## 12.8 Legal Pages
+
+### Privacy Policy & Terms of Service
+- `/privacy-policy` → `PrivacyPolicy.tsx`
+- `/terms-of-service` → `TermsOfService.tsx`
+- Footer links on landing page
+- Scroll-to-top on logo click
