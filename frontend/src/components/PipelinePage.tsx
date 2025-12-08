@@ -30,6 +30,7 @@ import { PipelineDetailModal } from './PipelineDetailModal';
 import { PipelineSummary } from './PipelineSummary';
 import { PipelineBacklog } from './PipelineBacklog';
 import { PipelineDetailPanel } from './PipelineDetailPanel';
+import { CompanyAvatar } from './CompanyAvatar';
 import { cn } from '../lib/utils';
 
 type PipelineView = 'board' | 'summary' | 'backlog';
@@ -570,22 +571,13 @@ function PipelineCard({ company, isDragging, onCompanyClick, onNotesClick }: Pip
             onClick={() => onCompanyClick?.(company.id)}
         >
             <div className="flex items-start gap-2">
-                {company.faviconUrl ? (
-                    <img
-                        src={company.faviconUrl}
-                        alt=""
-                        className="w-6 h-6 rounded flex-shrink-0"
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                    />
-                ) : (
-                    <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-medium text-slate-400">
-                            {company.name.charAt(0)}
-                        </span>
-                    </div>
-                )}
+                <CompanyAvatar
+                    name={company.name}
+                    faviconUrl={company.faviconUrl}
+                    website={company.domain}
+                    size={24}
+                    className="flex-shrink-0"
+                />
 
                 <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm text-slate-900 truncate">{company.name}</h4>

@@ -1,5 +1,6 @@
 import { ExternalLink, MoreHorizontal, GripVertical, Trash2 } from 'lucide-react';
 import { PipelineResponse, PipelineStage, PipelineCompany } from '../api/client';
+import { CompanyAvatar } from './CompanyAvatar';
 import { cn } from '../lib/utils';
 
 interface PipelineBacklogProps {
@@ -106,15 +107,13 @@ function BacklogRow({ company, stage, onCompanyClick, onDeleteCompany, getScoreC
             </div>
 
             {/* Company favicon */}
-            {company.faviconUrl ? (
-                <img src={company.faviconUrl} alt="" className="w-6 h-6 rounded mr-3" />
-            ) : (
-                <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center mr-3">
-                    <span className="text-xs font-medium text-slate-400">
-                        {company.name.charAt(0)}
-                    </span>
-                </div>
-            )}
+            <CompanyAvatar
+                name={company.name}
+                faviconUrl={company.faviconUrl}
+                website={company.domain}
+                size={24}
+                className="mr-3"
+            />
 
             {/* Company Name & Domain */}
             <div className="flex-1 min-w-0 mr-4">

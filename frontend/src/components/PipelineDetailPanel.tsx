@@ -8,6 +8,7 @@ import {
 } from '../api/client';
 import { getPeopleByCompanyId } from '../api/people';
 import { Person } from '../types';
+import { CompanyAvatar } from './CompanyAvatar';
 import { cn } from '../lib/utils';
 
 const PIPELINE_STAGES: { id: PipelineStage; label: string }[] = [
@@ -176,13 +177,12 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
             <div className="flex items-start justify-between p-4 border-b border-slate-100">
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                        {company.faviconUrl ? (
-                            <img src={company.faviconUrl} alt="" className="w-6 h-6 rounded" />
-                        ) : (
-                            <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center">
-                                <span className="text-xs font-medium text-slate-400">{company.name.charAt(0)}</span>
-                            </div>
-                        )}
+                        <CompanyAvatar
+                            name={company.name}
+                            faviconUrl={company.faviconUrl}
+                            website={company.domain}
+                            size={24}
+                        />
                         <h2 className="text-lg font-semibold text-slate-900 truncate">{company.name}</h2>
                     </div>
                     <div className="flex items-center gap-2">

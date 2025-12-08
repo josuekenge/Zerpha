@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { BarChart2, CheckCircle2, Clock, Activity, TrendingUp } from 'lucide-react';
 import { PipelineResponse, PipelineStage } from '../api/client';
+import { CompanyAvatar } from './CompanyAvatar';
 import { cn } from '../lib/utils';
 
 interface PipelineSummaryProps {
@@ -135,13 +136,12 @@ export function PipelineSummary({ pipeline }: PipelineSummaryProps) {
                                 key={company.id}
                                 className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg"
                             >
-                                {company.faviconUrl ? (
-                                    <img src={company.faviconUrl} alt="" className="w-8 h-8 rounded" />
-                                ) : (
-                                    <div className="w-8 h-8 rounded bg-green-100 flex items-center justify-center">
-                                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                                    </div>
-                                )}
+                                <CompanyAvatar
+                                    name={company.name}
+                                    faviconUrl={company.faviconUrl}
+                                    website={company.domain}
+                                    size={32}
+                                />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-slate-900 truncate">{company.name}</p>
                                     <p className="text-xs text-slate-500 truncate">{company.domain}</p>
