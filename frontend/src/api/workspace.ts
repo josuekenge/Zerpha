@@ -471,92 +471,63 @@ export async function inviteTeamMember(request: InviteMemberRequest): Promise<Te
     };
 }
 
-// Remove team member
+// Remove team member via backend API
 export async function removeTeamMember(memberId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
 
-    const workspace = await getOrCreateWorkspace();
+    const workspaceId = localStorage.getItem('zerpha_active_workspace_id');
+    if (!workspaceId) throw new Error('No workspace selected');
 
-    // Check permission
-    const currentMember = workspace.members.find((m: TeamMember) => m.email === user.email);
-    if (!currentMember || !['owner', 'admin'].includes(currentMember.role)) {
-        throw new Error('You do not have permission to remove team members.');
-    }
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const response = await fetch(`${API_URL}/api/workspace/members/${memberId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'X-Workspace-ID': workspaceId,
+            'Content-Type': 'application/json',
+        },
+    });
 
-    const memberToRemove = workspace.members.find((m: TeamMember) => m.id === memberId);
-    if (!memberToRemove) {
-        throw new Error('Member not found.');
-    }
-
-    // Cannot remove the last owner
-    const owners = workspace.members.filter((m: TeamMember) => m.role === 'owner');
-    if (memberToRemove.role === 'owner' && owners.length <= 1) {
-        throw new Error('Cannot remove the last owner. Transfer ownership first.');
-    }
-
-    const { error } = await supabase
-        .from('workspace_members')
-        .delete()
-        .eq('id', memberId);
-
-    if (error) {
-        console.error('Error removing member:', error);
-        throw new Error('Failed to remove member');
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to remove member' }));
+        throw new Error(error.message || 'Failed to remove member');
     }
 }
 
-// Update team member role
+// Update team member role via backend API
 export async function updateMemberRole(memberId: string, newRole: TeamRole): Promise<TeamMember> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
 
-    const workspace = await getOrCreateWorkspace();
+    const workspaceId = localStorage.getItem('zerpha_active_workspace_id');
+    if (!workspaceId) throw new Error('No workspace selected');
 
-    // Check permission
-    const currentMember = workspace.members.find((m: TeamMember) => m.email === user.email);
-    if (!currentMember || !['owner', 'admin'].includes(currentMember.role)) {
-        throw new Error('You do not have permission to update member roles.');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const response = await fetch(`${API_URL}/api/workspace/members/${memberId}/role`, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'X-Workspace-ID': workspaceId,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ role: newRole }),
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to update role' }));
+        throw new Error(error.message || 'Failed to update role');
     }
 
-    const member = workspace.members.find((m: TeamMember) => m.id === memberId);
-    if (!member) {
-        throw new Error('Member not found.');
-    }
-
-    // Only owners can change someone to/from owner
-    if ((member.role === 'owner' || newRole === 'owner') && currentMember.role !== 'owner') {
-        throw new Error('Only owners can change owner roles.');
-    }
-
-    // Cannot demote yourself from owner if you're the only owner
-    if (member.email === user.email && member.role === 'owner' && newRole !== 'owner') {
-        const owners = workspace.members.filter((m: TeamMember) => m.role === 'owner');
-        if (owners.length <= 1) {
-            throw new Error('Cannot demote yourself. Transfer ownership first.');
-        }
-    }
-
-    const { data: updatedMember, error } = await supabase
-        .from('workspace_members')
-        .update({ role: newRole })
-        .eq('id', memberId)
-        .select()
-        .single();
-
-    if (error) {
-        console.error('Error updating role:', error);
-        throw new Error('Failed to update role');
-    }
-
+    const data = await response.json();
     return {
-        id: updatedMember.id,
-        email: updatedMember.email,
-        name: updatedMember.name,
-        avatar_url: updatedMember.avatar_url,
-        role: updatedMember.role,
-        color: updatedMember.color || getMemberColor(0),
-        joined_at: updatedMember.joined_at,
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        avatar_url: data.avatar_url,
+        role: data.role,
+        color: getMemberColor(0),
+        joined_at: data.joined_at,
     };
 }
 
