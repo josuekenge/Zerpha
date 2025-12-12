@@ -57,11 +57,12 @@ import { Company, CompanyWithPeople, InfographicPage, Person, SavedCompany, Sear
 import { getAllPeople } from './api/people';
 import { cn, formatDate, normalizeWebsite, matchesIndustry, savedCompanyToCompany } from './lib/utils';
 import { INDUSTRIES, LOCATIONS, WorkspaceView, FitFilter, DEFAULT_CATEGORY } from './lib/constants';
+import { useWorkspace } from './lib/workspace';
 
 
 
 export function WorkspaceApp() {
-  const { user } = useAuth();
+  const { workspace } = useWorkspace();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -69,8 +70,10 @@ export function WorkspaceApp() {
   const initialView = (searchParams.get('view') as WorkspaceView) || 'search';
   const [activeView, setActiveView] = useState<WorkspaceView>(initialView);
 
-  const displayName = user?.email ? `Hi ${user.email.split('@')[0]}` : 'Zerpha Intelligence';
-  const displayInitial = user?.email ? user.email.charAt(0).toUpperCase() : 'Z';
+  // Use workspace name if available, otherwise fallback to user email
+  const workspaceName = workspace?.name || 'Zerpha Intelligence';
+  const displayName = workspaceName;
+  const displayInitial = workspaceName.charAt(0).toUpperCase();
 
   // Sync activeView changes to URL
   useEffect(() => {
@@ -879,12 +882,12 @@ export function WorkspaceApp() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 flex flex-col h-full transition-transform duration-300 lg:translate-x-0 lg:static lg:flex-shrink-0 shadow-2xl lg:shadow-none",
+        "fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full transition-transform duration-300 lg:translate-x-0 lg:static lg:flex-shrink-0 shadow-2xl lg:shadow-none",
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Brand */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100 flex-shrink-0">
-          <div className="flex items-center gap-3 text-slate-900 cursor-pointer" onClick={() => navigate('/')}>
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <div className="flex items-center gap-3 text-slate-900 dark:text-white cursor-pointer" onClick={() => navigate('/')}>
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 p-1.5">
               <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
             </div>
@@ -906,13 +909,57 @@ export function WorkspaceApp() {
           {/* Workspace */}
           <div>
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 block px-3">Workspace</label>
-            <button className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-all border border-transparent hover:border-slate-200 group">
+            <button
+              onClick={() => navigate('/settings')}
+              className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group"
+            >
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center text-xs font-bold border border-indigo-100 group-hover:border-indigo-200 transition-colors">{displayInitial}</div>
-                <span className="group-hover:text-indigo-900 transition-colors">{displayName}</span>
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold border border-indigo-100 group-hover:border-indigo-200 transition-colors overflow-hidden">
+                  {workspace?.logo_url ? (
+                    <img src={workspace.logo_url} alt="Workspace Logo" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-indigo-50 text-indigo-600 flex items-center justify-center">{displayInitial}</div>
+                  )}
+                </div>
+                <span className="group-hover:text-indigo-900 dark:group-hover:text-indigo-400 transition-colors">{displayName}</span>
               </div>
-              <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+              <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
             </button>
+
+            {/* Team Members Avatars */}
+            {workspace?.members && workspace.members.length > 0 && (
+              <div className="mt-3 px-3">
+                <div className="flex items-center -space-x-2">
+                  {workspace.members.slice(0, 5).map((member, index) => (
+                    <div
+                      key={member.id}
+                      className="w-7 h-7 rounded-full border-2 flex items-center justify-center text-[10px] font-medium text-white shadow-sm relative overflow-hidden"
+                      style={{
+                        zIndex: workspace.members.length - index,
+                        backgroundColor: member.color || '#6366F1',
+                        borderColor: member.color || '#6366F1',
+                      }}
+                      title={`${member.name} (${member.role})`}
+                    >
+                      {member.avatar_url ? (
+                        <img src={member.avatar_url} alt={member.name} className="w-full h-full object-cover" />
+                      ) : (
+                        member.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+                      )}
+                    </div>
+                  ))}
+                  {workspace.members.length > 5 && (
+                    <div
+                      className="w-7 h-7 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-medium text-slate-600 shadow-sm"
+                      title={`+${workspace.members.length - 5} more`}
+                    >
+                      +{workspace.members.length - 5}
+                    </div>
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1.5">{workspace.members.length} team member{workspace.members.length !== 1 ? 's' : ''}</p>
+              </div>
+            )}
           </div>
 
           {/* Search */}
@@ -925,7 +972,7 @@ export function WorkspaceApp() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && void executeSearch()}
-                className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all shadow-sm"
+                className="w-full pl-10 pr-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 transition-all shadow-sm"
               />
             </div>
           )}
@@ -939,8 +986,8 @@ export function WorkspaceApp() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'search'
-                    ? "bg-violet-100 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                 )}
               >
                 <Search className={cn("w-4 h-4", activeView === 'search' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
@@ -952,8 +999,8 @@ export function WorkspaceApp() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'companies'
-                    ? "bg-violet-100 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                 )}
               >
                 <Building2 className={cn("w-4 h-4", activeView === 'companies' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
@@ -965,8 +1012,8 @@ export function WorkspaceApp() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'people'
-                    ? "bg-violet-100 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                 )}
               >
                 <Users className={cn("w-4 h-4", activeView === 'people' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
@@ -978,8 +1025,8 @@ export function WorkspaceApp() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'insights'
-                    ? "bg-violet-100 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                 )}
               >
                 <TrendingUp className={cn("w-4 h-4", activeView === 'insights' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
@@ -991,8 +1038,8 @@ export function WorkspaceApp() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'pipeline'
-                    ? "bg-violet-100 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                 )}
               >
                 <Kanban className={cn("w-4 h-4", activeView === 'pipeline' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />

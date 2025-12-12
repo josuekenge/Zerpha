@@ -36,18 +36,18 @@ export function SettingsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
             {/* Header */}
-            <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+            <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => navigate(-1)}
-                            className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </button>
-                        <h1 className="text-xl font-semibold text-slate-900">Settings</h1>
+                        <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Settings</h1>
                     </div>
                 </div>
             </header>

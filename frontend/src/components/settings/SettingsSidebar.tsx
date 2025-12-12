@@ -49,15 +49,15 @@ export function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps
                             className={cn(
                                 "w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium rounded-lg transition-colors",
                                 isActive
-                                    ? "bg-indigo-50 text-indigo-700"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                    ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                             )}
                         >
                             <div className="flex items-center gap-3">
-                                <Icon className={cn("w-4 h-4", isActive ? "text-indigo-600" : "text-slate-400")} />
+                                <Icon className={cn("w-4 h-4", isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-slate-500")} />
                                 {item.label}
                             </div>
-                            {isActive && <ChevronRight className="w-4 h-4 text-indigo-500" />}
+                            {isActive && <ChevronRight className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />}
                         </button>
                     );
                 })}
