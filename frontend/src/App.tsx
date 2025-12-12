@@ -197,7 +197,7 @@ export function WorkspaceApp() {
     loadWorkspaceCompanies();
   }, [loadWorkspaceCompanies]);
 
-  // ... (rest of file)
+  // NOTE: Workspace change handling is done after loadSearchHistory is defined (see below)
 
 
   const matchesFitFilter = (
@@ -299,6 +299,28 @@ export function WorkspaceApp() {
   useEffect(() => {
     loadSearchHistory();
   }, [loadSearchHistory]);
+
+  // CRITICAL: Reload all data when workspace changes
+  // This ensures switching workspaces shows correct data for active workspace
+  useEffect(() => {
+    if (workspace?.id) {
+      console.log('[Workspace Switch] Active workspace:', workspace.id, workspace.name);
+      // Reload companies for this workspace
+      loadWorkspaceCompanies();
+      // Reload search history for this workspace
+      loadSearchHistory();
+      // Clear local state to avoid stale data from previous workspace
+      setSearchCompaniesList([]);
+      setSelectedSearchCompanyId(null);
+      setHasSearched(false);
+      setHistoryCompanies([]);
+      setSelectedHistoryId(null);
+      setSelectedHistoryCompanyId(null);
+      // People will reload when the user switches to People view due to existing useEffect
+      setAllPeople([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace?.id]); // Only trigger on workspace ID change
 
   // Load all people
   const loadAllPeople = useCallback(async () => {

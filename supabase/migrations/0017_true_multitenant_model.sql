@@ -147,14 +147,17 @@ WHERE NOT EXISTS (
   WHERE wm.workspace_id = w.id AND wm.user_id = w.owner_id
 );
 
--- Backfill searches - assign each user's searches to their primary workspace
+-- Backfill searches - assign each user's searches to their OWNED workspace first
+-- CRITICAL: Prefer workspaces the user OWNS, not just earliest membership
+-- This prevents data from accidentally landing in someone else's workspace
 UPDATE public.searches s
 SET workspace_id = (
-  SELECT wm.workspace_id 
-  FROM public.workspace_members wm 
-  WHERE wm.user_id = s.user_id 
-  ORDER BY wm.joined_at ASC 
-  LIMIT 1
+  -- First try: Find a workspace the user OWNS
+  SELECT COALESCE(
+    (SELECT w.id FROM public.workspaces w WHERE w.owner_id = s.user_id LIMIT 1),
+    -- Fallback: Use any workspace they're a member of (ordered by join date)
+    (SELECT wm.workspace_id FROM public.workspace_members wm WHERE wm.user_id = s.user_id ORDER BY wm.joined_at ASC LIMIT 1)
+  )
 )
 WHERE s.workspace_id IS NULL AND s.user_id IS NOT NULL;
 
@@ -167,14 +170,13 @@ SET workspace_id = (
 )
 WHERE c.workspace_id IS NULL AND c.search_id IS NOT NULL;
 
--- For companies without search_id or where search has no workspace, use user's primary workspace
+-- For companies without search_id, prefer user's OWNED workspace
 UPDATE public.companies c
 SET workspace_id = (
-  SELECT wm.workspace_id 
-  FROM public.workspace_members wm 
-  WHERE wm.user_id = c.user_id 
-  ORDER BY wm.joined_at ASC 
-  LIMIT 1
+  SELECT COALESCE(
+    (SELECT w.id FROM public.workspaces w WHERE w.owner_id = c.user_id LIMIT 1),
+    (SELECT wm.workspace_id FROM public.workspace_members wm WHERE wm.user_id = c.user_id ORDER BY wm.joined_at ASC LIMIT 1)
+  )
 )
 WHERE c.workspace_id IS NULL AND c.user_id IS NOT NULL;
 
@@ -191,27 +193,25 @@ BEGIN
     )
     WHERE p.workspace_id IS NULL AND p.company_id IS NOT NULL;
     
-    -- For people without company_id, use user's primary workspace
+    -- For people without company_id, prefer user's OWNED workspace
     UPDATE public.people p
     SET workspace_id = (
-      SELECT wm.workspace_id 
-      FROM public.workspace_members wm 
-      WHERE wm.user_id = p.user_id 
-      ORDER BY wm.joined_at ASC 
-      LIMIT 1
+      SELECT COALESCE(
+        (SELECT w.id FROM public.workspaces w WHERE w.owner_id = p.user_id LIMIT 1),
+        (SELECT wm.workspace_id FROM public.workspace_members wm WHERE wm.user_id = p.user_id ORDER BY wm.joined_at ASC LIMIT 1)
+      )
     )
     WHERE p.workspace_id IS NULL AND p.user_id IS NOT NULL;
   END IF;
 END $$;
 
--- Backfill niche_history
+-- Backfill niche_history - prefer user's OWNED workspace
 UPDATE public.niche_history nh
 SET workspace_id = (
-  SELECT wm.workspace_id 
-  FROM public.workspace_members wm 
-  WHERE wm.user_id = nh.user_id 
-  ORDER BY wm.joined_at ASC 
-  LIMIT 1
+  SELECT COALESCE(
+    (SELECT w.id FROM public.workspaces w WHERE w.owner_id = nh.user_id LIMIT 1),
+    (SELECT wm.workspace_id FROM public.workspace_members wm WHERE wm.user_id = nh.user_id ORDER BY wm.joined_at ASC LIMIT 1)
+  )
 )
 WHERE nh.workspace_id IS NULL AND nh.user_id IS NOT NULL;
 
@@ -231,9 +231,13 @@ DELETE FROM public.niche_history a
     AND a.id < b.id;
 
 -- Create new constraint (only if workspace_id is not null for all rows with data)
--- This is a soft constraint - we'll rely on upsert logic in the app
 DO $$
 BEGIN
+  -- First drop the new constraint if it already exists (from partial run)
+  ALTER TABLE public.niche_history 
+    DROP CONSTRAINT IF EXISTS niche_history_workspace_niche_domain_key;
+  
+  -- Only create if all rows have workspace_id
   IF NOT EXISTS (SELECT 1 FROM public.niche_history WHERE workspace_id IS NULL) THEN
     ALTER TABLE public.niche_history 
       ADD CONSTRAINT niche_history_workspace_niche_domain_key 

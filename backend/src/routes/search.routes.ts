@@ -600,6 +600,7 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
       .from('companies')
       .select('*')
       .eq('search_id', searchInsert.id)
+      .eq('workspace_id', workspaceId)  // EXPLICIT workspace filter - required for multi-tenant
       .order('created_at', { ascending: true });
 
     if (selectError) {
@@ -666,29 +667,32 @@ searchRouter.get('/search/:searchId', requireAuth, async (req: Request, res: Res
   try {
     const authReq = req as AuthenticatedRequest;
     const user = authReq.user;
+    const workspaceId = authReq.workspaceId;
     if (!user) throw new Error('User not authenticated');
-    // Note: workspaceId validation happens via RLS - if user isn't in workspace, query returns nothing
+    if (!workspaceId) {
+      return res.status(400).json({ message: 'No workspace selected' });
+    }
 
     const { searchId } = searchIdParamSchema.parse(req.params);
 
-    // RLS will automatically filter by workspace membership
+    // EXPLICIT workspace filter - active workspace only
     const { data: searchRow, error: searchError } = await supabase
       .from('searches')
       .select('*')
       .eq('id', searchId)
-      // NO user_id filter - RLS handles access via workspace_id
+      .eq('workspace_id', workspaceId)  // EXPLICIT filter by active workspace
       .single();
 
     if (searchError || !searchRow) {
       return res.status(404).json({ message: 'Search not found' });
     }
 
-    // RLS will automatically filter companies by workspace membership
+    // EXPLICIT workspace filter on companies
     const { data: companyRows, error: companyError } = await supabase
       .from('companies')
       .select('*')
       .eq('search_id', searchId)
-      // NO user_id filter - RLS handles access via workspace_id
+      .eq('workspace_id', workspaceId)  // EXPLICIT filter by active workspace
       .order('created_at', { ascending: true });
 
     if (companyError) {
@@ -809,18 +813,22 @@ searchRouter.get('/search-history', requireAuth, async (req: Request, res: Respo
   try {
     const authReq = req as AuthenticatedRequest;
     const user = authReq.user;
+    const workspaceId = authReq.workspaceId;
     if (!user) throw new Error('User not authenticated');
+    if (!workspaceId) {
+      return res.status(400).json({ message: 'No workspace selected' });
+    }
 
-    // RLS handles access via workspace membership - returns all workspace searches
+    // EXPLICIT workspace filter - active workspace only
     const { data: searchRows, error: searchError } = await supabase
       .from('searches')
       .select('id, query_text, created_at')
-      // NO user_id filter - RLS handles access via workspace_id
+      .eq('workspace_id', workspaceId)  // EXPLICIT filter by active workspace
       .order('created_at', { ascending: false })
       .limit(50);
 
     if (searchError) {
-      logger.error({ err: searchError }, 'Failed to fetch search history');
+      logger.error({ err: searchError, workspaceId }, 'Failed to fetch search history');
       throw new Error(searchError.message);
     }
 
@@ -828,12 +836,12 @@ searchRouter.get('/search-history', requireAuth, async (req: Request, res: Respo
     const companyCounts: Record<string, number> = Object.create(null);
 
     if (searchIds.length > 0) {
-      // RLS handles access via workspace membership
+      // EXPLICIT workspace filter on companies
       const { data: companyRows, error: companyError } = await supabase
         .from('companies')
         .select('search_id')
-        .in('search_id', searchIds);
-      // NO user_id filter - RLS handles access
+        .in('search_id', searchIds)
+        .eq('workspace_id', workspaceId);  // EXPLICIT filter by active workspace
 
       if (companyError) {
         logger.error({ err: companyError }, 'Failed to aggregate company counts');
@@ -857,14 +865,14 @@ searchRouter.get('/search-history', requireAuth, async (req: Request, res: Respo
     );
 
     logger.info(
-      { historyCount: historyItems.length },
+      { historyCount: historyItems.length, workspaceId },
       '[search-history] returning search history'
     );
 
     res.json(historyItems);
   } catch (error) {
     const authReq = req as AuthenticatedRequest;
-    logger.error({ err: error, userId: authReq.user?.id }, '[search-history] error fetching history');
+    logger.error({ err: error, workspaceId: authReq.workspaceId }, '[search-history] error fetching history');
     next(error);
   }
 });

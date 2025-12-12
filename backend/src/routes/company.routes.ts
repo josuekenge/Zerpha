@@ -33,13 +33,16 @@ const saveCompanyBodySchema = z.object({
 
 export const companyRouter = Router();
 
-// GET /api/companies - Returns saved companies for the WORKSPACE
-// RLS handles access via workspace membership
+// GET /api/companies - Returns saved companies for the active WORKSPACE only
 companyRouter.get('/companies', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authReq = req as AuthenticatedRequest;
     const user = authReq.user;
+    const workspaceId = authReq.workspaceId;
     if (!user) throw new Error('User not authenticated');
+    if (!workspaceId) {
+      return res.status(400).json({ message: 'No workspace selected' });
+    }
 
     const normalizedQuery = {
       category:
@@ -62,12 +65,12 @@ companyRouter.get('/companies', requireAuth, async (req: Request, res: Response,
 
     const parsedQuery = savedCompaniesQuerySchema.parse(normalizedQuery);
 
-    // RLS filters by workspace membership - NO user_id filter needed
+    // EXPLICIT workspace filter - active workspace only
     let query = supabase
       .from('companies')
       .select('*')
       .eq('is_saved', true)
-      // NO user_id filter - RLS handles access via workspace_id
+      .eq('workspace_id', workspaceId)  // EXPLICIT filter by active workspace
       .order('created_at', { ascending: false });
 
     if (parsedQuery.category) {
@@ -163,12 +166,16 @@ companyRouter.post('/companies', requireAuth, async (req: Request, res: Response
   }
 });
 
-// POST /api/companies/:companyId/save - Save a company (RLS handles access)
+// POST /api/companies/:companyId/save - Save a company (explicit workspace filter)
 companyRouter.post('/companies/:companyId/save', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authReq = req as AuthenticatedRequest;
     const user = authReq.user;
+    const workspaceId = authReq.workspaceId;
     if (!user) throw new Error('User not authenticated');
+    if (!workspaceId) {
+      return res.status(400).json({ message: 'No workspace selected' });
+    }
 
     const { companyId } = companyIdParamSchema.parse(req.params);
     const { category } = saveCompanyBodySchema.parse(req.body ?? {});
@@ -178,22 +185,22 @@ companyRouter.post('/companies/:companyId/save', requireAuth, async (req: Reques
       saved_category: category ?? null,
     };
 
-    // RLS handles access via workspace membership - NO user_id filter needed
+    // EXPLICIT workspace filter - active workspace only
     const { data, error } = await supabase
       .from('companies')
       .update(updates)
       .eq('id', companyId)
-      // NO user_id filter - RLS handles access via workspace_id
+      .eq('workspace_id', workspaceId)  // EXPLICIT filter by active workspace
       .select('*')
       .single();
 
     if (error) {
-      logger.error({ err: error, companyId }, 'Failed to save company');
+      logger.error({ err: error, companyId, workspaceId }, 'Failed to save company');
       throw new Error(error.message);
     }
 
     if (!data) {
-      return res.status(404).json({ message: 'Company not found' });
+      return res.status(404).json({ message: 'Company not found in this workspace' });
     }
 
     const payload = mapToSavedCompany(data as DatabaseCompany);
@@ -203,31 +210,35 @@ companyRouter.post('/companies/:companyId/save', requireAuth, async (req: Reques
   }
 });
 
-// POST /api/companies/:companyId/unsave - Unsave a company (RLS handles access)
+// POST /api/companies/:companyId/unsave - Unsave a company (explicit workspace filter)
 companyRouter.post('/companies/:companyId/unsave', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authReq = req as AuthenticatedRequest;
     const user = authReq.user;
+    const workspaceId = authReq.workspaceId;
     if (!user) throw new Error('User not authenticated');
+    if (!workspaceId) {
+      return res.status(400).json({ message: 'No workspace selected' });
+    }
 
     const { companyId } = companyIdParamSchema.parse(req.params);
 
-    // RLS handles access via workspace membership - NO user_id filter needed
+    // EXPLICIT workspace filter - active workspace only
     const { data, error } = await supabase
       .from('companies')
       .update({ is_saved: false, saved_category: null })
       .eq('id', companyId)
-      // NO user_id filter - RLS handles access via workspace_id
+      .eq('workspace_id', workspaceId)  // EXPLICIT filter by active workspace
       .select('*')
       .single();
 
     if (error) {
-      logger.error({ err: error, companyId }, 'Failed to unsave company');
+      logger.error({ err: error, companyId, workspaceId }, 'Failed to unsave company');
       throw new Error(error.message);
     }
 
     if (!data) {
-      return res.status(404).json({ message: 'Company not found' });
+      return res.status(404).json({ message: 'Company not found in this workspace' });
     }
 
     const transformed = transformCompanyForApi(data as DatabaseCompany);

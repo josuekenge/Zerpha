@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Check, ChevronsUpDown, Plus, Users, X, Loader2 } from 'lucide-react';
+import { Check, ChevronsUpDown, Plus, Users, Loader2 } from 'lucide-react';
 import { useWorkspace } from '../lib/workspace';
 import { WorkspaceSummary } from '../types/workspace';
 import { cn } from '../lib/utils';
@@ -190,30 +190,33 @@ export function WorkspaceSwitcher({ onNavigateToSettings }: WorkspaceSwitcherPro
 
                     {/* Create New Workspace Form */}
                     {showCreateForm ? (
-                        <div className="p-3 space-y-2">
+                        <div className="p-3 space-y-3">
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                placeholder="Workspace name..."
+                                value={newWorkspaceName}
+                                onChange={(e) => {
+                                    setNewWorkspaceName(e.target.value);
+                                    setCreateError(null);
+                                }}
+                                onKeyDown={handleKeyDown}
+                                disabled={switching}
+                                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
+                            />
                             <div className="flex items-center gap-2">
-                                <input
-                                    ref={inputRef}
-                                    type="text"
-                                    placeholder="Workspace name..."
-                                    value={newWorkspaceName}
-                                    onChange={(e) => {
-                                        setNewWorkspaceName(e.target.value);
-                                        setCreateError(null);
-                                    }}
-                                    onKeyDown={handleKeyDown}
-                                    disabled={switching}
-                                    className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
-                                />
                                 <button
                                     onClick={handleCreateWorkspace}
                                     disabled={switching || !newWorkspaceName.trim()}
-                                    className="px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                                    className="flex-1 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                                 >
                                     {switching ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
                                     ) : (
-                                        'Create'
+                                        <>
+                                            <Plus className="w-4 h-4" />
+                                            Create Workspace
+                                        </>
                                     )}
                                 </button>
                                 <button
@@ -223,9 +226,9 @@ export function WorkspaceSwitcher({ onNavigateToSettings }: WorkspaceSwitcherPro
                                         setCreateError(null);
                                     }}
                                     disabled={switching}
-                                    className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                    className="px-3 py-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors text-sm"
                                 >
-                                    <X className="w-4 h-4" />
+                                    Cancel
                                 </button>
                             </div>
                             {createError && (
