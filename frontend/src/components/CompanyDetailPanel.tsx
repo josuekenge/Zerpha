@@ -129,35 +129,39 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
       <div className="p-6 space-y-8">
 
         {/* Section: Executive Summary */}
-        <section>
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide mb-3 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-slate-400" /> Executive Summary
-          </h3>
-          <div className="text-base text-slate-600 dark:text-slate-300 leading-relaxed border border-slate-100 dark:border-slate-800 rounded-lg p-4 bg-slate-50/50 dark:bg-slate-800/50">
-            <p>
+        <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <FileText className="w-4 h-4 text-slate-400" /> Executive Summary
+            </h3>
+          </div>
+          <div className="bg-white dark:bg-slate-900 p-4">
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               {company.summary || 'No executive summary available.'}
             </p>
           </div>
         </section>
 
         {/* Section: Acquisition Fit */}
-        <section>
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide mb-3 flex items-center gap-2">
-            <Target className="w-4 h-4 text-slate-400" /> Acquisition Fit
-          </h3>
-          <div className="text-base text-slate-600 dark:text-slate-300 leading-relaxed border border-slate-100 dark:border-slate-800 rounded-lg p-4 bg-slate-50/50 dark:bg-slate-800/50">
-            <p>
+        <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <Target className="w-4 h-4 text-slate-400" /> Fit Analysis
+            </h3>
+          </div>
+          <div className="bg-white dark:bg-slate-900 p-4">
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               {raw_json.acquisition_fit_reason || 'No detailed fit analysis provided.'}
             </p>
           </div>
         </section>
 
         {/* Section: Product & Market */}
-        <section className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
+        <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Product & Market</h3>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
             <div className="p-4 grid grid-cols-3 gap-4">
               <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Offering</div>
               <div className="col-span-2 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -180,11 +184,11 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
         </section>
 
         {/* Section: Operations */}
-        <section className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
+        <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Operations</h3>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
             <div className="p-4 flex justify-between items-center">
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400">HQ Location</span>
               <span className="text-sm font-medium text-slate-900 dark:text-white">{raw_json.hq_location || 'Unknown'}</span>
@@ -194,7 +198,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
               <span className="text-sm font-medium text-slate-900 dark:text-white">{raw_json.estimated_headcount || 'Unknown'}</span>
             </div>
             <div className="p-4">
-              <span className="text-sm font-medium text-slate-500 block mb-2">Tech Stack</span>
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400 block mb-2">Tech Stack</span>
               <div className="flex flex-wrap gap-2">
                 {renderTechStack(raw_json.tech_stack)}
               </div>
@@ -203,15 +207,14 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
         </section>
 
         {/* Section: People */}
-        <section className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               <Users className="w-4 h-4 text-slate-400" />
               People
             </h3>
           </div>
-
-          <div className="p-4">
+          <div className="bg-white dark:bg-slate-900 p-4">
             {peopleLoading ? (
               <div className="flex items-center gap-2 text-slate-500 text-sm">
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -287,9 +290,11 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
         </section>
 
         {/* Key Info */}
-        <section className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-          <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Key Info</h3>
-          <div className="grid grid-cols-1 gap-2">
+        <section className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">
+            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Key Info</h3>
+          </div>
+          <div className="bg-white dark:bg-slate-900 p-4 grid grid-cols-1 gap-2">
             <div className="flex justify-between">
               <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">ID</span>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{company.id.slice(0, 24)}</span>

@@ -1051,8 +1051,8 @@ export function WorkspaceApp() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   activeView === 'history'
-                    ? "bg-violet-100 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200"
                 )}
               >
                 <History className={cn("w-4 h-4", activeView === 'history' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
@@ -1061,7 +1061,7 @@ export function WorkspaceApp() {
 
               <button
                 onClick={() => navigate('/settings')}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200"
               >
                 <Settings className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
                 Settings
@@ -1073,14 +1073,14 @@ export function WorkspaceApp() {
           {activeView === 'companies' && (
             <div>
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block px-3">View</label>
-              <div className="flex p-1 bg-slate-100 rounded-lg border border-slate-200 mb-4 mx-1">
+              <div className="flex p-1 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 mb-4 mx-1">
                 <button
                   onClick={() => setViewMode('table')}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded transition-all",
                     viewMode === 'table'
-                      ? "bg-white text-slate-900 shadow-sm border border-slate-200"
-                      : "text-slate-500 hover:text-slate-700"
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-slate-700"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                   )}
                 >
                   <Table2 className="w-3.5 h-3.5" /> Table
@@ -1090,8 +1090,8 @@ export function WorkspaceApp() {
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded transition-all",
                     viewMode === 'cards'
-                      ? "bg-white text-slate-900 shadow-sm border border-slate-200"
-                      : "text-slate-500 hover:text-slate-700"
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-slate-700"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                   )}
                 >
                   <LayoutGrid className="w-3.5 h-3.5" /> Cards
@@ -1107,7 +1107,7 @@ export function WorkspaceApp() {
 
               <div className="px-1 space-y-3">
                 <div>
-                  <span className="text-xs font-medium text-slate-500 mb-1.5 block px-2">Fit Score</span>
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5 block px-2">Fit Score</span>
                   <div className="relative">
                     <select
                       value={workspaceFitFilter}
@@ -1125,7 +1125,7 @@ export function WorkspaceApp() {
                 </div>
 
                 <div>
-                  <span className="text-xs font-medium text-slate-500 mb-1.5 block px-2">Industry</span>
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5 block px-2">Industry</span>
                   <div className="relative">
                     <button
                       type="button"
@@ -1151,7 +1151,7 @@ export function WorkspaceApp() {
                               key={industry}
                               type="button"
                               onClick={() => { setIndustryFilter(industry); setIsIndustryDropdownOpen(false); }}
-                              className={cn("w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 transition-colors", industryFilter === industry && "bg-indigo-50 text-indigo-700 font-medium")}
+                              className={cn("w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors dark:text-slate-300", industryFilter === industry && "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-medium")}
                             >
                               {industry}
                             </button>
@@ -1163,7 +1163,7 @@ export function WorkspaceApp() {
                 </div>
 
                 <div>
-                  <span className="text-xs font-medium text-slate-500 mb-1.5 block px-2">Location</span>
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5 block px-2">Location</span>
                   <div className="relative">
                     <input
                       type="text"
@@ -1174,7 +1174,7 @@ export function WorkspaceApp() {
                         setIsLocationDropdownOpen(e.target.value.length > 0);
                       }}
                       onFocus={() => locationFilter.length > 0 && setIsLocationDropdownOpen(true)}
-                      className="w-full bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-8 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300 py-2 pl-3 pr-8 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                     {locationFilter && (
                       <button
@@ -1188,19 +1188,19 @@ export function WorkspaceApp() {
                     {isLocationDropdownOpen && locationFilter.length > 0 && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setIsLocationDropdownOpen(false)} />
-                        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[200px] overflow-y-auto">
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50 max-h-[200px] overflow-y-auto">
                           {LOCATIONS.filter(loc => loc.toLowerCase().includes(locationFilter.toLowerCase())).slice(0, 8).map((loc) => (
                             <button
                               key={loc}
                               type="button"
                               onClick={() => { setLocationFilter(loc); setIsLocationDropdownOpen(false); }}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 transition-colors"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors dark:text-slate-300"
                             >
                               {loc}
                             </button>
                           ))}
                           {LOCATIONS.filter(loc => loc.toLowerCase().includes(locationFilter.toLowerCase())).length === 0 && (
-                            <div className="px-3 py-2 text-sm text-slate-400">No matches found</div>
+                            <div className="px-3 py-2 text-sm text-slate-400 dark:text-slate-500">No matches found</div>
                           )}
                         </div>
                       </>
@@ -1213,8 +1213,8 @@ export function WorkspaceApp() {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-200 flex-shrink-0 bg-white">
-          <p className="text-xs text-slate-400 leading-relaxed px-2">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex-shrink-0 bg-white dark:bg-slate-950">
+          <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed px-2">
             {activeView === 'companies'
               ? "Select a row to view detailed insights."
               : activeView === 'search'

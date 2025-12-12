@@ -12,14 +12,11 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [theme, setThemeState] = useState<Theme>(() => {
-        // Check localStorage first
+        // Check localStorage first - user's explicit choice takes priority
         const stored = localStorage.getItem('zerpha_theme');
         if (stored === 'light' || stored === 'dark') return stored;
 
-        // Check system preference
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return 'dark';
-        }
+        // Default to light mode - dark mode only when explicitly toggled
         return 'light';
     });
 
