@@ -1290,19 +1290,19 @@ export function WorkspaceApp() {
                     <div className="relative z-10 w-full max-w-3xl px-6 text-center">
 
                       {/* Badge */}
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 mb-8 shadow-sm">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 mb-8 shadow-sm">
                         <div className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></div>
-                        <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">AI Engine Updated v2.4</span>
+                        <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">AI ENGINE UPDATED V2.4</span>
                       </div>
 
                       {/* Headings */}
-                      <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight">What market are you scouting today?</h2>
+                      <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight">What market are you scouting today?</h2>
                       <p className="text-slate-500 dark:text-slate-400 text-lg mb-12">Search for verticals, competitors, or specific technologies.</p>
 
                       {/* Search Bar */}
-                      <div className="relative group max-w-2xl mx-auto mb-8">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-indigo-100 via-purple-100 to-indigo-100 dark:from-indigo-900/50 dark:via-purple-900/50 dark:to-indigo-900/50 rounded-2xl blur opacity-50 group-hover:opacity-100 transition duration-500"></div>
-                        <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 ring-1 ring-slate-200 dark:ring-slate-700 flex items-center p-2 transition-all focus-within:ring-2 focus-within:ring-indigo-500/20">
+                      <div className="relative group max-w-2xl mx-auto mb-10">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-100 via-purple-100 to-indigo-100 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-indigo-900/30 rounded-full blur opacity-50 group-hover:opacity-75 transition duration-500"></div>
+                        <div className="relative bg-white dark:bg-slate-900 rounded-full shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 ring-1 ring-slate-200 dark:ring-slate-700 flex items-center p-2 transition-all focus-within:ring-2 focus-within:ring-indigo-500/20">
                           <Search className="w-5 h-5 text-slate-400 ml-4" />
                           <input
                             type="text"
@@ -1316,22 +1316,36 @@ export function WorkspaceApp() {
                           <div className="pr-2">
                             <button
                               onClick={() => executeSearch()}
-                              className="p-2 bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-all"
+                              className="p-2 bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-full transition-all"
                             >
-                              <Zap className="w-4 h-4" />
+                              <Zap className="w-4 h-4 fill-current" />
                             </button>
                           </div>
                         </div>
                       </div>
 
                       {/* Suggestions */}
-                      <div className="flex items-center justify-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-                        <span className="font-medium text-slate-400 dark:text-slate-500">Try:</span>
-                        <button onClick={() => handleQuickFilter('Fintech API')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors hover:underline decoration-indigo-200 underline-offset-4">Fintech API</button>
-                        <span className="text-slate-300 dark:text-slate-600">•</span>
-                        <button onClick={() => handleQuickFilter('Green Energy')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors hover:underline decoration-indigo-200 underline-offset-4">Green Energy</button>
-                        <span className="text-slate-300 dark:text-slate-600">•</span>
-                        <button onClick={() => handleQuickFilter('EdTech Mobile')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors hover:underline decoration-indigo-200 underline-offset-4">EdTech Mobile</button>
+                      {/* Suggestions */}
+                      <div className="flex items-center justify-center gap-3 text-sm">
+                        <span className="font-medium text-slate-400 dark:text-slate-500 mr-1">Try:</span>
+                        <button
+                          onClick={() => handleQuickFilter('Fintech API')}
+                          className="px-3 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all text-xs font-medium shadow-sm"
+                        >
+                          Fintech API
+                        </button>
+                        <button
+                          onClick={() => handleQuickFilter('Green Energy')}
+                          className="px-3 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all text-xs font-medium shadow-sm"
+                        >
+                          Green Energy
+                        </button>
+                        <button
+                          onClick={() => handleQuickFilter('EdTech Mobile')}
+                          className="px-3 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all text-xs font-medium shadow-sm"
+                        >
+                          EdTech Mobile
+                        </button>
                       </div>
 
                     </div>

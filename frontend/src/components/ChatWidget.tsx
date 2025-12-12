@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Sparkles, Loader2, Paperclip, File as FileIcon } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles, Loader2, Paperclip, File as FileIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 
@@ -209,10 +209,7 @@ export function ChatWidget({ context, mode = 'floating', className }: ChatWidget
                 {isOpen ? (
                     <X className="w-5 h-5" />
                 ) : (
-                    <>
-                        <MessageSquare className="w-5 h-5" />
-                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></span>
-                    </>
+                    <MessageCircle className="w-6 h-6 fill-current" />
                 )}
             </motion.button>
         </div>
