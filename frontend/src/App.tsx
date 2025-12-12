@@ -7,7 +7,6 @@ import {
   Trash2,
   ChevronDown,
   Zap,
-  ChevronsUpDown,
   Building2,
   History,
   Table2,
@@ -58,6 +57,7 @@ import { getAllPeople } from './api/people';
 import { cn, formatDate, normalizeWebsite, matchesIndustry, savedCompanyToCompany } from './lib/utils';
 import { INDUSTRIES, LOCATIONS, WorkspaceView, FitFilter, DEFAULT_CATEGORY } from './lib/constants';
 import { useWorkspace } from './lib/workspace';
+import { WorkspaceSwitcher } from './components/WorkspaceSwitcher';
 
 
 
@@ -70,10 +70,7 @@ export function WorkspaceApp() {
   const initialView = (searchParams.get('view') as WorkspaceView) || 'search';
   const [activeView, setActiveView] = useState<WorkspaceView>(initialView);
 
-  // Use workspace name if available, otherwise fallback to user email
-  const workspaceName = workspace?.name || 'Zerpha Intelligence';
-  const displayName = workspaceName;
-  const displayInitial = workspaceName.charAt(0).toUpperCase();
+
 
   // Sync activeView changes to URL
   useEffect(() => {
@@ -906,25 +903,10 @@ export function WorkspaceApp() {
 
         <div className="p-4 flex-1 overflow-y-auto space-y-8">
 
-          {/* Workspace */}
+          {/* Workspace Switcher */}
           <div>
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 block px-3">Workspace</label>
-            <button
-              onClick={() => navigate('/settings')}
-              className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold border border-indigo-100 group-hover:border-indigo-200 transition-colors overflow-hidden">
-                  {workspace?.logo_url ? (
-                    <img src={workspace.logo_url} alt="Workspace Logo" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-indigo-50 text-indigo-600 flex items-center justify-center">{displayInitial}</div>
-                  )}
-                </div>
-                <span className="group-hover:text-indigo-900 dark:group-hover:text-indigo-400 transition-colors">{displayName}</span>
-              </div>
-              <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
-            </button>
+            <WorkspaceSwitcher onNavigateToSettings={() => navigate('/settings')} />
 
             {/* Team Members Avatars */}
             {workspace?.members && workspace.members.length > 0 && (

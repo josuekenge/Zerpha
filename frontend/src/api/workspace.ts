@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import {
     WorkspaceWithMembers,
+    WorkspaceSummary,
     TeamMember,
     TeamRole,
     UpdateWorkspaceRequest,
@@ -159,7 +160,190 @@ export async function getOrCreateWorkspace(): Promise<WorkspaceWithMembers> {
     };
 }
 
-// Update workspace details
+// Get all workspaces the current user belongs to
+export async function getAllUserWorkspaces(): Promise<WorkspaceSummary[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    // Get all workspace memberships for the current user
+    const { data: memberships, error: memberError } = await supabase
+        .from('workspace_members')
+        .select('workspace_id, role')
+        .eq('user_id', user.id);
+
+    if (memberError) {
+        console.error('Error fetching user workspaces:', memberError);
+        throw new Error('Failed to fetch workspaces');
+    }
+
+    if (!memberships || memberships.length === 0) {
+        return [];
+    }
+
+    const workspaceIds = memberships.map(m => m.workspace_id);
+    const roleMap = new Map(memberships.map(m => [m.workspace_id, m.role as TeamRole]));
+
+    // Fetch all workspaces
+    const { data: workspaces, error: wsError } = await supabase
+        .from('workspaces')
+        .select('id, name, logo_url, owner_id')
+        .in('id', workspaceIds);
+
+    if (wsError || !workspaces) {
+        console.error('Error fetching workspaces:', wsError);
+        throw new Error('Failed to fetch workspaces');
+    }
+
+    // Get member counts for each workspace
+    const { data: memberCounts, error: countError } = await supabase
+        .from('workspace_members')
+        .select('workspace_id')
+        .in('workspace_id', workspaceIds);
+
+    if (countError) {
+        console.error('Error fetching member counts:', countError);
+    }
+
+    // Count members per workspace
+    const countMap = new Map<string, number>();
+    (memberCounts || []).forEach((m: { workspace_id: string }) => {
+        countMap.set(m.workspace_id, (countMap.get(m.workspace_id) || 0) + 1);
+    });
+
+    return workspaces.map(ws => ({
+        id: ws.id,
+        name: ws.name,
+        logo_url: ws.logo_url,
+        owner_id: ws.owner_id,
+        role: roleMap.get(ws.id) || 'member',
+        member_count: countMap.get(ws.id) || 1,
+    }));
+}
+
+// Get a specific workspace by ID with all its members
+export async function getWorkspaceById(workspaceId: string): Promise<WorkspaceWithMembers> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    // Verify user has access to this workspace
+    const { data: membership, error: memberError } = await supabase
+        .from('workspace_members')
+        .select('id')
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', user.id)
+        .single();
+
+    if (memberError || !membership) {
+        console.error('Access denied to workspace:', memberError);
+        throw new Error('You do not have access to this workspace');
+    }
+
+    // Fetch workspace
+    const { data: workspace, error: wsError } = await supabase
+        .from('workspaces')
+        .select('*')
+        .eq('id', workspaceId)
+        .single();
+
+    if (wsError || !workspace) {
+        console.error('Error fetching workspace:', wsError);
+        throw new Error('Failed to fetch workspace');
+    }
+
+    // Fetch all members
+    const { data: members, error: membersError } = await supabase
+        .from('workspace_members')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .order('joined_at', { ascending: true });
+
+    if (membersError) {
+        console.error('Error fetching workspace members:', membersError);
+    }
+
+    return {
+        id: workspace.id,
+        name: workspace.name,
+        logo_url: workspace.logo_url,
+        owner_id: workspace.owner_id,
+        created_at: workspace.created_at,
+        updated_at: workspace.updated_at,
+        members: (members || []).map((m: Record<string, unknown>, index: number) => ({
+            id: m.id as string,
+            email: m.email as string,
+            name: m.name as string,
+            avatar_url: m.avatar_url as string | null,
+            role: m.role as TeamRole,
+            color: (m.color as string) || getMemberColor(index),
+            joined_at: m.joined_at as string,
+        })),
+    };
+}
+
+// Create a brand new empty workspace with custom name
+export async function createNewWorkspace(name: string): Promise<WorkspaceWithMembers> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+        throw new Error('Workspace name is required');
+    }
+
+    // Create the workspace
+    const { data: newWorkspace, error: createError } = await supabase
+        .from('workspaces')
+        .insert({
+            name: trimmedName,
+            owner_id: user.id,
+        })
+        .select()
+        .single();
+
+    if (createError) {
+        console.error('Error creating workspace:', createError);
+        throw new Error('Failed to create workspace');
+    }
+
+    // Add the user as owner
+    const { error: addMemberError } = await supabase
+        .from('workspace_members')
+        .insert({
+            workspace_id: newWorkspace.id,
+            user_id: user.id,
+            email: user.email || '',
+            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            avatar_url: user.user_metadata?.avatar_url || null,
+            role: 'owner',
+            color: getMemberColor(0),
+        });
+
+    if (addMemberError) {
+        console.error('Error adding workspace owner:', addMemberError);
+        // Try to cleanup the orphaned workspace
+        await supabase.from('workspaces').delete().eq('id', newWorkspace.id);
+        throw new Error('Failed to set up workspace');
+    }
+
+    return {
+        id: newWorkspace.id,
+        name: newWorkspace.name,
+        logo_url: newWorkspace.logo_url,
+        owner_id: newWorkspace.owner_id,
+        created_at: newWorkspace.created_at,
+        updated_at: newWorkspace.updated_at,
+        members: [{
+            id: crypto.randomUUID(), // temporary ID
+            email: user.email || '',
+            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            avatar_url: user.user_metadata?.avatar_url || null,
+            role: 'owner',
+            color: getMemberColor(0),
+            joined_at: new Date().toISOString(),
+        }],
+    };
+}
+
 export async function updateWorkspace(updates: UpdateWorkspaceRequest): Promise<WorkspaceWithMembers> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');

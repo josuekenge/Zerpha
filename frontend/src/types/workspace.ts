@@ -32,3 +32,13 @@ export interface UpdateWorkspaceRequest {
     name?: string;
     logo_url?: string | null;
 }
+
+// Summary of workspace for switcher (lighter than full WorkspaceWithMembers)
+export interface WorkspaceSummary {
+    id: string;
+    name: string;
+    logo_url: string | null;
+    owner_id: string;
+    role: TeamRole; // User's role in this workspace
+    member_count: number;
+}
