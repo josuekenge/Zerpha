@@ -255,11 +255,8 @@ workspaceRouter.delete(
             if (targetRole === 'owner') {
                 return res.status(403).json({ message: 'Cannot remove an owner. Transfer ownership first.' });
             }
-            if (actorRole === 'admin' && targetRole === 'admin') {
-                return res.status(403).json({ message: 'Only owners can remove admins' });
-            }
             if (!canRemoveWorkspaceMember(actorRole, targetRole)) {
-                return res.status(403).json({ message: 'You do not have permission to remove members' });
+                return res.status(403).json({ message: 'You do not have permission to remove this member' });
             }
 
             // Perform the deletion using service role (bypasses RLS)

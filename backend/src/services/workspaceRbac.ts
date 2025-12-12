@@ -6,7 +6,7 @@ export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer';
  * Rules:
  * - Nobody can remove an owner (ownership must be transferred first)
  * - Owner can remove admin/member/viewer
- * - Admin can remove member/viewer, but cannot remove admins
+ * - Admin can remove admin/member/viewer (but never an owner)
  * - Member/viewer cannot remove anyone
  */
 export function canRemoveWorkspaceMember(actorRole: WorkspaceRole, targetRole: WorkspaceRole): boolean {
@@ -15,7 +15,7 @@ export function canRemoveWorkspaceMember(actorRole: WorkspaceRole, targetRole: W
   if (actorRole === 'owner') return true;
 
   if (actorRole === 'admin') {
-    return targetRole === 'member' || targetRole === 'viewer';
+    return targetRole === 'admin' || targetRole === 'member' || targetRole === 'viewer';
   }
 
   return false;

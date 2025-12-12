@@ -369,8 +369,7 @@ export function WorkspaceSettings() {
                                     {(() => {
                                         const canRemoveThisMember =
                                             canManage &&
-                                            member.role !== 'owner' &&
-                                            (currentUserRole === 'owner' || member.role !== 'admin');
+                                            member.role !== 'owner';
 
                                         if (!canRemoveThisMember) {
                                             return null;

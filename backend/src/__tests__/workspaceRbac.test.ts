@@ -13,7 +13,7 @@ test('canRemoveWorkspaceMember', () => {
   // admin
   assert.equal(canRemoveWorkspaceMember('admin', 'member'), true);
   assert.equal(canRemoveWorkspaceMember('admin', 'viewer'), true);
-  assert.equal(canRemoveWorkspaceMember('admin', 'admin'), false);
+  assert.equal(canRemoveWorkspaceMember('admin', 'admin'), true);
   assert.equal(canRemoveWorkspaceMember('admin', 'owner'), false);
 
   // member/viewer
