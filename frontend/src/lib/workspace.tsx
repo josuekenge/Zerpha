@@ -9,7 +9,8 @@ import {
     uploadWorkspaceLogo as apiUploadLogo,
     inviteTeamMember as apiInviteMember,
     removeTeamMember as apiRemoveMember,
-    updateMemberRole as apiUpdateRole
+    updateMemberRole as apiUpdateRole,
+    leaveActiveWorkspace as apiLeaveActiveWorkspace
 } from '../api/workspace';
 import { useAuth } from './auth';
 
@@ -24,6 +25,7 @@ interface WorkspaceContextValue {
     loading: boolean;
     error: string | null;
     canManage: boolean;
+    currentUserRole: TeamRole | null;
     // Switch to a different workspace
     switchWorkspace: (workspaceId: string) => Promise<void>;
     // Create a new empty workspace
@@ -35,6 +37,7 @@ interface WorkspaceContextValue {
     inviteMember: (request: InviteMemberRequest) => Promise<void>;
     removeMember: (memberId: string) => Promise<void>;
     updateMemberRole: (memberId: string, role: TeamRole) => Promise<void>;
+    leaveWorkspace: () => Promise<void>;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextValue | undefined>(undefined);
@@ -46,6 +49,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [canManage, setCanManage] = useState(false);
+    const [currentUserRole, setCurrentUserRole] = useState<TeamRole | null>(null);
 
     // Load all workspaces user belongs to
     const refreshAllWorkspaces = useCallback(async () => {
@@ -104,10 +108,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             const currentMember = ws.members.find(
                 (m) => m.email?.toLowerCase() === currentUserEmail
             );
-            const userRole = currentMember?.role;
+            const userRole = (currentMember?.role ?? null) as TeamRole | null;
             const manage = userRole === 'owner' || userRole === 'admin';
             console.log('[Workspace] User role:', userRole, 'canManage:', manage);
             setCanManage(manage);
+            setCurrentUserRole(userRole);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load workspace');
             console.error('Failed to load workspace:', err);
@@ -224,6 +229,24 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         }
     }, [refreshWorkspace]);
 
+    const leaveWorkspace = useCallback(async () => {
+        try {
+            setError(null);
+            await apiLeaveActiveWorkspace();
+
+            // If user left the active workspace, clear preference so we fall back cleanly
+            localStorage.removeItem(ACTIVE_WORKSPACE_KEY);
+
+            // Reload workspace lists + select a new default (or create)
+            await refreshAllWorkspaces();
+            await loadWorkspace();
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to leave workspace';
+            setError(message);
+            throw err;
+        }
+    }, [refreshAllWorkspaces, loadWorkspace]);
+
     return (
         <WorkspaceContext.Provider
             value={{
@@ -232,6 +255,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
                 loading,
                 error,
                 canManage,
+                currentUserRole,
                 switchWorkspace,
                 createWorkspace,
                 refreshWorkspace,
@@ -241,6 +265,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
                 inviteMember,
                 removeMember,
                 updateMemberRole: updateMemberRoleHandler,
+                leaveWorkspace,
             }}
         >
             {children}

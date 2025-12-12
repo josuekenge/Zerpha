@@ -7,6 +7,7 @@ import {
     UpdateWorkspaceRequest,
     InviteMemberRequest
 } from '../types/workspace';
+import { buildApiUrl } from './config';
 
 // Vibrant color palette for team members
 const MEMBER_COLORS = [
@@ -479,9 +480,9 @@ export async function removeTeamMember(memberId: string): Promise<void> {
     const workspaceId = localStorage.getItem('zerpha_active_workspace_id');
     if (!workspaceId) throw new Error('No workspace selected');
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    const response = await fetch(`${API_URL}/api/workspace/members/${memberId}`, {
+    const response = await fetch(buildApiUrl(`/api/workspace/members/${memberId}`), {
         method: 'DELETE',
+        credentials: 'include',
         headers: {
             'Authorization': `Bearer ${session.access_token}`,
             'X-Workspace-ID': workspaceId,
@@ -503,9 +504,9 @@ export async function updateMemberRole(memberId: string, newRole: TeamRole): Pro
     const workspaceId = localStorage.getItem('zerpha_active_workspace_id');
     if (!workspaceId) throw new Error('No workspace selected');
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    const response = await fetch(`${API_URL}/api/workspace/members/${memberId}/role`, {
+    const response = await fetch(buildApiUrl(`/api/workspace/members/${memberId}/role`), {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
             'Authorization': `Bearer ${session.access_token}`,
             'X-Workspace-ID': workspaceId,
@@ -549,4 +550,28 @@ export async function getCurrentUserRole(): Promise<TeamRole | null> {
 export async function canManageTeam(): Promise<boolean> {
     const role = await getCurrentUserRole();
     return role === 'owner' || role === 'admin';
+}
+
+// Leave the current active workspace (self-service) via backend API
+export async function leaveActiveWorkspace(): Promise<void> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
+
+    const workspaceId = localStorage.getItem('zerpha_active_workspace_id');
+    if (!workspaceId) throw new Error('No workspace selected');
+
+    const response = await fetch(buildApiUrl('/api/workspace/leave'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'X-Workspace-ID': workspaceId,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to leave workspace' }));
+        throw new Error(error.message || 'Failed to leave workspace');
+    }
 }

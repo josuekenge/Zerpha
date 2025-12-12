@@ -1,11 +1,10 @@
-import { useState } from 'react';
-import { Moon, Sun, Layout, Eye } from 'lucide-react';
+import { Moon, Sun, Eye } from 'lucide-react';
 import { SettingsSectionCard } from '../../components/settings/SettingsSectionCard';
 import { useTheme } from '../../lib/theme';
+import { useState } from 'react';
 
 export function PreferencesSettings() {
     const { theme, setTheme } = useTheme();
-    const [compactMode, setCompactMode] = useState(false);
     const [showFavicons, setShowFavicons] = useState(true);
 
     const isDark = theme === 'dark';
@@ -17,6 +16,7 @@ export function PreferencesSettings() {
                 description="Customize how Zerpha looks and feels."
             >
                 <div className="space-y-4">
+                    {/* Theme Mode */}
                     <div className="flex items-center justify-between py-2">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
@@ -47,36 +47,7 @@ export function PreferencesSettings() {
 
                     <div className="border-t border-slate-100 dark:border-slate-800" />
 
-                    <div className="flex items-center justify-between py-2">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                                <Layout className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-medium text-slate-900 dark:text-white">Table Density</h4>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Adjust the spacing in data tables</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
-                            <button
-                                onClick={() => setCompactMode(false)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${!compactMode ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                                    }`}
-                            >
-                                Comfortable
-                            </button>
-                            <button
-                                onClick={() => setCompactMode(true)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${compactMode ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                                    }`}
-                            >
-                                Compact
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="border-t border-slate-100 dark:border-slate-800" />
-
+                    {/* Show Favicons */}
                     <div className="flex items-center justify-between py-2">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">

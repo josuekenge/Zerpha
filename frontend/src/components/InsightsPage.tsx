@@ -62,7 +62,7 @@ export function InsightsPage({
             <div className="h-full flex items-center justify-center">
                 <div className="text-center">
                     <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto mb-4" />
-                    <p className="text-sm text-slate-600">Loading market insights...</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Loading market insights...</p>
                 </div>
             </div>
         );
@@ -73,7 +73,7 @@ export function InsightsPage({
             <div className="h-full flex items-center justify-center">
                 <div className="text-center">
                     <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-4" />
-                    <p className="text-sm text-slate-600">{error}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{error}</p>
                 </div>
             </div>
         );
@@ -84,12 +84,12 @@ export function InsightsPage({
     const maxIndustryCount = Math.max(...insights.byIndustry.map(i => i.count), 1);
 
     return (
-        <div className="h-full overflow-y-auto p-6 space-y-6">
+        <div className="h-full overflow-y-auto p-6 space-y-6 bg-slate-50 dark:bg-slate-950">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900">Market Insights</h1>
-                    <p className="text-sm text-slate-500">Analytics for your saved companies</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-white">Market Insights</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Analytics for your saved companies</p>
                 </div>
             </div>
 
@@ -118,19 +118,19 @@ export function InsightsPage({
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Industry Breakdown Chart */}
-                <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                    <h2 className="text-sm font-semibold text-slate-900 mb-4">Companies by Industry</h2>
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+                    <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Companies by Industry</h2>
                     {insights.byIndustry.length === 0 ? (
-                        <p className="text-sm text-slate-500">No industry data available</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">No industry data available</p>
                     ) : (
                         <div className="space-y-3">
                             {insights.byIndustry.slice(0, 8).map((item) => (
                                 <div key={item.industry} className="group">
                                     <div className="flex items-center justify-between mb-1">
-                                        <span className="text-sm text-slate-700 truncate max-w-[150px]">{item.industry}</span>
-                                        <span className="text-xs text-slate-500">{item.count} companies</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300 truncate max-w-[150px]">{item.industry}</span>
+                                        <span className="text-xs text-slate-500 dark:text-slate-400">{item.count} companies</span>
                                     </div>
-                                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                         <div
                                             className="h-full bg-indigo-500 rounded-full transition-all duration-300"
                                             style={{ width: `${(item.count / maxIndustryCount) * 100}%` }}
@@ -143,10 +143,10 @@ export function InsightsPage({
                 </div>
 
                 {/* Top Targets */}
-                <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
                     <div className="flex items-center gap-2 mb-4">
                         <Target className="w-4 h-4 text-indigo-600" />
-                        <h2 className="text-sm font-semibold text-slate-900">Top Targets</h2>
+                        <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Top Targets</h2>
                     </div>
                     <CompanyTable
                         companies={insights.topTargets}
@@ -157,12 +157,12 @@ export function InsightsPage({
             </div>
 
             {/* Hidden Gems */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-1">
                     <Gem className="w-4 h-4 text-amber-500" />
-                    <h2 className="text-sm font-semibold text-slate-900">Hidden Gems</h2>
+                    <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Hidden Gems</h2>
                 </div>
-                <p className="text-xs text-slate-500 mb-4">Medium fit, strong potential — companies worth a closer look</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Medium fit, strong potential — companies worth a closer look</p>
                 <CompanyTable
                     companies={insights.hiddenGems}
                     onCompanyClick={onCompanyClick}
@@ -183,20 +183,20 @@ interface KpiCardProps {
 
 function KpiCard({ icon, label, value, color }: KpiCardProps) {
     const colorClasses = {
-        indigo: 'bg-indigo-50 text-indigo-600',
-        teal: 'bg-teal-50 text-teal-600',
-        amber: 'bg-amber-50 text-amber-600',
+        indigo: 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400',
+        teal: 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400',
+        amber: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
     };
 
     return (
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
             <div className="flex items-center gap-3">
                 <div className={cn('p-2 rounded-lg', colorClasses[color])}>
                     {icon}
                 </div>
                 <div>
-                    <p className="text-xs text-slate-500 font-medium">{label}</p>
-                    <p className="text-2xl font-bold text-slate-900">{value}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{label}</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{value}</p>
                 </div>
             </div>
         </div>
@@ -212,38 +212,38 @@ interface CompanyTableProps {
 
 function CompanyTable({ companies, onCompanyClick, emptyText }: CompanyTableProps) {
     if (companies.length === 0) {
-        return <p className="text-sm text-slate-500">{emptyText}</p>;
+        return <p className="text-sm text-slate-500 dark:text-slate-400">{emptyText}</p>;
     }
 
     const getScoreColor = (score: number) => {
-        if (score >= 7.5) return 'text-teal-600 bg-teal-50';
-        if (score >= 5) return 'text-amber-600 bg-amber-50';
-        return 'text-red-600 bg-red-50';
+        if (score >= 7.5) return 'text-teal-600 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/50';
+        if (score >= 5) return 'text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/50';
+        return 'text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-900/50';
     };
 
     return (
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                    <tr className="text-left text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                         <th className="py-2 pr-4">Name</th>
                         <th className="py-2 pr-4 hidden sm:table-cell">Domain</th>
                         <th className="py-2 pr-4 hidden md:table-cell">Industry</th>
                         <th className="py-2 text-right">Fit</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                     {companies.map((company) => (
                         <tr
                             key={company.id}
                             onClick={() => onCompanyClick?.(company.id)}
                             className={cn(
-                                "hover:bg-slate-50 transition-colors",
+                                "hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors",
                                 onCompanyClick && "cursor-pointer"
                             )}
                         >
                             <td className="py-2.5 pr-4">
-                                <span className="font-medium text-slate-900">{company.name}</span>
+                                <span className="font-medium text-slate-900 dark:text-white">{company.name}</span>
                             </td>
                             <td className="py-2.5 pr-4 hidden sm:table-cell">
                                 <a
@@ -257,7 +257,7 @@ function CompanyTable({ companies, onCompanyClick, emptyText }: CompanyTableProp
                                     <ExternalLink className="w-3 h-3" />
                                 </a>
                             </td>
-                            <td className="py-2.5 pr-4 text-slate-600 hidden md:table-cell">{company.industry}</td>
+                            <td className="py-2.5 pr-4 text-slate-600 dark:text-slate-400 hidden md:table-cell">{company.industry}</td>
                             <td className="py-2.5 text-right">
                                 <span className={cn(
                                     "inline-block px-2 py-0.5 rounded-full text-xs font-medium",

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { supabase } from '../config/supabase.js';
 import { logger } from '../logger.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
+import { canLeaveWorkspace, canRemoveWorkspaceMember, type WorkspaceRole } from '../services/workspaceRbac.js';
 
 export const workspaceRouter = Router();
 
@@ -38,6 +39,79 @@ async function canUserManageWorkspace(userId: string, workspaceId: string): Prom
     const role = await getCurrentUserRole(userId, workspaceId);
     return role === 'owner' || role === 'admin';
 }
+
+/**
+ * POST /api/workspace/leave
+ * Leave the active workspace (self-service)
+ *
+ * RBAC:
+ * - Any role can leave except:
+ *   - owner cannot leave if they are the last owner (must transfer ownership first)
+ */
+workspaceRouter.post(
+    '/workspace/leave',
+    requireAuth,
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const user = authReq.user;
+            const workspaceId = authReq.workspaceId;
+
+            if (!user) {
+                return res.status(401).json({ message: 'Not authenticated' });
+            }
+            if (!workspaceId) {
+                return res.status(400).json({ message: 'No workspace selected' });
+            }
+
+            // Find membership row for current user in active workspace
+            const { data: membership, error: membershipError } = await supabase
+                .from('workspace_members')
+                .select('id, role')
+                .eq('workspace_id', workspaceId)
+                .eq('user_id', user.id)
+                .single();
+
+            if (membershipError || !membership) {
+                return res.status(404).json({ message: 'You are not a member of this workspace' });
+            }
+
+            // Prevent last owner leaving
+            if (membership.role === 'owner') {
+                const { data: owners, error: ownersError } = await supabase
+                    .from('workspace_members')
+                    .select('id')
+                    .eq('workspace_id', workspaceId)
+                    .eq('role', 'owner');
+
+                if (ownersError) {
+                    logger.error({ err: ownersError, workspaceId }, '[workspace] Failed to check owners on leave');
+                    throw new Error(ownersError.message);
+                }
+
+                if (!owners || !canLeaveWorkspace('owner', owners.length)) {
+                    return res.status(400).json({ message: 'Cannot leave workspace as the last owner. Transfer ownership first.' });
+                }
+            }
+
+            const { error: deleteError } = await supabase
+                .from('workspace_members')
+                .delete()
+                .eq('id', membership.id)
+                .eq('workspace_id', workspaceId);
+
+            if (deleteError) {
+                logger.error({ err: deleteError, workspaceId, userId: user.id }, '[workspace] Failed to leave workspace');
+                throw new Error(deleteError.message);
+            }
+
+            logger.info({ workspaceId, userId: user.id }, '[workspace] User left workspace');
+            return res.status(204).send();
+        } catch (error) {
+            next(error);
+        }
+    }
+);
 
 /**
  * PATCH /api/workspace/members/:memberId/role
@@ -174,14 +248,18 @@ workspaceRouter.delete(
                 return res.status(404).json({ message: 'Member not found in this workspace' });
             }
 
-            // Cannot remove an owner (must transfer ownership first)
-            if (targetMember.role === 'owner') {
+            const actorRole = currentUserRole as WorkspaceRole;
+            const targetRole = targetMember.role as WorkspaceRole;
+
+            // RBAC enforcement for removals (with specific messages)
+            if (targetRole === 'owner') {
                 return res.status(403).json({ message: 'Cannot remove an owner. Transfer ownership first.' });
             }
-
-            // Admins cannot remove other admins (only owners can)
-            if (targetMember.role === 'admin' && currentUserRole !== 'owner') {
+            if (actorRole === 'admin' && targetRole === 'admin') {
                 return res.status(403).json({ message: 'Only owners can remove admins' });
+            }
+            if (!canRemoveWorkspaceMember(actorRole, targetRole)) {
+                return res.status(403).json({ message: 'You do not have permission to remove members' });
             }
 
             // Perform the deletion using service role (bypasses RLS)

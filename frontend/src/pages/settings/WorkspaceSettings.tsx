@@ -11,11 +11,13 @@ export function WorkspaceSettings() {
         loading,
         error: workspaceError,
         canManage,
+        currentUserRole,
         updateWorkspace,
         uploadLogo,
         inviteMember,
         removeMember,
-        updateMemberRole
+        updateMemberRole,
+        leaveWorkspace,
     } = useWorkspace();
 
     const [workspaceName, setWorkspaceName] = useState(workspace?.name || 'Zerpha Intelligence');
@@ -27,6 +29,7 @@ export function WorkspaceSettings() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [emailError, setEmailError] = useState<string | null>(null);
     const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+    const [isLeaving, setIsLeaving] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Sync local state with workspace data
@@ -147,6 +150,23 @@ export function WorkspaceSettings() {
         }
     };
 
+    const handleLeaveWorkspace = async () => {
+        setErrorMessage(null);
+
+        const confirmed = window.confirm('Are you sure you want to leave this workspace?');
+        if (!confirmed) return;
+
+        setIsLeaving(true);
+        try {
+            await leaveWorkspace();
+            setSuccessMessage('You left the workspace.');
+        } catch (err) {
+            setErrorMessage(err instanceof Error ? err.message : 'Failed to leave workspace');
+        } finally {
+            setIsLeaving(false);
+        }
+    };
+
     const getInitials = (name: string) => {
         return name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
     };
@@ -161,6 +181,8 @@ export function WorkspaceSettings() {
 
     const members = workspace?.members || [];
     const maxSeats = 5;
+    const ownerCount = members.filter((m) => m.role === 'owner').length;
+    const isLastOwner = currentUserRole === 'owner' && ownerCount <= 1;
 
     return (
         <div className="space-y-6">
@@ -344,7 +366,17 @@ export function WorkspaceSettings() {
                                         <option value="member">Member</option>
                                         <option value="viewer">Viewer</option>
                                     </select>
-                                    {canManage && member.role !== 'owner' && (
+                                    {(() => {
+                                        const canRemoveThisMember =
+                                            canManage &&
+                                            member.role !== 'owner' &&
+                                            (currentUserRole === 'owner' || member.role !== 'admin');
+
+                                        if (!canRemoveThisMember) {
+                                            return null;
+                                        }
+
+                                        return (
                                         <button
                                             onClick={() => handleRemoveMember(member.id)}
                                             disabled={removingMemberId === member.id}
@@ -357,10 +389,29 @@ export function WorkspaceSettings() {
                                                 <Trash2 className="w-4 h-4" />
                                             )}
                                         </button>
-                                    )}
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         ))}
+                    </div>
+
+                    {/* Leave Workspace (self-service) */}
+                    <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-slate-900 dark:text-white">Leave workspace</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                You can leave this workspace at any time. Owners must transfer ownership first.
+                            </p>
+                        </div>
+                        <button
+                            onClick={handleLeaveWorkspace}
+                            disabled={isLeaving || isLastOwner}
+                            className="px-4 py-2 text-sm font-medium rounded-lg border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={isLastOwner ? 'You are the last owner. Transfer ownership first.' : 'Leave workspace'}
+                        >
+                            {isLeaving ? 'Leaving…' : 'Leave'}
+                        </button>
                     </div>
                 </div>
             </SettingsSectionCard>

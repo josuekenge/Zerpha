@@ -135,7 +135,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
               <FileText className="w-4 h-4 text-slate-400" /> Executive Summary
             </h3>
           </div>
-          <div className="bg-white dark:bg-slate-900 p-4">
+          <div className="bg-white dark:bg-slate-950 p-4">
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               {company.summary || 'No executive summary available.'}
             </p>
@@ -149,7 +149,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
               <Target className="w-4 h-4 text-slate-400" /> Fit Analysis
             </h3>
           </div>
-          <div className="bg-white dark:bg-slate-900 p-4">
+          <div className="bg-white dark:bg-slate-950 p-4">
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               {raw_json.acquisition_fit_reason || 'No detailed fit analysis provided.'}
             </p>
@@ -161,7 +161,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
           <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Product & Market</h3>
           </div>
-          <div className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="bg-white dark:bg-slate-950 divide-y divide-slate-100 dark:divide-slate-800">
             <div className="p-4 grid grid-cols-3 gap-4">
               <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Offering</div>
               <div className="col-span-2 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -188,7 +188,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
           <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Operations</h3>
           </div>
-          <div className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="bg-white dark:bg-slate-950 divide-y divide-slate-100 dark:divide-slate-800">
             <div className="p-4 flex justify-between items-center">
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400">HQ Location</span>
               <span className="text-sm font-medium text-slate-900 dark:text-white">{raw_json.hq_location || 'Unknown'}</span>
@@ -214,7 +214,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
               People
             </h3>
           </div>
-          <div className="bg-white dark:bg-slate-900 p-4">
+          <div className="bg-white dark:bg-slate-950 p-4">
             {peopleLoading ? (
               <div className="flex items-center gap-2 text-slate-500 text-sm">
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -294,7 +294,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
           <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">
             <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Key Info</h3>
           </div>
-          <div className="bg-white dark:bg-slate-900 p-4 grid grid-cols-1 gap-2">
+          <div className="bg-white dark:bg-slate-950 p-4 grid grid-cols-1 gap-2">
             <div className="flex justify-between">
               <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">ID</span>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{company.id.slice(0, 24)}</span>

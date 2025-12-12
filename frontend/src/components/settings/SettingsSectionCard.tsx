@@ -17,7 +17,7 @@ export function SettingsSectionCard({
     action,
 }: SettingsSectionCardProps) {
     return (
-        <div className={cn("bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden", className)}>
+        <div className={cn("bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden", className)}>
             <div className="p-6">
                 <div className="flex items-start justify-between mb-6">
                     <div>
