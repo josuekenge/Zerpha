@@ -5,10 +5,17 @@ import { useAuth } from '../../lib/auth';
 
 export function AccountSettings() {
     const { user } = useAuth();
-    const isGoogleUser = user?.app_metadata?.provider === 'google';
 
-    const [name, setName] = useState(user?.user_metadata?.full_name || 'Josue Kenge');
-    const [email, setEmail] = useState(user?.email || 'josue@zerpha.com');
+    // Check multiple ways a user might be authenticated via Google
+    const isGoogleUser = Boolean(
+        user?.app_metadata?.provider === 'google' ||
+        user?.app_metadata?.providers?.includes('google') ||
+        user?.identities?.some((id: { provider?: string }) => id.provider === 'google') ||
+        user?.email?.endsWith('@gmail.com')  // Fallback: Gmail users are always Google auth
+    );
+
+    const [name, setName] = useState(user?.user_metadata?.full_name || 'User');
+    const [email, setEmail] = useState(user?.email || '');
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
 
     // Update state when user loads (if initially null or changed)
