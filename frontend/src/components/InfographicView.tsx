@@ -77,3 +77,6 @@ export function InfographicView({ data, onBack }: InfographicViewProps) {
 
 
 
+
+
+
