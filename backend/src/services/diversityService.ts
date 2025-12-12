@@ -38,40 +38,42 @@ export function normalizeCompanyName(name: string): string {
 }
 
 /**
- * Get domains that have been shown to a user for a specific niche.
+ * Get domains that have been shown to a WORKSPACE for a specific niche.
+ * Now workspace-scoped for true multi-tenant data isolation.
  */
 export async function getSeenDomains(
-  userId: string,
+  workspaceId: string,
   nicheKey: string,
 ): Promise<Set<string>> {
   const { data, error } = await supabase
     .from('niche_history')
     .select('company_domain')
-    .eq('user_id', userId)
+    .eq('workspace_id', workspaceId)  // WORKSPACE scoped, not user scoped
     .eq('niche_key', nicheKey);
 
   if (error) {
-    logger.warn({ err: error, userId, nicheKey }, '[diversity] failed to fetch seen domains');
+    logger.warn({ err: error, workspaceId, nicheKey }, '[diversity] failed to fetch seen domains');
     return new Set();
   }
 
   const domains = new Set((data ?? []).map((row) => row.company_domain));
-  logger.debug({ userId, nicheKey, seenCount: domains.size }, '[diversity] fetched seen domains');
+  logger.debug({ workspaceId, nicheKey, seenCount: domains.size }, '[diversity] fetched seen domains');
   return domains;
 }
 
 /**
- * Get domains of companies the user has already saved.
+ * Get domains of companies the WORKSPACE has already saved.
+ * Now workspace-scoped for true multi-tenant data isolation.
  */
-export async function getSavedCompanyDomains(userId: string): Promise<Set<string>> {
+export async function getSavedCompanyDomains(workspaceId: string): Promise<Set<string>> {
   const { data, error } = await supabase
     .from('companies')
     .select('website')
-    .eq('user_id', userId)
+    .eq('workspace_id', workspaceId)  // WORKSPACE scoped, not user scoped
     .eq('is_saved', true);
 
   if (error) {
-    logger.warn({ err: error, userId }, '[diversity] failed to fetch saved company domains');
+    logger.warn({ err: error, workspaceId }, '[diversity] failed to fetch saved company domains');
     return new Set();
   }
 
@@ -82,23 +84,24 @@ export async function getSavedCompanyDomains(userId: string): Promise<Set<string
     }
   }
 
-  logger.debug({ userId, savedCount: domains.size }, '[diversity] fetched saved company domains');
+  logger.debug({ workspaceId, savedCount: domains.size }, '[diversity] fetched saved company domains');
   return domains;
 }
 
 /**
- * Record that companies were shown to a user for a niche.
+ * Record that companies were shown to a WORKSPACE for a niche.
  * Uses upsert to handle duplicates gracefully.
+ * Now workspace-scoped for true multi-tenant data isolation.
  */
 export async function recordSeenCompanies(
-  userId: string,
+  workspaceId: string,
   nicheKey: string,
   companies: Array<{ website: string }>,
 ): Promise<void> {
   if (companies.length === 0) return;
 
   const records = companies.map((company) => ({
-    user_id: userId,
+    workspace_id: workspaceId,  // WORKSPACE scoped, not user scoped
     niche_key: nicheKey,
     company_domain: normalizeDomain(company.website || ''),
     last_seen_at: new Date().toISOString(),
@@ -108,15 +111,15 @@ export async function recordSeenCompanies(
   const { error } = await supabase
     .from('niche_history')
     .upsert(records, {
-      onConflict: 'user_id,niche_key,company_domain',
+      onConflict: 'workspace_id,niche_key,company_domain',
       ignoreDuplicates: false,
     });
 
   if (error) {
-    logger.warn({ err: error, userId, nicheKey }, '[diversity] failed to record seen companies');
+    logger.warn({ err: error, workspaceId, nicheKey }, '[diversity] failed to record seen companies');
   } else {
     logger.debug(
-      { userId, nicheKey, recordedCount: records.length },
+      { workspaceId, nicheKey, recordedCount: records.length },
       '[diversity] recorded seen companies',
     );
   }

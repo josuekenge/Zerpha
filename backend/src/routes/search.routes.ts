@@ -252,12 +252,18 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
   const searchStartTime = Date.now();
 
   try {
-    const user = (req as AuthenticatedRequest).user;
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user;
+    const workspaceId = authReq.workspaceId;
+
     if (!user) throw new Error('User not authenticated');
+    if (!workspaceId) {
+      return res.status(400).json({ message: 'No workspace selected. Please select a workspace.' });
+    }
 
     const { query } = searchRequestSchema.parse(req.body);
 
-    logger.info({ query, userId: user.id }, '[search] received search request');
+    logger.info({ query, userId: user.id, workspaceId }, '[search] received search request');
 
     const enrichCompanyPeople = async (companyId: string, companyName: string, website: string, userId: string) => {
       console.log("ENRICH PEOPLE CALLED FOR", companyName);
@@ -327,7 +333,11 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
 
     const { data: searchInsert, error: searchError } = await supabase
       .from('searches')
-      .insert({ query_text: query, user_id: user.id })
+      .insert({
+        query_text: query,
+        user_id: user.id,  // Attribution only
+        workspace_id: workspaceId  // THIS is the data owner
+      })
       .select()
       .single();
 
@@ -340,15 +350,15 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
     const nicheKey = deriveNicheKey(query);
     logger.info({ query, nicheKey, userId: user.id }, '[search] derived niche key');
 
-    // Get previously seen domains for this user/niche
-    const seenDomains = await getSeenDomains(user.id, nicheKey);
+    // Get previously seen domains for this WORKSPACE (not user)
+    const seenDomains = await getSeenDomains(workspaceId, nicheKey);
     logger.info(
       { nicheKey, seenDomainsCount: seenDomains.size },
       '[search] fetched seen domains for diversity',
     );
 
-    // Get saved company domains to deprioritize in results
-    const savedDomains = await getSavedCompanyDomains(user.id);
+    // Get saved company domains for this WORKSPACE
+    const savedDomains = await getSavedCompanyDomains(workspaceId);
     logger.info(
       { savedDomainsCount: savedDomains.size },
       '[search] fetched saved company domains for filtering',
@@ -474,6 +484,7 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
           description: company.description,
           industry: company.industry,
           country: company.country,
+          workspaceId,  // CRITICAL: Data belongs to workspace
         });
 
         // Run enrichment in background - do not await
@@ -501,6 +512,7 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
         failedCompanyRecords.push({
           user_id: user.id,
           search_id: searchInsert.id,
+          workspace_id: workspaceId,  // Data belongs to workspace
           name: company.name,
           website: websiteFallback,
           vertical_query: query,
@@ -599,13 +611,13 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
       transformCompanyForApi(row as DatabaseCompany),
     );
 
-    // Record the companies shown to this user for this niche (non-blocking)
+    // Record the companies shown to this WORKSPACE for this niche (non-blocking)
     void recordSeenCompanies(
-      user.id,
+      workspaceId,  // Workspace owns the niche history
       nicheKey,
       companiesWithSummary.map((c) => ({ website: c.website })),
     ).catch((err) => {
-      logger.warn({ err, nicheKey, userId: user.id }, '[search] failed to record seen companies');
+      logger.warn({ err, nicheKey, workspaceId }, '[search] failed to record seen companies');
     });
 
     const totalDurationMs = Date.now() - searchStartTime;
@@ -652,27 +664,31 @@ searchRouter.post('/search', requireAuth, async (req: Request, res: Response, ne
 
 searchRouter.get('/search/:searchId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = (req as AuthenticatedRequest).user;
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user;
     if (!user) throw new Error('User not authenticated');
+    // Note: workspaceId validation happens via RLS - if user isn't in workspace, query returns nothing
 
     const { searchId } = searchIdParamSchema.parse(req.params);
 
+    // RLS will automatically filter by workspace membership
     const { data: searchRow, error: searchError } = await supabase
       .from('searches')
       .select('*')
       .eq('id', searchId)
-      .eq('user_id', user.id)
+      // NO user_id filter - RLS handles access via workspace_id
       .single();
 
     if (searchError || !searchRow) {
       return res.status(404).json({ message: 'Search not found' });
     }
 
+    // RLS will automatically filter companies by workspace membership
     const { data: companyRows, error: companyError } = await supabase
       .from('companies')
       .select('*')
       .eq('search_id', searchId)
-      .eq('user_id', user.id)
+      // NO user_id filter - RLS handles access via workspace_id
       .order('created_at', { ascending: true });
 
     if (companyError) {
@@ -699,32 +715,33 @@ searchRouter.get('/search/:searchId', requireAuth, async (req: Request, res: Res
  */
 searchRouter.get('/searches/:searchId/details', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = (req as AuthenticatedRequest).user;
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user;
     if (!user) throw new Error('User not authenticated');
 
     const { searchId } = searchIdParamSchema.parse(req.params);
 
-    logger.info({ searchId, userId: user.id }, '[search] fetching search details with companies and people');
+    logger.info({ searchId }, '[search] fetching search details with companies and people');
 
-    // Fetch the search row
+    // RLS handles access via workspace membership
     const { data: searchRow, error: searchError } = await supabase
       .from('searches')
       .select('id, query_text, created_at')
       .eq('id', searchId)
-      .eq('user_id', user.id)
+      // NO user_id filter - RLS handles access
       .single();
 
     if (searchError || !searchRow) {
-      logger.warn({ searchId, userId: user.id, err: searchError }, '[search] search not found');
+      logger.warn({ searchId, err: searchError }, '[search] search not found');
       return res.status(404).json({ message: 'Search not found' });
     }
 
-    // Fetch all companies for this search
+    // RLS handles access via workspace membership
     const { data: companyRows, error: companyError } = await supabase
       .from('companies')
       .select('*')
       .eq('search_id', searchId)
-      .eq('user_id', user.id)
+      // NO user_id filter - RLS handles access
       .order('created_at', { ascending: true });
 
     if (companyError) {
@@ -739,11 +756,12 @@ searchRouter.get('/searches/:searchId/details', requireAuth, async (req: Request
     let peopleByCompany: Record<string, any[]> = {};
 
     if (companyIds.length > 0) {
+      // RLS handles access via workspace membership
       const { data: peopleRows, error: peopleError } = await supabase
         .from('people')
         .select('id, company_id, full_name, first_name, last_name, role, email, phone, source, is_ceo, is_founder, is_executive')
         .in('company_id', companyIds)
-        .eq('user_id', user.id)
+        // NO user_id filter - RLS handles access
         .order('full_name', { ascending: true });
 
       if (peopleError) {
@@ -789,13 +807,15 @@ searchRouter.get('/searches/:searchId/details', requireAuth, async (req: Request
 
 searchRouter.get('/search-history', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = (req as AuthenticatedRequest).user;
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user;
     if (!user) throw new Error('User not authenticated');
 
+    // RLS handles access via workspace membership - returns all workspace searches
     const { data: searchRows, error: searchError } = await supabase
       .from('searches')
       .select('id, query_text, created_at')
-      .eq('user_id', user.id)
+      // NO user_id filter - RLS handles access via workspace_id
       .order('created_at', { ascending: false })
       .limit(50);
 
@@ -808,11 +828,12 @@ searchRouter.get('/search-history', requireAuth, async (req: Request, res: Respo
     const companyCounts: Record<string, number> = Object.create(null);
 
     if (searchIds.length > 0) {
+      // RLS handles access via workspace membership
       const { data: companyRows, error: companyError } = await supabase
         .from('companies')
         .select('search_id')
-        .in('search_id', searchIds)
-        .eq('user_id', user.id);
+        .in('search_id', searchIds);
+      // NO user_id filter - RLS handles access
 
       if (companyError) {
         logger.error({ err: companyError }, 'Failed to aggregate company counts');
@@ -836,7 +857,7 @@ searchRouter.get('/search-history', requireAuth, async (req: Request, res: Respo
     );
 
     logger.info(
-      { userId: user.id, historyCount: historyItems.length },
+      { historyCount: historyItems.length },
       '[search-history] returning search history'
     );
 
