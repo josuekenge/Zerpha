@@ -9,8 +9,7 @@ import {
     uploadWorkspaceLogo as apiUploadLogo,
     inviteTeamMember as apiInviteMember,
     removeTeamMember as apiRemoveMember,
-    updateMemberRole as apiUpdateRole,
-    canManageTeam as apiCanManageTeam
+    updateMemberRole as apiUpdateRole
 } from '../api/workspace';
 import { useAuth } from './auth';
 
@@ -99,7 +98,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             setWorkspace(ws);
             localStorage.setItem(ACTIVE_WORKSPACE_KEY, ws.id);
 
-            const manage = await apiCanManageTeam();
+            // Calculate canManage from the loaded workspace's members
+            // Find current user in the workspace members list
+            const currentUserEmail = user?.email?.toLowerCase();
+            const currentMember = ws.members.find(
+                (m) => m.email?.toLowerCase() === currentUserEmail
+            );
+            const userRole = currentMember?.role;
+            const manage = userRole === 'owner' || userRole === 'admin';
+            console.log('[Workspace] User role:', userRole, 'canManage:', manage);
             setCanManage(manage);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load workspace');
