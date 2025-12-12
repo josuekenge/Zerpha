@@ -8,20 +8,27 @@ import {
 } from '../types';
 import { buildApiUrl } from './config';
 
+// Key for storing active workspace ID (must match workspace.tsx)
+const ACTIVE_WORKSPACE_KEY = 'zerpha_active_workspace_id';
+
 async function getAuthHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
+  const workspaceId = localStorage.getItem(ACTIVE_WORKSPACE_KEY);
 
-  if (!token) {
-    return {
-      'Content-Type': 'application/json',
-    };
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
-  };
+  if (workspaceId) {
+    headers['X-Workspace-ID'] = workspaceId;
+  }
+
+  return headers;
 }
 
 async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {

@@ -11,6 +11,7 @@ interface SaveCompanyParams {
   description?: string;  // From discovery - why company fits the query
   industry?: string;     // From discovery
   country?: string;      // From discovery
+  workspaceId?: string;  // For workspace-level data isolation
 }
 
 function normalizeString(value?: string | null): string | null {
@@ -41,11 +42,13 @@ export async function saveExtractedCompany({
   description,
   industry,
   country,
+  workspaceId,
 }: SaveCompanyParams) {
   const summary = normalizeString(extracted.summary);
   const payload = {
     user_id: userId,
     search_id: searchId,
+    workspace_id: workspaceId || null, // For workspace data isolation
     name: extracted.name,
     website: extracted.website,
     vertical_query: verticalQuery,
