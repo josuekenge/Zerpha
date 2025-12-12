@@ -21,7 +21,8 @@ import {
   Menu,
   X,
   TrendingUp,
-  Kanban
+  Kanban,
+  Settings
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -41,6 +42,7 @@ import { InsightsPage } from './components/InsightsPage';
 import { PipelinePage } from './components/PipelinePage';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
+import { SettingsPage } from './pages/settings/SettingsPage';
 import { useAuth, signOut } from './lib/auth';
 import {
   exportInfographic,
@@ -1008,6 +1010,14 @@ export function WorkspaceApp() {
               >
                 <History className={cn("w-4 h-4", activeView === 'history' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
                 Search history
+              </button>
+
+              <button
+                onClick={() => navigate('/settings')}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+              >
+                <Settings className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                Settings
               </button>
             </nav>
           </div>
@@ -2331,6 +2341,8 @@ export function WorkspaceApp() {
   );
 }
 
+
+
 function App() {
   const { user, loading } = useAuth();
 
@@ -2348,8 +2360,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/privacy" element={<PrivacyPolicy />} />
-      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route
         path="/login"
         element={user ? <Navigate to="/workspace" replace /> : <LoginPage />}
@@ -2359,6 +2371,14 @@ function App() {
         element={
           <ProtectedRoute>
             <WorkspaceApp />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <SettingsPage />
           </ProtectedRoute>
         }
       />
