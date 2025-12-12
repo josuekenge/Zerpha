@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-background text-text antialiased min-h-screen dark:bg-slate-900 dark:text-slate-100;
+    @apply bg-background text-text antialiased min-h-screen dark:bg-slate-950 dark:text-slate-100;
   }
 }
 
@@ -12,16 +12,20 @@
   .animate-spin-slow {
     animation: spin 3s linear infinite;
   }
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .animation-delay-2000 {
     animation-delay: 2s;
   }
+
   .animation-delay-4000 {
     animation-delay: 4s;
   }

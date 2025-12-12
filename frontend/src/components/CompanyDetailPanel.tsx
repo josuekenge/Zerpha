@@ -88,7 +88,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
   return (
     <>
       {/* Sticky Header */}
-      <div className="sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-6 py-5 z-20">
+      <div className="sticky top-0 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-6 py-5 z-20">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
             <CompanyAvatar

@@ -251,13 +251,13 @@ function ChatInterface({
 }: ChatInterfaceProps) {
     return (
         <div className={cn(
-            "flex flex-col h-full bg-white dark:bg-slate-900",
+            "flex flex-col h-full bg-white dark:bg-slate-950",
             mode === 'embedded'
                 ? "border-l border-slate-200 dark:border-slate-800"
                 : "rounded-2xl shadow-2xl border border-slate-200/80 dark:border-slate-700 overflow-hidden"
         )}>
             {/* Header */}
-            <div className="px-4 py-3 flex items-center justify-between bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+            <div className="px-4 py-3 flex items-center justify-between bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shadow-indigo-500/20">
                         Z
@@ -312,7 +312,7 @@ function ChatInterface({
             </div>
 
             {/* Input Area */}
-            <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
+            <div className="p-3 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800">
                 {selectedFiles.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-2 max-h-[60px] overflow-y-auto">
                         {selectedFiles.map((file, index) => renderFilePreview(file, index))}
