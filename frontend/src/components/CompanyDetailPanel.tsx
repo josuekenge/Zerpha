@@ -70,14 +70,14 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
   const renderTechStack = (stack: unknown) => {
     if (Array.isArray(stack)) {
       return stack.map((tech: string) => (
-        <span key={tech} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200">
+        <span key={tech} className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-700">
           {tech}
         </span>
       ));
     }
     if (typeof stack === 'string') {
       return stack.split(',').map((tech: string) => (
-        <span key={tech.trim()} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200">
+        <span key={tech.trim()} className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-700">
           {tech.trim()}
         </span>
       ));
@@ -88,7 +88,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
   return (
     <>
       {/* Sticky Header */}
-      <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 py-5 z-20">
+      <div className="sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-6 py-5 z-20">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
             <CompanyAvatar
@@ -98,7 +98,7 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
               size={40}
             />
             <div>
-              <h2 className="text-xl font-semibold text-slate-900 tracking-tight">{company.name}</h2>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight">{company.name}</h2>
               <a
                 href={company.website}
                 target="_blank"
@@ -130,10 +130,10 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
 
         {/* Section: Executive Summary */}
         <section>
-          <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-3 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide mb-3 flex items-center gap-2">
             <FileText className="w-4 h-4 text-slate-400" /> Executive Summary
           </h3>
-          <div className="text-base text-slate-600 leading-relaxed border border-slate-100 rounded-lg p-4 bg-slate-50/50">
+          <div className="text-base text-slate-600 dark:text-slate-300 leading-relaxed border border-slate-100 dark:border-slate-800 rounded-lg p-4 bg-slate-50/50 dark:bg-slate-800/50">
             <p>
               {company.summary || 'No executive summary available.'}
             </p>
@@ -142,10 +142,10 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
 
         {/* Section: Acquisition Fit */}
         <section>
-          <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-3 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide mb-3 flex items-center gap-2">
             <Target className="w-4 h-4 text-slate-400" /> Acquisition Fit
           </h3>
-          <div className="text-base text-slate-600 leading-relaxed border border-slate-100 rounded-lg p-4 bg-slate-50/50">
+          <div className="text-base text-slate-600 dark:text-slate-300 leading-relaxed border border-slate-100 dark:border-slate-800 rounded-lg p-4 bg-slate-50/50 dark:bg-slate-800/50">
             <p>
               {raw_json.acquisition_fit_reason || 'No detailed fit analysis provided.'}
             </p>
@@ -153,26 +153,26 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
         </section>
 
         {/* Section: Product & Market */}
-        <section className="border border-slate-200 rounded-lg overflow-hidden">
-          <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-            <h3 className="text-sm font-semibold text-slate-900">Product & Market</h3>
+        <section className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Product & Market</h3>
           </div>
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             <div className="p-4 grid grid-cols-3 gap-4">
-              <div className="text-sm font-medium text-slate-500">Offering</div>
-              <div className="col-span-2 text-sm text-slate-700 leading-relaxed">
+              <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Offering</div>
+              <div className="col-span-2 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                 {raw_json.product_offering || 'N/A'}
               </div>
             </div>
             <div className="p-4 grid grid-cols-3 gap-4">
-              <div className="text-sm font-medium text-slate-500">Segment</div>
-              <div className="col-span-2 text-sm text-slate-700 leading-relaxed">
+              <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Segment</div>
+              <div className="col-span-2 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                 {raw_json.customer_segment || 'N/A'}
               </div>
             </div>
             <div className="p-4 grid grid-cols-3 gap-4">
-              <div className="text-sm font-medium text-slate-500">Pricing</div>
-              <div className="col-span-2 text-sm text-slate-700 leading-relaxed">
+              <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Pricing</div>
+              <div className="col-span-2 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                 {raw_json.pricing_model || 'N/A'}
               </div>
             </div>
@@ -180,18 +180,18 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
         </section>
 
         {/* Section: Operations */}
-        <section className="border border-slate-200 rounded-lg overflow-hidden">
-          <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-            <h3 className="text-sm font-semibold text-slate-900">Operations</h3>
+        <section className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Operations</h3>
           </div>
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             <div className="p-4 flex justify-between items-center">
-              <span className="text-sm font-medium text-slate-500">HQ Location</span>
-              <span className="text-sm font-medium text-slate-900">{raw_json.hq_location || 'Unknown'}</span>
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">HQ Location</span>
+              <span className="text-sm font-medium text-slate-900 dark:text-white">{raw_json.hq_location || 'Unknown'}</span>
             </div>
             <div className="p-4 flex justify-between items-center">
-              <span className="text-sm font-medium text-slate-500">Headcount</span>
-              <span className="text-sm font-medium text-slate-900">{raw_json.estimated_headcount || 'Unknown'}</span>
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Headcount</span>
+              <span className="text-sm font-medium text-slate-900 dark:text-white">{raw_json.estimated_headcount || 'Unknown'}</span>
             </div>
             <div className="p-4">
               <span className="text-sm font-medium text-slate-500 block mb-2">Tech Stack</span>
@@ -203,9 +203,9 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
         </section>
 
         {/* Section: People */}
-        <section className="border border-slate-200 rounded-lg overflow-hidden">
-          <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+        <section className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+          <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               <Users className="w-4 h-4 text-slate-400" />
               People
             </h3>
@@ -218,11 +218,11 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
                 Fetching decision makers…
               </div>
             ) : people.length === 0 ? (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 No contacts found for this company.
               </p>
             ) : (
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
                 {people.map((person) => {
                   const isHighlighted = person.is_ceo || person.is_founder || person.is_executive;
                   const badges: string[] = [];
@@ -235,12 +235,12 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
                       key={person.id}
                       className={cn(
                         "py-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between",
-                        isHighlighted && "bg-amber-50/50 -mx-4 px-4 rounded-lg"
+                        isHighlighted && "bg-amber-50/50 dark:bg-amber-900/20 -mx-4 px-4 rounded-lg"
                       )}
                     >
                       <div>
                         <p className={cn(
-                          "text-sm text-slate-900",
+                          "text-sm text-slate-900 dark:text-white",
                           isHighlighted ? "font-bold" : "font-semibold"
                         )}>
                           {person.full_name || 'Unknown contact'}
@@ -257,11 +257,11 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
                             </span>
                           )}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {person.role || 'Unknown role'}
                         </p>
                       </div>
-                      <div className="text-sm text-slate-600 space-y-1">
+                      <div className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
                         {person.email && (
                           <a
                             href={`mailto:${person.email}`}
@@ -287,16 +287,16 @@ export function CompanyDetailPanel({ company }: CompanyDetailPanelProps) {
         </section>
 
         {/* Key Info */}
-        <section className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Key Info</h3>
+        <section className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+          <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Key Info</h3>
           <div className="grid grid-cols-1 gap-2">
             <div className="flex justify-between">
-              <span className="text-xs text-slate-400 font-mono">ID</span>
-              <span className="text-xs text-slate-500 font-mono">{company.id.slice(0, 24)}</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">ID</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{company.id.slice(0, 24)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-slate-400">Added</span>
-              <span className="text-xs text-slate-600">
+              <span className="text-xs text-slate-400 dark:text-slate-500">Added</span>
+              <span className="text-xs text-slate-600 dark:text-slate-300">
                 {company.created_at ? new Date(company.created_at).toLocaleDateString() : 'Unknown'}
               </span>
             </div>

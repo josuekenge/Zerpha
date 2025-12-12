@@ -1112,7 +1112,7 @@ export function WorkspaceApp() {
                     <select
                       value={workspaceFitFilter}
                       onChange={(e) => setWorkspaceFitFilter(e.target.value as FitFilter)}
-                      className="w-full appearance-none bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-8 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-300 py-2 pl-3 pr-8 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                     >
                       {workspaceFitFilters.map((filter) => (
                         <option key={filter.value} value={filter.value}>
@@ -1130,7 +1130,7 @@ export function WorkspaceApp() {
                     <button
                       type="button"
                       onClick={() => setIsIndustryDropdownOpen(!isIndustryDropdownOpen)}
-                      className="w-full flex items-center justify-between bg-white border border-slate-200 text-sm text-slate-700 py-2 pl-3 pr-2 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                      className="w-full flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-300 py-2 pl-3 pr-2 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                     >
                       <span className="truncate">{industryFilter === 'all' ? 'All Industries' : industryFilter}</span>
                       <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform", isIndustryDropdownOpen && "rotate-180")} />
@@ -1138,11 +1138,11 @@ export function WorkspaceApp() {
                     {isIndustryDropdownOpen && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setIsIndustryDropdownOpen(false)} />
-                        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[280px] overflow-y-auto">
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50 max-h-[280px] overflow-y-auto">
                           <button
                             type="button"
                             onClick={() => { setIndustryFilter('all'); setIsIndustryDropdownOpen(false); }}
-                            className={cn("w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 transition-colors", industryFilter === 'all' && "bg-indigo-50 text-indigo-700 font-medium")}
+                            className={cn("w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors dark:text-slate-300", industryFilter === 'all' && "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-medium")}
                           >
                             All Industries
                           </button>
@@ -1359,7 +1359,7 @@ export function WorkspaceApp() {
                               <select
                                 value={searchFitFilter}
                                 onChange={(e) => setSearchFitFilter(e.target.value as FitFilter)}
-                                className="appearance-none bg-white border border-slate-200 text-xs text-slate-700 py-1.5 pl-2 pr-6 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                                className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 py-1.5 pl-2 pr-6 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                               >
                                 <option value="all">All Scores</option>
                                 <option value="high">High (8+)</option>
@@ -1372,7 +1372,7 @@ export function WorkspaceApp() {
                               <select
                                 value={searchIndustryFilter}
                                 onChange={(e) => setSearchIndustryFilter(e.target.value)}
-                                className="appearance-none bg-white border border-slate-200 text-xs text-slate-700 py-1.5 pl-2 pr-6 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                                className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 py-1.5 pl-2 pr-6 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                               >
                                 <option value="all">All Industries</option>
                                 {INDUSTRIES.map((industry) => (
@@ -1395,44 +1395,44 @@ export function WorkspaceApp() {
                             )}
                           </div>
                         </div>
-                        <div className="flex-1 overflow-auto bg-white">
+                        <div className="flex-1 overflow-auto bg-white dark:bg-slate-900">
                           {filteredSearchCompanies.length === 0 ? (
-                            <div className="p-8 text-center text-slate-500 text-sm">
+                            <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
                               {searchCompaniesList.length === 0
                                 ? "No results found."
                                 : "No companies match the selected filters."}
                             </div>
                           ) : (
                             <table className="w-full text-left border-collapse">
-                              <thead className="sticky top-0 bg-white z-10 shadow-sm">
+                              <thead className="sticky top-0 bg-white dark:bg-slate-900 z-10 shadow-sm">
                                 <tr>
-                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Name</th>
-                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">Industry</th>
-                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Fit</th>
-                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Action</th>
+                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Name</th>
+                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Industry</th>
+                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-right">Fit</th>
+                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-right">Action</th>
                                 </tr>
                               </thead>
-                              <tbody className="divide-y divide-slate-100">
+                              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {filteredSearchCompanies.map(company => (
                                   <tr
                                     key={company.id}
                                     onClick={() => setSelectedSearchCompanyId(company.id)}
                                     className={cn(
-                                      "group cursor-pointer hover:bg-slate-50 transition-colors",
-                                      selectedSearchCompanyId === company.id ? "bg-violet-50" : ""
+                                      "group cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors",
+                                      selectedSearchCompanyId === company.id ? "bg-violet-50 dark:bg-indigo-900/20" : ""
                                     )}
                                   >
                                     <td className="py-3 px-4">
                                       <div className="flex items-center gap-2">
                                         <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.website} size={24} />
                                         <div>
-                                          <div className="font-medium text-slate-900">{company.name}</div>
-                                          <div className="text-xs text-slate-500">{company.website}</div>
+                                          <div className="font-medium text-slate-900 dark:text-white">{company.name}</div>
+                                          <div className="text-xs text-slate-500 dark:text-slate-400">{company.website}</div>
                                         </div>
                                       </div>
                                     </td>
                                     <td className="py-3 px-4">
-                                      <span className="text-xs text-slate-600">
+                                      <span className="text-xs text-slate-600 dark:text-slate-300">
                                         {company.primary_industry || 'Unknown'}
                                       </span>
                                     </td>
