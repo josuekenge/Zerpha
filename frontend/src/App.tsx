@@ -335,11 +335,12 @@ export function WorkspaceApp() {
     }
   }, []);
 
+  // Reload people when view changes to people OR when workspace changes
   useEffect(() => {
     if (activeView === 'people') {
       loadAllPeople();
     }
-  }, [activeView, loadAllPeople]);
+  }, [activeView, loadAllPeople, workspace?.id]);
 
   // Filter people by search query
   const filteredPeople = useMemo(() => {

@@ -11,26 +11,29 @@ export interface InfographicReportResult {
   infographic: InfographicPage;
 }
 
+/**
+ * Generate an infographic for a company in the specified WORKSPACE
+ */
 export async function generateInfographicForCompany(
   companyId: string,
-  userId: string,
+  workspaceId: string,
 ): Promise<InfographicReportResult> {
-  logger.info({ companyId }, 'Starting infographic generation');
+  logger.info({ companyId, workspaceId }, 'Starting infographic generation');
 
   const { data: company, error } = await supabase
     .from('companies')
     .select('*')
     .eq('id', companyId)
-    .eq('user_id', userId)
+    .eq('workspace_id', workspaceId)  // WORKSPACE scoped
     .maybeSingle();
 
   if (error) {
-    logger.error({ err: error, companyId }, 'Failed to load company for infographic');
+    logger.error({ err: error, companyId, workspaceId }, 'Failed to load company for infographic');
     throw new Error('Failed to load company for infographic');
   }
 
   if (!company) {
-    logger.warn({ companyId }, 'Company not found for infographic');
+    logger.warn({ companyId, workspaceId }, 'Company not found in workspace for infographic');
     throw new Error('Company not found for infographic');
   }
 
@@ -73,4 +76,3 @@ export async function generateInfographicForCompany(
     infographic,
   };
 }
-

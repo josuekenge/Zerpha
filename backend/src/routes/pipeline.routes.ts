@@ -56,23 +56,29 @@ export const pipelineRouter = Router();
 
 /**
  * GET /pipeline
- * Returns all saved companies grouped by pipeline stage
+ * Returns all saved companies grouped by pipeline stage for the active WORKSPACE
  */
 pipelineRouter.get('/pipeline', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as AuthenticatedRequest).user;
-        if (!user) throw new Error('User not authenticated');
+        const authReq = req as AuthenticatedRequest;
+        const user = authReq.user;
+        const workspaceId = authReq.workspaceId;
 
-        // Fetch all saved companies for this user
+        if (!user) throw new Error('User not authenticated');
+        if (!workspaceId) {
+            return res.status(400).json({ message: 'No workspace selected' });
+        }
+
+        // Fetch all saved companies for this WORKSPACE
         const { data, error } = await supabase
             .from('companies')
             .select('*')
             .eq('is_saved', true)
-            .eq('user_id', user.id)
+            .eq('workspace_id', workspaceId)  // WORKSPACE scoped
             .order('created_at', { ascending: false });
 
         if (error) {
-            logger.error({ err: error, userId: user.id }, '[pipeline] Failed to fetch pipeline companies');
+            logger.error({ err: error, workspaceId }, '[pipeline] Failed to fetch pipeline companies');
             throw new Error(error.message);
         }
 
@@ -116,7 +122,7 @@ pipelineRouter.get('/pipeline', requireAuth, async (req: Request, res: Response,
         };
 
         logger.info(
-            { userId: user.id, totalCompanies: companies.length },
+            { workspaceId, totalCompanies: companies.length },
             '[pipeline] returning pipeline data'
         );
 
@@ -129,12 +135,18 @@ pipelineRouter.get('/pipeline', requireAuth, async (req: Request, res: Response,
 
 /**
  * GET /pipeline/:companyId
- * Get a single company's pipeline details
+ * Get a single company's pipeline details from the active WORKSPACE
  */
 pipelineRouter.get('/pipeline/:companyId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as AuthenticatedRequest).user;
+        const authReq = req as AuthenticatedRequest;
+        const user = authReq.user;
+        const workspaceId = authReq.workspaceId;
+
         if (!user) throw new Error('User not authenticated');
+        if (!workspaceId) {
+            return res.status(400).json({ message: 'No workspace selected' });
+        }
 
         const companyId = req.params.companyId;
 
@@ -142,11 +154,11 @@ pipelineRouter.get('/pipeline/:companyId', requireAuth, async (req: Request, res
             .from('companies')
             .select('*')
             .eq('id', companyId)
-            .eq('user_id', user.id)
+            .eq('workspace_id', workspaceId)  // WORKSPACE scoped
             .single();
 
         if (error || !data) {
-            return res.status(404).json({ error: 'Company not found' });
+            return res.status(404).json({ error: 'Company not found in this workspace' });
         }
 
         const company = data as DatabaseCompany & {
@@ -180,12 +192,18 @@ pipelineRouter.get('/pipeline/:companyId', requireAuth, async (req: Request, res
 
 /**
  * PATCH /pipeline/:companyId
- * Update a company's pipeline stage and/or notes
+ * Update a company's pipeline stage and/or notes in the active WORKSPACE
  */
 pipelineRouter.patch('/pipeline/:companyId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as AuthenticatedRequest).user;
+        const authReq = req as AuthenticatedRequest;
+        const user = authReq.user;
+        const workspaceId = authReq.workspaceId;
+
         if (!user) throw new Error('User not authenticated');
+        if (!workspaceId) {
+            return res.status(400).json({ message: 'No workspace selected' });
+        }
 
         const companyId = req.params.companyId;
         if (!companyId) {
@@ -217,29 +235,29 @@ pipelineRouter.patch('/pipeline/:companyId', requireAuth, async (req: Request, r
             return res.status(400).json({ error: 'No fields to update' });
         }
 
-        // Update the company
+        // Update the company - WORKSPACE scoped
         const { data, error } = await supabase
             .from('companies')
             .update(updates)
             .eq('id', companyId)
-            .eq('user_id', user.id)
+            .eq('workspace_id', workspaceId)  // WORKSPACE scoped
             .select('id, pipeline_stage, pipeline_notes, pipeline_notes_title, pipeline_notes_updated_at')
             .single();
 
         if (error) {
             if (error.code === 'PGRST116') {
-                return res.status(404).json({ error: 'Company not found' });
+                return res.status(404).json({ error: 'Company not found in this workspace' });
             }
-            logger.error({ err: error, companyId, updates }, '[pipeline] Failed to update pipeline');
+            logger.error({ err: error, companyId, workspaceId, updates }, '[pipeline] Failed to update pipeline');
             return res.status(500).json({ error: 'Failed to update pipeline' });
         }
 
         if (!data) {
-            return res.status(404).json({ error: 'Company not found' });
+            return res.status(404).json({ error: 'Company not found in this workspace' });
         }
 
         logger.info(
-            { userId: user.id, companyId, updates },
+            { workspaceId, companyId, updates },
             '[pipeline] updated company pipeline'
         );
 

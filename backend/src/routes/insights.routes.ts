@@ -42,10 +42,20 @@ interface InsightsResponse {
 
 export const insightsRouter = Router();
 
+/**
+ * GET /api/insights/companies
+ * Returns insights for the active WORKSPACE's saved companies
+ */
 insightsRouter.get('/insights/companies', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as AuthenticatedRequest).user;
+        const authReq = req as AuthenticatedRequest;
+        const user = authReq.user;
+        const workspaceId = authReq.workspaceId;
+
         if (!user) throw new Error('User not authenticated');
+        if (!workspaceId) {
+            return res.status(400).json({ message: 'No workspace selected' });
+        }
 
         // Parse query parameters
         const normalizedQuery = {
@@ -69,12 +79,12 @@ insightsRouter.get('/insights/companies', requireAuth, async (req: Request, res:
 
         const parsedQuery = insightsQuerySchema.parse(normalizedQuery);
 
-        // Build query for saved companies
+        // Build query for saved companies - WORKSPACE scoped
         let query = supabase
             .from('companies')
             .select('*')
             .eq('is_saved', true)
-            .eq('user_id', user.id);
+            .eq('workspace_id', workspaceId);  // WORKSPACE scoped, not user scoped
 
         // Apply filters
         if (typeof parsedQuery.minScore === 'number' && !Number.isNaN(parsedQuery.minScore)) {
@@ -96,7 +106,7 @@ insightsRouter.get('/insights/companies', requireAuth, async (req: Request, res:
         const { data, error } = await query;
 
         if (error) {
-            logger.error({ err: error, filters: parsedQuery, userId: user.id }, '[insights] Failed to fetch companies');
+            logger.error({ err: error, filters: parsedQuery, workspaceId }, '[insights] Failed to fetch companies');
             throw new Error(error.message);
         }
 
@@ -193,7 +203,7 @@ insightsRouter.get('/insights/companies', requireAuth, async (req: Request, res:
         };
 
         logger.info(
-            { userId: user.id, totalCompanies, filters: parsedQuery },
+            { workspaceId, totalCompanies, filters: parsedQuery },
             '[insights] returning company insights'
         );
 

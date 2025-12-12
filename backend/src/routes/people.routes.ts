@@ -14,56 +14,62 @@ const companyIdSchema = z.object({
 
 /**
  * GET /api/companies/:id/people
- * Returns all people associated with a company, filtered by user_id for RLS
+ * Returns all people associated with a company in the active WORKSPACE
  */
 peopleRouter.get(
   '/companies/:id/people',
   requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as AuthenticatedRequest).user;
+      const authReq = req as AuthenticatedRequest;
+      const user = authReq.user;
+      const workspaceId = authReq.workspaceId;
+
       if (!user) {
         return res.status(401).json({ message: 'Unauthorized' });
+      }
+      if (!workspaceId) {
+        return res.status(400).json({ message: 'No workspace selected' });
       }
 
       const { id: companyId } = companyIdSchema.parse(req.params);
 
-      logger.debug({ companyId, userId: user.id }, '[people] fetching people for company');
+      logger.debug({ companyId, workspaceId }, '[people] fetching people for company');
 
-      // Verify company exists and belongs to user
+      // Verify company exists and belongs to workspace
       const { data: company, error: companyError } = await supabase
         .from('companies')
-        .select('id, user_id')
+        .select('id')
         .eq('id', companyId)
-        .eq('user_id', user.id)
+        .eq('workspace_id', workspaceId)  // WORKSPACE scoped
         .single();
 
       if (companyError || !company) {
         logger.warn(
-          { companyId, userId: user.id, err: companyError },
-          '[people] company not found or not owned by user',
+          { companyId, workspaceId, err: companyError },
+          '[people] company not found in workspace',
         );
         return res.status(404).json({ message: 'Company not found' });
       }
 
-      // Fetch people for this company, filtered by user_id
+      // Fetch people for this company, filtered by workspace
       const { data, error } = await supabase
         .from('people')
         .select('*')
         .eq('company_id', companyId)
-        .eq('user_id', user.id)
+        .eq('workspace_id', workspaceId)  // WORKSPACE scoped
         .order('full_name', { ascending: true });
 
       if (error) {
         logger.error(
-          { companyId, userId: user.id, err: error },
+          { companyId, workspaceId, err: error },
           '[people] failed to fetch people',
         );
         throw new Error(error.message);
       }
 
       logger.info(
-        { companyId, userId: user.id, count: (data ?? []).length },
+        { companyId, workspaceId, count: (data ?? []).length },
         '[people] returning people',
       );
 
@@ -76,21 +82,27 @@ peopleRouter.get(
 
 /**
  * GET /api/people
- * Returns all people for the authenticated user across all companies
+ * Returns all people for the active WORKSPACE across all companies
  */
 peopleRouter.get(
   '/people',
   requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as AuthenticatedRequest).user;
+      const authReq = req as AuthenticatedRequest;
+      const user = authReq.user;
+      const workspaceId = authReq.workspaceId;
+
       if (!user) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
+      if (!workspaceId) {
+        return res.status(400).json({ message: 'No workspace selected' });
+      }
 
-      logger.debug({ userId: user.id }, '[people] fetching all people for user');
+      logger.debug({ workspaceId }, '[people] fetching all people for workspace');
 
-      // Fetch all people for this user, joined with company name
+      // Fetch all people for this WORKSPACE, joined with company name
       const { data, error } = await supabase
         .from('people')
         .select(`
@@ -101,19 +113,19 @@ peopleRouter.get(
             website
           )
         `)
-        .eq('user_id', user.id)
+        .eq('workspace_id', workspaceId)  // WORKSPACE scoped
         .order('created_at', { ascending: false });
 
       if (error) {
         logger.error(
-          { userId: user.id, err: error },
+          { workspaceId, err: error },
           '[people] failed to fetch all people',
         );
         throw new Error(error.message);
       }
 
       logger.info(
-        { userId: user.id, count: (data ?? []).length },
+        { workspaceId, count: (data ?? []).length },
         '[people] returning all people',
       );
 
@@ -143,23 +155,34 @@ const createPersonBodySchema = z.object({
   linkedin_url: z.string().optional(),
 });
 
+/**
+ * POST /api/people
+ * Create a new person in the active WORKSPACE
+ */
 peopleRouter.post('/people', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = (req as AuthenticatedRequest).user;
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user;
+    const workspaceId = authReq.workspaceId;
+
     if (!user) throw new Error('User not authenticated');
+    if (!workspaceId) {
+      return res.status(400).json({ message: 'No workspace selected' });
+    }
 
     const body = createPersonBodySchema.parse(req.body);
 
     const { data, error } = await supabase
       .from('people')
       .insert({
-        user_id: user.id,
+        user_id: user.id,  // For attribution
+        workspace_id: workspaceId,  // WORKSPACE owns the data
         first_name: body.first_name,
         last_name: body.last_name,
         email: body.email || null,
         phone: body.phone,
         role: body.role,
-        company_id: body.company_id || null, // Allow null if DB allows
+        company_id: body.company_id || null,
         linkedin_url: body.linkedin_url,
         source: 'manual',
       })
@@ -167,7 +190,7 @@ peopleRouter.post('/people', requireAuth, async (req: Request, res: Response, ne
       .single();
 
     if (error) {
-      logger.error({ err: error, body }, 'Failed to create person');
+      logger.error({ err: error, body, workspaceId }, 'Failed to create person');
       throw new Error(error.message);
     }
 
@@ -177,10 +200,20 @@ peopleRouter.post('/people', requireAuth, async (req: Request, res: Response, ne
   }
 });
 
+/**
+ * DELETE /api/people/:id
+ * Delete a person from the active WORKSPACE
+ */
 peopleRouter.delete('/people/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = (req as AuthenticatedRequest).user;
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user;
+    const workspaceId = authReq.workspaceId;
+
     if (!user) throw new Error('User not authenticated');
+    if (!workspaceId) {
+      return res.status(400).json({ message: 'No workspace selected' });
+    }
 
     const { id } = req.params;
 
@@ -188,10 +221,10 @@ peopleRouter.delete('/people/:id', requireAuth, async (req: Request, res: Respon
       .from('people')
       .delete()
       .eq('id', id)
-      .eq('user_id', user.id);
+      .eq('workspace_id', workspaceId);  // WORKSPACE scoped
 
     if (error) {
-      logger.error({ err: error, personId: id }, 'Failed to delete person');
+      logger.error({ err: error, personId: id, workspaceId }, 'Failed to delete person');
       throw new Error(error.message);
     }
 
@@ -202,4 +235,3 @@ peopleRouter.delete('/people/:id', requireAuth, async (req: Request, res: Respon
 });
 
 export { peopleRouter };
-
