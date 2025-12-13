@@ -10,7 +10,8 @@ import {
     inviteTeamMember as apiInviteMember,
     removeTeamMember as apiRemoveMember,
     updateMemberRole as apiUpdateRole,
-    leaveActiveWorkspace as apiLeaveActiveWorkspace
+    leaveActiveWorkspace as apiLeaveActiveWorkspace,
+    fetchMyWorkspaceRole,
 } from '../api/workspace';
 import { useAuth } from './auth';
 
@@ -108,8 +109,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             const currentMember = ws.members.find(
                 (m) => m.email?.toLowerCase() === currentUserEmail
             );
-            const userRole = (currentMember?.role ?? null) as TeamRole | null;
-            const manage = userRole === 'owner' || userRole === 'admin';
+            let userRole = (currentMember?.role ?? null) as TeamRole | null;
+            let manage = userRole === 'owner' || userRole === 'admin';
+
+            // If role not found locally, fetch authoritative role from backend
+            if (!userRole) {
+                try {
+                    const { role, canManage } = await fetchMyWorkspaceRole();
+                    userRole = role;
+                    manage = canManage;
+                } catch (err) {
+                    console.error('Failed to fetch backend role; using local role', err);
+                }
+            }
+
             console.log('[Workspace] User role:', userRole, 'canManage:', manage);
             setCanManage(manage);
             setCurrentUserRole(userRole);

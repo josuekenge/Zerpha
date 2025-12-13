@@ -552,6 +552,34 @@ export async function canManageTeam(): Promise<boolean> {
     return role === 'owner' || role === 'admin';
 }
 
+// Fetch current user's role from backend (authoritative, uses workspace header)
+export async function fetchMyWorkspaceRole(): Promise<{ role: TeamRole | null; canManage: boolean }> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
+
+    const workspaceId = localStorage.getItem('zerpha_active_workspace_id');
+    if (!workspaceId) throw new Error('No workspace selected');
+
+    const response = await fetch(buildApiUrl('/api/workspace/my-role'), {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'X-Workspace-ID': workspaceId,
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to fetch role' }));
+        throw new Error(error.message || 'Failed to fetch role');
+    }
+
+    const data = await response.json();
+    const role = (data?.role as TeamRole | null) ?? null;
+    const canManage = role === 'owner' || role === 'admin';
+    return { role, canManage };
+}
+
 // Leave the current active workspace (self-service) via backend API
 export async function leaveActiveWorkspace(): Promise<void> {
     const { data: { session } } = await supabase.auth.getSession();
