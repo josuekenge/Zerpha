@@ -65,12 +65,12 @@ companyRouter.get('/companies', requireAuth, async (req: Request, res: Response,
 
     const parsedQuery = savedCompaniesQuerySchema.parse(normalizedQuery);
 
-    // EXPLICIT workspace filter - active workspace only
+    // Strict workspace filter - data must belong to workspace
     let query = supabase
       .from('companies')
       .select('*')
       .eq('is_saved', true)
-      .eq('workspace_id', workspaceId)  // EXPLICIT filter by active workspace
+      .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false });
 
     if (parsedQuery.category) {

@@ -69,12 +69,12 @@ pipelineRouter.get('/pipeline', requireAuth, async (req: Request, res: Response,
             return res.status(400).json({ message: 'No workspace selected' });
         }
 
-        // Fetch all saved companies for this WORKSPACE
+        // Strict workspace filter - data must belong to workspace
         const { data, error } = await supabase
             .from('companies')
             .select('*')
             .eq('is_saved', true)
-            .eq('workspace_id', workspaceId)  // WORKSPACE scoped
+            .eq('workspace_id', workspaceId)
             .order('created_at', { ascending: false });
 
         if (error) {

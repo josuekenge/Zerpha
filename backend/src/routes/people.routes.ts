@@ -41,7 +41,7 @@ peopleRouter.get(
         .from('companies')
         .select('id')
         .eq('id', companyId)
-        .eq('workspace_id', workspaceId)  // WORKSPACE scoped
+        .eq('workspace_id', workspaceId)
         .single();
 
       if (companyError || !company) {
@@ -52,12 +52,12 @@ peopleRouter.get(
         return res.status(404).json({ message: 'Company not found' });
       }
 
-      // Fetch people for this company, filtered by workspace
+      // Fetch people for this company
       const { data, error } = await supabase
         .from('people')
         .select('*')
         .eq('company_id', companyId)
-        .eq('workspace_id', workspaceId)  // WORKSPACE scoped
+        .eq('workspace_id', workspaceId)
         .order('full_name', { ascending: true });
 
       if (error) {
@@ -102,7 +102,7 @@ peopleRouter.get(
 
       logger.debug({ workspaceId }, '[people] fetching all people for workspace');
 
-      // Fetch all people for this WORKSPACE, joined with company name
+      // Fetch all people for workspace, joined with company name
       const { data, error } = await supabase
         .from('people')
         .select(`
@@ -113,7 +113,7 @@ peopleRouter.get(
             website
           )
         `)
-        .eq('workspace_id', workspaceId)  // WORKSPACE scoped
+        .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -221,7 +221,7 @@ peopleRouter.delete('/people/:id', requireAuth, async (req: Request, res: Respon
       .from('people')
       .delete()
       .eq('id', id)
-      .eq('workspace_id', workspaceId);  // WORKSPACE scoped
+      .eq('workspace_id', workspaceId);
 
     if (error) {
       logger.error({ err: error, personId: id, workspaceId }, 'Failed to delete person');

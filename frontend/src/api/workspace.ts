@@ -552,6 +552,7 @@ export async function canManageTeam(): Promise<boolean> {
     return role === 'owner' || role === 'admin';
 }
 
+<<<<<<< HEAD
 // Trigger backend cleanup of placeholder owners and ensure a real owner exists
 export async function cleanupWorkspaceOwners(): Promise<void> {
     const { data: { session } } = await supabase.auth.getSession();
@@ -603,6 +604,8 @@ export async function fetchMyWorkspaceRole(): Promise<{ role: TeamRole | null; c
     return { role, canManage };
 }
 
+=======
+>>>>>>> parent of 6e06d7d5 (fixed frontend issues)
 // Leave the current active workspace (self-service) via backend API
 export async function leaveActiveWorkspace(): Promise<void> {
     const { data: { session } } = await supabase.auth.getSession();

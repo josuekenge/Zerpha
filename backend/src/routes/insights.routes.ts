@@ -79,12 +79,12 @@ insightsRouter.get('/insights/companies', requireAuth, async (req: Request, res:
 
         const parsedQuery = insightsQuerySchema.parse(normalizedQuery);
 
-        // Build query for saved companies - WORKSPACE scoped
+        // Strict workspace filter - data must belong to workspace
         let query = supabase
             .from('companies')
             .select('*')
             .eq('is_saved', true)
-            .eq('workspace_id', workspaceId);  // WORKSPACE scoped, not user scoped
+            .eq('workspace_id', workspaceId);
 
         // Apply filters
         if (typeof parsedQuery.minScore === 'number' && !Number.isNaN(parsedQuery.minScore)) {

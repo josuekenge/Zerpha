@@ -602,11 +602,11 @@ searchRouter.get('/search-history', requireAuth, async (req, res, next) => {
         if (!workspaceId) {
             return res.status(400).json({ message: 'No workspace selected' });
         }
-        // EXPLICIT workspace filter - active workspace only
+        // Strict workspace filter - data must belong to workspace
         const { data: searchRows, error: searchError } = await supabase
             .from('searches')
             .select('id, query_text, created_at')
-            .eq('workspace_id', workspaceId) // EXPLICIT filter by active workspace
+            .eq('workspace_id', workspaceId)
             .order('created_at', { ascending: false })
             .limit(50);
         if (searchError) {
@@ -616,12 +616,12 @@ searchRouter.get('/search-history', requireAuth, async (req, res, next) => {
         const searchIds = (searchRows ?? []).map((row) => row.id);
         const companyCounts = Object.create(null);
         if (searchIds.length > 0) {
-            // EXPLICIT workspace filter on companies
+            // Strict workspace filter - data must belong to workspace
             const { data: companyRows, error: companyError } = await supabase
                 .from('companies')
                 .select('search_id')
                 .in('search_id', searchIds)
-                .eq('workspace_id', workspaceId); // EXPLICIT filter by active workspace
+                .eq('workspace_id', workspaceId);
             if (companyError) {
                 logger.error({ err: companyError }, 'Failed to aggregate company counts');
                 throw new Error(companyError.message);
