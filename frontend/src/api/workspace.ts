@@ -552,6 +552,29 @@ export async function canManageTeam(): Promise<boolean> {
     return role === 'owner' || role === 'admin';
 }
 
+// Trigger backend cleanup of placeholder owners and ensure a real owner exists
+export async function cleanupWorkspaceOwners(): Promise<void> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
+
+    const workspaceId = localStorage.getItem('zerpha_active_workspace_id');
+    if (!workspaceId) throw new Error('No workspace selected');
+
+    const response = await fetch(buildApiUrl('/api/workspace/cleanup'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'X-Workspace-ID': workspaceId,
+        },
+    });
+
+    if (!response.ok && response.status !== 204) {
+        const error = await response.json().catch(() => ({ message: 'Failed to cleanup workspace owners' }));
+        throw new Error(error.message || 'Failed to cleanup workspace owners');
+    }
+}
+
 // Fetch current user's role from backend (authoritative, uses workspace header)
 export async function fetchMyWorkspaceRole(): Promise<{ role: TeamRole | null; canManage: boolean }> {
     const { data: { session } } = await supabase.auth.getSession();

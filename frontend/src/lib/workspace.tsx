@@ -12,6 +12,7 @@ import {
     updateMemberRole as apiUpdateRole,
     leaveActiveWorkspace as apiLeaveActiveWorkspace,
     fetchMyWorkspaceRole,
+    cleanupWorkspaceOwners,
 } from '../api/workspace';
 import { useAuth } from './auth';
 
@@ -78,6 +79,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         try {
             setLoading(true);
             setError(null);
+
+            // Trigger backend cleanup to drop placeholder owner rows
+            try {
+                await cleanupWorkspaceOwners();
+            } catch (cleanupErr) {
+                console.warn('Workspace cleanup failed (non-blocking):', cleanupErr);
+            }
 
             let ws: WorkspaceWithMembers;
 

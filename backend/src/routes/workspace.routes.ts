@@ -97,6 +97,34 @@ async function cleanupOwners(workspaceId: string): Promise<void> {
 }
 
 /**
+ * POST /api/workspace/cleanup
+ * Cleans up placeholder owners and ensures at least one real owner
+ */
+workspaceRouter.post(
+    '/workspace/cleanup',
+    requireAuth,
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const user = authReq.user;
+            const workspaceId = authReq.workspaceId;
+
+            if (!user) {
+                return res.status(401).json({ message: 'Not authenticated' });
+            }
+            if (!workspaceId) {
+                return res.status(400).json({ message: 'No workspace selected' });
+            }
+
+            await cleanupOwners(workspaceId);
+            return res.status(204).send();
+        } catch (error) {
+            next(error);
+        }
+    }
+);
+
+/**
  * POST /api/workspace/leave
  * Leave the active workspace (self-service)
  *
