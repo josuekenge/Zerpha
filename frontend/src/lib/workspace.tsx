@@ -13,6 +13,7 @@ import {
     leaveActiveWorkspace as apiLeaveActiveWorkspace,
     fetchMyWorkspaceRole,
     cleanupWorkspaceOwners,
+    migrateOrphanData,
 } from '../api/workspace';
 import { useAuth } from './auth';
 
@@ -85,6 +86,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
                 await cleanupWorkspaceOwners();
             } catch (cleanupErr) {
                 console.warn('Workspace cleanup failed (non-blocking):', cleanupErr);
+            }
+
+            // Migrate orphan data (records without workspace_id) to current workspace
+            try {
+                const migrated = await migrateOrphanData();
+                if (migrated.searches > 0 || migrated.companies > 0 || migrated.people > 0) {
+                    console.log('✅ Migrated orphan data to workspace:', migrated);
+                }
+            } catch (migrateErr) {
+                console.warn('Data migration failed (non-blocking):', migrateErr);
             }
 
             let ws: WorkspaceWithMembers;

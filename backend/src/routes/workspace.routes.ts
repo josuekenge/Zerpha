@@ -46,11 +46,12 @@ async function canUserManageWorkspace(userId: string, workspaceId: string): Prom
  * If no owners remain, promotes the earliest member to owner and updates workspace.owner_id.
  */
 async function cleanupOwners(workspaceId: string): Promise<void> {
+    // Only delete the specific placeholder email, NOT all null user_ids (those could be pending invites)
     await supabase
         .from('workspace_members')
         .delete()
         .eq('workspace_id', workspaceId)
-        .or('email.eq.user@workspace.local,user_id.is.null');
+        .eq('email', 'user@workspace.local');
 
     const { data: owners, error: ownersError } = await supabase
         .from('workspace_members')
@@ -460,6 +461,84 @@ workspaceRouter.get(
 
             res.json({ role, canManage });
         } catch (error) {
+            next(error);
+        }
+    }
+);
+
+/**
+ * POST /api/workspace/migrate-data
+ * Migrates orphan data (records with NULL workspace_id) to the user's active workspace.
+ * This fixes data created before workspace support was added.
+ */
+workspaceRouter.post(
+    '/workspace/migrate-data',
+    requireAuth,
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const user = authReq.user;
+            const workspaceId = authReq.workspaceId;
+
+            if (!user) {
+                return res.status(401).json({ message: 'Not authenticated' });
+            }
+            if (!workspaceId) {
+                return res.status(400).json({ message: 'No workspace selected' });
+            }
+
+            logger.info({ userId: user.id, workspaceId }, '[migrate] Starting data migration');
+
+            // Migrate searches
+            const { data: migratedSearches, error: searchError } = await supabase
+                .from('searches')
+                .update({ workspace_id: workspaceId })
+                .eq('user_id', user.id)
+                .is('workspace_id', null)
+                .select('id');
+
+            if (searchError) {
+                logger.error({ err: searchError }, '[migrate] Failed to migrate searches');
+            }
+
+            // Migrate companies
+            const { data: migratedCompanies, error: companyError } = await supabase
+                .from('companies')
+                .update({ workspace_id: workspaceId })
+                .eq('user_id', user.id)
+                .is('workspace_id', null)
+                .select('id');
+
+            if (companyError) {
+                logger.error({ err: companyError }, '[migrate] Failed to migrate companies');
+            }
+
+            // Migrate people
+            const { data: migratedPeople, error: peopleError } = await supabase
+                .from('people')
+                .update({ workspace_id: workspaceId })
+                .eq('user_id', user.id)
+                .is('workspace_id', null)
+                .select('id');
+
+            if (peopleError) {
+                logger.error({ err: peopleError }, '[migrate] Failed to migrate people');
+            }
+
+            const result = {
+                searches: migratedSearches?.length ?? 0,
+                companies: migratedCompanies?.length ?? 0,
+                people: migratedPeople?.length ?? 0,
+            };
+
+            logger.info({ userId: user.id, workspaceId, result }, '[migrate] Data migration complete');
+
+            res.json({
+                message: 'Migration complete',
+                migrated: result,
+            });
+        } catch (error) {
+            logger.error({ err: error }, '[migrate] Migration failed');
             next(error);
         }
     }

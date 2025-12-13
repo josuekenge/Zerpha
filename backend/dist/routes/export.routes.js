@@ -7,17 +7,26 @@ const exportRequestSchema = z.object({
     companyId: z.string().uuid(),
 });
 export const exportRouter = Router();
+/**
+ * POST /api/export-report
+ * Generate an infographic report for a company in the active WORKSPACE
+ */
 exportRouter.post('/export-report', requireAuth, async (req, res, next) => {
-    const user = req.user;
+    const authReq = req;
+    const user = authReq.user;
+    const workspaceId = authReq.workspaceId;
     if (!user) {
         return res.status(401).json({ message: 'User not authenticated' });
+    }
+    if (!workspaceId) {
+        return res.status(400).json({ message: 'No workspace selected' });
     }
     const parsed = exportRequestSchema.safeParse(req.body);
     if (!parsed.success) {
         return res.status(400).json({ message: 'companyId is required' });
     }
     try {
-        const result = await generateInfographicForCompany(parsed.data.companyId, user.id);
+        const result = await generateInfographicForCompany(parsed.data.companyId, workspaceId);
         res.status(200).json(result);
     }
     catch (error) {
@@ -25,7 +34,7 @@ exportRouter.post('/export-report', requireAuth, async (req, res, next) => {
             logger.warn({ err: error, companyId: parsed.data.companyId }, 'Infographic provider unavailable');
             return res.status(503).json({ message: 'infographic_provider_unavailable' });
         }
-        logger.error({ err: error, body: req.body }, 'Failed to generate infographic report');
+        logger.error({ err: error, body: req.body, workspaceId }, 'Failed to generate infographic report');
         if (error instanceof Error && error.message === 'Gemini failed to produce infographic JSON') {
             return res.status(502).json({ message: 'gemini_failed_to_generate' });
         }

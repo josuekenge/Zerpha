@@ -2,20 +2,23 @@ import { supabase } from '../config/supabase.js';
 import { companyExtractionSchema } from './extractionService.js';
 import { generateGeminiInfographicFromCompanyJson, } from './geminiService.js';
 import { logger } from '../logger.js';
-export async function generateInfographicForCompany(companyId, userId) {
-    logger.info({ companyId }, 'Starting infographic generation');
+/**
+ * Generate an infographic for a company in the specified WORKSPACE
+ */
+export async function generateInfographicForCompany(companyId, workspaceId) {
+    logger.info({ companyId, workspaceId }, 'Starting infographic generation');
     const { data: company, error } = await supabase
         .from('companies')
         .select('*')
         .eq('id', companyId)
-        .eq('user_id', userId)
+        .eq('workspace_id', workspaceId) // WORKSPACE scoped
         .maybeSingle();
     if (error) {
-        logger.error({ err: error, companyId }, 'Failed to load company for infographic');
+        logger.error({ err: error, companyId, workspaceId }, 'Failed to load company for infographic');
         throw new Error('Failed to load company for infographic');
     }
     if (!company) {
-        logger.warn({ companyId }, 'Company not found for infographic');
+        logger.warn({ companyId, workspaceId }, 'Company not found in workspace for infographic');
         throw new Error('Company not found for infographic');
     }
     const status = company.status ?? null;

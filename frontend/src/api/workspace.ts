@@ -626,3 +626,33 @@ export async function leaveActiveWorkspace(): Promise<void> {
         throw new Error(error.message || 'Failed to leave workspace');
     }
 }
+
+/**
+ * Migrate orphan data (records with NULL workspace_id) to the current workspace.
+ * This fixes data created before workspace support was added.
+ */
+export async function migrateOrphanData(): Promise<{ searches: number; companies: number; people: number }> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
+
+    const workspaceId = localStorage.getItem('zerpha_active_workspace_id');
+    if (!workspaceId) throw new Error('No workspace selected');
+
+    const response = await fetch(buildApiUrl('/api/workspace/migrate-data'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'X-Workspace-ID': workspaceId,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to migrate data' }));
+        throw new Error(error.message || 'Failed to migrate data');
+    }
+
+    const data = await response.json();
+    return data.migrated ?? { searches: 0, companies: 0, people: 0 };
+}
