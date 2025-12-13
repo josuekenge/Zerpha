@@ -294,7 +294,7 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
             </div>
 
             {/* Search Bar + View Toggle */}
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center justify-between gap-4 mb-6">
                 <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
@@ -302,7 +302,7 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                         placeholder="Search companies, notes..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
                     />
                     {searchQuery && (
                         <button
@@ -315,14 +315,14 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                 </div>
 
                 {/* View Toggle */}
-                <div className="flex bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-1">
+                <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1 gap-1">
                     <button
                         onClick={() => setActiveView('board')}
                         className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all shadow-sm",
                             activeView === 'board'
-                                ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300"
-                                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow"
+                                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 shadow-none"
                         )}
                     >
                         <LayoutGrid className="w-4 h-4" />
@@ -331,10 +331,10 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                     <button
                         onClick={() => setActiveView('summary')}
                         className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all shadow-sm",
                             activeView === 'summary'
-                                ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300"
-                                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow"
+                                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 shadow-none"
                         )}
                     >
                         <BarChart2 className="w-4 h-4" />
@@ -343,10 +343,10 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                     <button
                         onClick={() => setActiveView('backlog')}
                         className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all shadow-sm",
                             activeView === 'backlog'
-                                ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300"
-                                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow"
+                                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 shadow-none"
                         )}
                     >
                         <Calendar className="w-4 h-4" />
