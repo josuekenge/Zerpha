@@ -542,3 +542,45 @@ Premium gradient pill badges for acquisition fit scores:
 - `/terms-of-service` → `TermsOfService.tsx`
 - Footer links on landing page
 - Scroll-to-top on logo click
+
+---
+
+# 13. Recent Updates (Updated 2025-12-12)
+
+## 13.1 Dark Mode Implementation
+Comprehensive dark mode support added across the entire application.
+- **Theme Toggle:** Located in the top-right header (Sun/Moon icon).
+- **Persistence:** Theme preference saved in local storage via `useTheme` hook.
+- **Components Styled:**
+  - Sidebar & Navigation
+  - Search History & Results
+  - Companies Table & Cards
+  - People Directory & Detail Panels
+  - Pipeline Board, Summary, and Backlog
+  - Modals & Slide-overs
+  - Scrollbars (custom styled for dark mode)
+
+## 13.2 Pipeline UI Redesign
+Complete visual overhaul of the Pipeline section to match premium dashboard aesthetics.
+- **Summary Dashboard:**
+  - 4-card key metrics row (Total Companies, Active Deals, Closed Deals, Conversion Rate) with color-coded icons.
+  - Horizontal bar chart for "Pipeline by Stage".
+  - Donut chart for "Stage Overview".
+  - "Recently Closed" list with fit score badges.
+- **Kanban Board:**
+  - Refined card design with cleaner typography and hover effects.
+  - Improved drag-and-drop visual feedback.
+- **Toolbar:**
+  - Segmented control style toggle for Board/Summary/Backlog views.
+  - Positioned in the top-right for better accessibility.
+
+## 13.3 UI Refinements
+- **Create Workspace Modal:** Reduced size of input fields and buttons for a more compact, professional look.
+- **Filters:** Relocated filters to the sidebar for better usability in the Companies view.
+- **Scrollbars:** Custom CSS scrollbars that adapt to light/dark mode (Slate-300 in light, Slate-700 in dark).
+
+## 13.4 Data Richness Restoration
+Restored full data extraction capabilities in the backend `discoveryService`.
+- **Fields Restored:** Executive summary, acquisition fit analysis, product details, operations data, and key people.
+- **Optimization:** Balanced richness with performance to prevent timeouts while ensuring high-quality data.
+

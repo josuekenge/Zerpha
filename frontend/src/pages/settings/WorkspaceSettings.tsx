@@ -367,27 +367,39 @@ export function WorkspaceSettings() {
                                         <option value="viewer">Viewer</option>
                                     </select>
                                     {(() => {
+                                        const isOwner = member.role === 'owner';
+                                        const removingOwnerWouldBreak = isOwner && ownerCount <= 1;
                                         const canRemoveThisMember =
                                             canManage &&
-                                            member.role !== 'owner';
+                                            (
+                                                // Owners can remove anyone as long as not the last owner
+                                                (currentUserRole === 'owner' && (!isOwner || !removingOwnerWouldBreak)) ||
+                                                // Admins can remove non-owners
+                                                (currentUserRole === 'admin' && !isOwner)
+                                            );
 
                                         if (!canRemoveThisMember) {
                                             return null;
                                         }
 
+                                        const disabled = removingMemberId === member.id;
+                                        const title = isOwner && currentUserRole === 'owner' && removingOwnerWouldBreak
+                                            ? 'Cannot remove the last owner'
+                                            : 'Remove member';
+
                                         return (
-                                        <button
-                                            onClick={() => handleRemoveMember(member.id)}
-                                            disabled={removingMemberId === member.id}
-                                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                            title="Remove member"
-                                        >
-                                            {removingMemberId === member.id ? (
-                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                                            ) : (
-                                                <Trash2 className="w-4 h-4" />
-                                            )}
-                                        </button>
+                                            <button
+                                                onClick={() => handleRemoveMember(member.id)}
+                                                disabled={disabled}
+                                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                                                title={title}
+                                            >
+                                                {disabled ? (
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                                                ) : (
+                                                    <Trash2 className="w-4 h-4" />
+                                                )}
+                                            </button>
                                         );
                                     })()}
                                 </div>

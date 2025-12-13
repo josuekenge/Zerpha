@@ -41,6 +41,62 @@ async function canUserManageWorkspace(userId: string, workspaceId: string): Prom
 }
 
 /**
+ * Cleanup placeholder owner rows and ensure there is at least one real owner.
+ * Deletes members with email 'user@workspace.local' or null user_id.
+ * If no owners remain, promotes the earliest member to owner and updates workspace.owner_id.
+ */
+async function cleanupOwners(workspaceId: string): Promise<void> {
+    await supabase
+        .from('workspace_members')
+        .delete()
+        .eq('workspace_id', workspaceId)
+        .or('email.eq.user@workspace.local,user_id.is.null');
+
+    const { data: owners, error: ownersError } = await supabase
+        .from('workspace_members')
+        .select('id, user_id')
+        .eq('workspace_id', workspaceId)
+        .eq('role', 'owner');
+
+    if (ownersError) {
+        logger.error({ err: ownersError, workspaceId }, '[workspace] Failed to check owners during cleanup');
+        return;
+    }
+
+    if (owners && owners.length > 0) {
+        return;
+    }
+
+    const { data: oldestMember, error: oldestError } = await supabase
+        .from('workspace_members')
+        .select('id, user_id')
+        .eq('workspace_id', workspaceId)
+        .order('joined_at', { ascending: true })
+        .limit(1)
+        .single();
+
+    if (oldestError || !oldestMember) {
+        logger.warn({ err: oldestError, workspaceId }, '[workspace] No members to promote to owner after cleanup');
+        return;
+    }
+
+    await supabase
+        .from('workspace_members')
+        .update({ role: 'owner' })
+        .eq('id', oldestMember.id)
+        .eq('workspace_id', workspaceId);
+
+    if (oldestMember.user_id) {
+        await supabase
+            .from('workspaces')
+            .update({ owner_id: oldestMember.user_id })
+            .eq('id', workspaceId);
+    }
+
+    logger.info({ workspaceId, promotedMemberId: oldestMember.id }, '[workspace] Promoted member to owner after cleanup');
+}
+
+/**
  * POST /api/workspace/leave
  * Leave the active workspace (self-service)
  *
@@ -63,6 +119,8 @@ workspaceRouter.post(
             if (!workspaceId) {
                 return res.status(400).json({ message: 'No workspace selected' });
             }
+
+            await cleanupOwners(workspaceId);
 
             // Find membership row for current user in active workspace
             const { data: membership, error: membershipError } = await supabase
@@ -142,6 +200,8 @@ workspaceRouter.patch(
             if (!currentUserRole || !['owner', 'admin'].includes(currentUserRole)) {
                 return res.status(403).json({ message: 'You do not have permission to update member roles' });
             }
+
+            await cleanupOwners(workspaceId);
 
             // Get the target member
             const { data: targetMember, error: targetError } = await supabase
@@ -236,6 +296,8 @@ workspaceRouter.delete(
                 return res.status(403).json({ message: 'You do not have permission to remove members' });
             }
 
+            await cleanupOwners(workspaceId);
+
             // Get the target member
             const { data: targetMember, error: targetError } = await supabase
                 .from('workspace_members')
@@ -253,9 +315,26 @@ workspaceRouter.delete(
 
             // RBAC enforcement for removals (with specific messages)
             if (targetRole === 'owner') {
-                return res.status(403).json({ message: 'Cannot remove an owner. Transfer ownership first.' });
-            }
-            if (!canRemoveWorkspaceMember(actorRole, targetRole)) {
+                // Only owners can remove owners, and never the last owner
+                if (actorRole !== 'owner') {
+                    return res.status(403).json({ message: 'Only owners can remove owners.' });
+                }
+
+                const { data: owners, error: ownersError } = await supabase
+                    .from('workspace_members')
+                    .select('id, user_id')
+                    .eq('workspace_id', workspaceId)
+                    .eq('role', 'owner');
+
+                if (ownersError) {
+                    logger.error({ err: ownersError, workspaceId }, '[workspace] Failed to check owners for removal');
+                    return res.status(500).json({ message: 'Failed to verify owners' });
+                }
+
+                if (!owners || owners.length <= 1) {
+                    return res.status(400).json({ message: 'Cannot remove the last owner. Transfer ownership first.' });
+                }
+            } else if (!canRemoveWorkspaceMember(actorRole, targetRole)) {
                 return res.status(403).json({ message: 'You do not have permission to remove this member' });
             }
 
@@ -306,6 +385,8 @@ workspaceRouter.get(
                 return res.status(400).json({ message: 'No workspace selected' });
             }
 
+            await cleanupOwners(workspaceId);
+
             const { data: members, error } = await supabase
                 .from('workspace_members')
                 .select('*')
@@ -343,6 +424,8 @@ workspaceRouter.get(
             if (!workspaceId) {
                 return res.status(400).json({ message: 'No workspace selected' });
             }
+
+            await cleanupOwners(workspaceId);
 
             const role = await getCurrentUserRole(user.id, workspaceId);
             const canManage = role === 'owner' || role === 'admin';
