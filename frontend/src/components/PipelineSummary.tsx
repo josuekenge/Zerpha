@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { BarChart2, CheckCircle2, Clock, Activity, TrendingUp } from 'lucide-react';
+import { BarChart2, CheckCircle, Clock, Activity, TrendingUp, Zap } from 'lucide-react';
 import { PipelineResponse, PipelineStage } from '../api/client';
 import { CompanyAvatar } from './CompanyAvatar';
 import { cn } from '../lib/utils';
@@ -36,54 +36,54 @@ export function PipelineSummary({ pipeline }: PipelineSummaryProps) {
             {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <MetricCard
-                    icon={<Activity className="w-5 h-5 text-indigo-600" />}
+                    icon={<Zap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />}
                     label="Total Companies"
                     value={stats.total}
-                    color="bg-indigo-50"
+                    iconBg="bg-indigo-100 dark:bg-indigo-900/50"
                 />
                 <MetricCard
-                    icon={<Clock className="w-5 h-5 text-amber-600" />}
+                    icon={<Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />}
                     label="Active Deals"
                     value={stats.activeDeals}
-                    color="bg-amber-50"
+                    iconBg="bg-orange-100 dark:bg-orange-900/50"
                 />
                 <MetricCard
-                    icon={<CheckCircle2 className="w-5 h-5 text-green-600" />}
+                    icon={<CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />}
                     label="Closed Deals"
                     value={stats.closedDeals.length}
-                    color="bg-green-50"
+                    iconBg="bg-green-100 dark:bg-green-900/50"
                 />
                 <MetricCard
-                    icon={<TrendingUp className="w-5 h-5 text-blue-600" />}
+                    icon={<TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
                     label="Conversion Rate"
                     value={stats.total > 0 ? `${Math.round((stats.closedDeals.length / stats.total) * 100)}%` : '0%'}
-                    color="bg-blue-50"
+                    iconBg="bg-blue-100 dark:bg-blue-900/50"
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Stage Distribution */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6">
-                    <div className="flex items-center gap-2 mb-6">
-                        <BarChart2 className="w-5 h-5 text-slate-500" />
-                        <h3 className="font-semibold text-slate-900">Pipeline by Stage</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Pipeline by Stage (Takes up 2 columns) */}
+                <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                    <div className="flex items-center gap-2 mb-8">
+                        <BarChart2 className="w-5 h-5 text-slate-400" />
+                        <h3 className="font-semibold text-slate-900 dark:text-white">Pipeline by Stage</h3>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         {stats.stageBreakdown.map((stage) => (
-                            <div key={stage.id} className="flex items-center gap-3">
-                                <div className="w-24 text-sm text-slate-600 truncate">{stage.label}</div>
-                                <div className="flex-1 bg-slate-100 rounded-full h-6 overflow-hidden">
+                            <div key={stage.id} className="flex items-center gap-4">
+                                <div className="w-24 text-sm font-medium text-slate-600 dark:text-slate-300 truncate">{stage.label}</div>
+                                <div className="flex-1 bg-slate-50 dark:bg-slate-800 rounded-full h-4 overflow-hidden">
                                     <div
-                                        className="h-full rounded-full flex items-center justify-end pr-2 text-xs font-medium text-white"
+                                        className="h-full rounded-full flex items-center justify-end pr-2 text-[10px] font-bold text-white transition-all duration-500"
                                         style={{
                                             width: `${Math.max(stage.percentage, 5)}%`,
                                             backgroundColor: STAGE_COLORS[stage.id as PipelineStage],
                                         }}
                                     >
-                                        {stage.count}
+                                        {stage.count > 0 && stage.count}
                                     </div>
                                 </div>
-                                <div className="w-10 text-right text-xs text-slate-500">
+                                <div className="w-12 text-right text-sm text-slate-500 dark:text-slate-400">
                                     {stage.percentage}%
                                 </div>
                             </div>
@@ -91,67 +91,70 @@ export function PipelineSummary({ pipeline }: PipelineSummaryProps) {
                     </div>
                 </div>
 
-                {/* Donut Chart Visualization */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6">
+                {/* Stage Overview (Donut) */}
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
                     <div className="flex items-center gap-2 mb-6">
-                        <Activity className="w-5 h-5 text-slate-500" />
-                        <h3 className="font-semibold text-slate-900">Stage Overview</h3>
+                        <Activity className="w-5 h-5 text-slate-400" />
+                        <h3 className="font-semibold text-slate-900 dark:text-white">Stage Overview</h3>
                     </div>
-                    <div className="flex items-center justify-center">
+                    <div className="flex items-center justify-center py-4">
                         <div className="relative">
                             <DonutChart stages={stats.stageBreakdown} total={stats.total} />
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-3xl font-bold text-slate-900">{stats.total}</span>
-                                <span className="text-sm text-slate-500">Total</span>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span className="text-3xl font-bold text-slate-900 dark:text-white">{stats.total}</span>
+                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">Total</span>
                             </div>
                         </div>
                     </div>
-                    <div className="mt-6 grid grid-cols-2 gap-2">
+                    <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-3">
                         {stats.stageBreakdown.map((stage) => (
                             <div key={stage.id} className="flex items-center gap-2">
                                 <div
-                                    className="w-3 h-3 rounded-full"
+                                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                                     style={{ backgroundColor: STAGE_COLORS[stage.id as PipelineStage] }}
                                 />
-                                <span className="text-xs text-slate-600">{stage.label}</span>
-                                <span className="text-xs font-medium text-slate-900 ml-auto">{stage.count}</span>
+                                <span className="text-xs text-slate-600 dark:text-slate-400 truncate flex-1">{stage.label}</span>
+                                <span className="text-xs font-semibold text-slate-900 dark:text-white">{stage.count}</span>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
 
-            {/* Closed Deals Timeline */}
-            <div className="bg-white rounded-xl border border-slate-200 p-6">
+            {/* Recently Closed */}
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-6">
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
-                    <h3 className="font-semibold text-slate-900">Recently Closed</h3>
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <h3 className="font-semibold text-slate-900 dark:text-white">Recently Closed</h3>
                 </div>
                 {stats.closedDeals.length === 0 ? (
-                    <p className="text-sm text-slate-500 py-4 text-center">No closed deals yet</p>
+                    <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">No closed deals yet</p>
+                    </div>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
                         {stats.closedDeals.slice(0, 8).map((company) => (
                             <div
                                 key={company.id}
-                                className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg"
+                                className="flex items-center gap-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 px-2 rounded-lg transition-colors -mx-2"
                             >
                                 <CompanyAvatar
                                     name={company.name}
                                     faviconUrl={company.faviconUrl}
                                     website={company.domain}
-                                    size={32}
+                                    size={40}
+                                    className="rounded-lg"
                                 />
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-slate-900 truncate">{company.name}</p>
-                                    <p className="text-xs text-slate-500 truncate">{company.domain}</p>
+                                    <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{company.name}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{company.domain}</p>
                                 </div>
                                 {company.fitScore && (
                                     <span className={cn(
-                                        "text-xs font-medium px-2 py-0.5 rounded",
-                                        company.fitScore >= 7.5 ? "text-teal-700 bg-teal-100" :
-                                            company.fitScore >= 5 ? "text-amber-700 bg-amber-100" :
-                                                "text-red-700 bg-red-100"
+                                        "text-xs font-bold px-2.5 py-1 rounded-md",
+                                        company.fitScore >= 7.5 ? "text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30" :
+                                            company.fitScore >= 5 ? "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30" :
+                                                "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/30"
                                     )}>
                                         {company.fitScore.toFixed(1)}
                                     </span>
@@ -169,29 +172,29 @@ function MetricCard({
     icon,
     label,
     value,
-    color,
+    iconBg,
 }: {
     icon: React.ReactNode;
     label: string;
     value: string | number;
-    color: string;
+    iconBg: string;
 }) {
     return (
-        <div className={cn("rounded-xl p-4", color)}>
-            <div className="flex items-center gap-3">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+            <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-4", iconBg)}>
                 {icon}
-                <div>
-                    <p className="text-2xl font-bold text-slate-900">{value}</p>
-                    <p className="text-sm text-slate-600">{label}</p>
-                </div>
+            </div>
+            <div>
+                <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-1">{value}</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
             </div>
         </div>
     );
 }
 
 function DonutChart({ stages, total }: { stages: { id: string; percentage: number }[]; total: number }) {
-    const size = 160;
-    const strokeWidth = 20;
+    const size = 180;
+    const strokeWidth = 24;
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
 
@@ -205,7 +208,8 @@ function DonutChart({ stages, total }: { stages: { id: string; percentage: numbe
                     cy={size / 2}
                     r={radius}
                     fill="none"
-                    stroke="#e2e8f0"
+                    stroke="#f1f5f9"
+                    className="dark:stroke-slate-800"
                     strokeWidth={strokeWidth}
                 />
             </svg>
@@ -214,10 +218,23 @@ function DonutChart({ stages, total }: { stages: { id: string; percentage: numbe
 
     return (
         <svg width={size} height={size} className="transform -rotate-90">
+            {/* Background Circle */}
+            <circle
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                fill="none"
+                stroke="#f1f5f9"
+                className="dark:stroke-slate-800"
+                strokeWidth={strokeWidth}
+            />
             {stages.map((stage) => {
                 const offset = (cumulativePercentage / 100) * circumference;
                 const dashLength = (stage.percentage / 100) * circumference;
                 cumulativePercentage += stage.percentage;
+
+                // Don't render if 0 to avoid artifacts
+                if (stage.percentage === 0) return null;
 
                 return (
                     <circle
@@ -230,6 +247,8 @@ function DonutChart({ stages, total }: { stages: { id: string; percentage: numbe
                         strokeWidth={strokeWidth}
                         strokeDasharray={`${dashLength} ${circumference - dashLength}`}
                         strokeDashoffset={-offset}
+                        strokeLinecap="round"
+                        className="transition-all duration-1000 ease-out"
                     />
                 );
             })}

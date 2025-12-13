@@ -43,6 +43,9 @@ chatRouter.post('/chat', upload.array('files'), async (req, res) => {
         // Process files
         const imageBlocks: Anthropic.ImageBlockParam[] = [];
 
+        const isPdf = (file: Express.Multer.File) =>
+            file.mimetype.includes('pdf') || file.originalname.toLowerCase().endsWith('.pdf');
+
         for (const file of files) {
             if (file.mimetype.startsWith('image/')) {
                 // Handle images (png, jpeg, gif, webp)
@@ -61,7 +64,7 @@ chatRouter.post('/chat', upload.array('files'), async (req, res) => {
                         data: base64Image,
                     },
                 });
-            } else if (file.mimetype === 'application/pdf') {
+            } else if (isPdf(file)) {
                 // Handle PDF
                 try {
                     const data = await (pdf as any)(file.buffer);

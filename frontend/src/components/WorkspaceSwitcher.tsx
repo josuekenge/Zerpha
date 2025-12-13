@@ -202,19 +202,19 @@ export function WorkspaceSwitcher({ onNavigateToSettings }: WorkspaceSwitcherPro
                                 }}
                                 onKeyDown={handleKeyDown}
                                 disabled={switching}
-                                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
+                                className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
                             />
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={handleCreateWorkspace}
                                     disabled={switching || !newWorkspaceName.trim()}
-                                    className="flex-1 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
+                                    className="flex-1 px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                                 >
                                     {switching ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <Loader2 className="w-3 h-3 animate-spin" />
                                     ) : (
                                         <>
-                                            <Plus className="w-4 h-4" />
+                                            <Plus className="w-3 h-3" />
                                             Create Workspace
                                         </>
                                     )}
@@ -226,21 +226,21 @@ export function WorkspaceSwitcher({ onNavigateToSettings }: WorkspaceSwitcherPro
                                         setCreateError(null);
                                     }}
                                     disabled={switching}
-                                    className="px-3 py-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors text-sm"
+                                    className="px-3 py-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors text-xs"
                                 >
                                     Cancel
                                 </button>
                             </div>
                             {createError && (
-                                <p className="text-xs text-red-500">{createError}</p>
+                                <p className="text-[10px] text-red-500">{createError}</p>
                             )}
                         </div>
                     ) : (
                         <button
                             onClick={() => setShowCreateForm(true)}
-                            className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors font-medium"
+                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors font-medium"
                         >
-                            <Plus className="w-4 h-4" />
+                            <Plus className="w-3.5 h-3.5" />
                             <span>Create New Workspace</span>
                         </button>
                     )}
