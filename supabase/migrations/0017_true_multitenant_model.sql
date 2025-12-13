@@ -223,7 +223,7 @@ WHERE nh.workspace_id IS NULL AND nh.user_id IS NOT NULL;
 ALTER TABLE public.niche_history DROP CONSTRAINT IF EXISTS niche_history_user_id_niche_key_company_domain_key;
 
 -- Handle any duplicate workspace/niche/domain combinations
-DELETE FROM public.niche_history a
+DELETE FROM public.niche_history a   --cv
   USING public.niche_history b
   WHERE a.workspace_id = b.workspace_id 
     AND a.niche_key = b.niche_key 
