@@ -1,3 +1,4 @@
+// Last updated: 2025-12-12 - Dark mode refinements and workspace cleanup
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search,
