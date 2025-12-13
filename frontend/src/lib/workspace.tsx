@@ -10,14 +10,9 @@ import {
     inviteTeamMember as apiInviteMember,
     removeTeamMember as apiRemoveMember,
     updateMemberRole as apiUpdateRole,
-<<<<<<< HEAD
     leaveActiveWorkspace as apiLeaveActiveWorkspace,
-    fetchMyWorkspaceRole,
     cleanupWorkspaceOwners,
     migrateOrphanData,
-=======
-    leaveActiveWorkspace as apiLeaveActiveWorkspace
->>>>>>> parent of 6e06d7d5 (fixed frontend issues)
 } from '../api/workspace';
 import { useAuth } from './auth';
 
