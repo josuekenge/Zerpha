@@ -1,8 +1,7 @@
 [build]
-# Use the backend Dockerfile located in backend/Dockerfile
 builder = "dockerfile"
 dockerfilePath = "backend/Dockerfile"
-root = "."
+root = "backend"
 
 [deploy]
 healthcheckPath = "/health"
