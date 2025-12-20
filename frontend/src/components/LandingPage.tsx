@@ -117,7 +117,7 @@ export function LandingPage() {
             {user ? (
               <button
                 onClick={() => navigate('/workspace')}
-                className="text-sm font-medium bg-indigo-600 text-white px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition-all hover:shadow-lg hover:shadow-indigo-600/25 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+                className="text-sm font-medium bg-indigo-600 text-white px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition-all hover:shadow-lg hover:shadow-indigo-600/25 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 font-body"
               >
                 Go to Workspace
               </button>
@@ -163,7 +163,7 @@ export function LandingPage() {
                 {user ? (
                   <button
                     onClick={() => navigate('/workspace')}
-                    className="w-full text-center text-sm font-medium bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all"
+                    className="w-full text-center text-sm font-medium bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all font-body"
                   >
                     Go to Workspace
                   </button>
@@ -172,7 +172,7 @@ export function LandingPage() {
                     <button onClick={() => navigate('/login')} className="w-full text-center text-sm font-medium text-slate-600 hover:text-slate-900 py-2">Sign in</button>
                     <button
                       onClick={() => navigate('/login')}
-                      className="w-full text-center text-sm font-medium bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all"
+                      className="w-full text-center text-sm font-medium bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all font-body"
                     >
                       Get Started
                     </button>
@@ -257,7 +257,7 @@ export function LandingPage() {
               <button
                 onClick={() => void handleSearch()}
                 disabled={isAuthLoading}
-                className={`w-full sm:w-auto rounded-xl px-8 py-4 text-base font-semibold text-white shadow-xl shadow-indigo-600/20 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${isAuthLoading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:scale-[1.01]'
+                className={`w-full sm:w-auto rounded-xl px-8 py-4 text-base font-semibold text-white shadow-xl shadow-indigo-600/20 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 font-body ${isAuthLoading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:scale-[1.01]'
                   }`}
               >
                 {isAuthLoading ? 'Connecting...' : 'Start Your Journey'}
