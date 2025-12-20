@@ -80,7 +80,7 @@ export function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900 selection:bg-stone-800 selection:text-white font-body bg-noise relative overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white font-body bg-noise relative overflow-x-hidden">
       {/* Navbar */}
       <motion.nav
         initial={{ y: -100 }}
@@ -98,20 +98,20 @@ export function LandingPage() {
                 navigate('/');
               }}
             >
-              <div className="w-10 h-10 bg-stone-900 rounded-lg flex items-center justify-center text-white shadow-xl shadow-stone-900/10 p-2">
-                <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full invert brightness-0" />
+              <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-xl shadow-indigo-600/20 p-2">
+                <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
               </div>
               <div className="flex flex-col">
-                <span className="font-display font-medium tracking-tight text-xl leading-none text-stone-900">Zerpha</span>
-                <span className="text-stone-500 text-[10px] font-bold tracking-widest uppercase leading-none mt-1">Intelligence</span>
+                <span className="font-display font-medium tracking-tight text-xl leading-none text-slate-900">Zerpha</span>
+                <span className="text-slate-500 text-[10px] font-bold tracking-widest uppercase leading-none mt-1">Intelligence</span>
               </div>
             </motion.div>
           </div>
           <div className="hidden md:flex items-center gap-10">
-            <a href="#vision" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors font-body">Vision</a>
-            <a href="#capabilities" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors font-body">Capabilities</a>
-            <a href="#about" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors font-body">About</a>
-            <a href="#mission" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors font-body">Mission</a>
+            <a href="#vision" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors font-body">Vision</a>
+            <a href="#capabilities" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors font-body">Capabilities</a>
+            <a href="#about" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors font-body">About</a>
+            <a href="#mission" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors font-body">Mission</a>
           </div>
           <div className="hidden md:flex items-center gap-4">
             {user ? (
@@ -126,7 +126,7 @@ export function LandingPage() {
                 <button onClick={() => navigate('/login')} className="hidden text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors sm:block">Sign in</button>
                 <button
                   onClick={() => navigate('/login')}
-                  className="text-sm font-semibold bg-stone-900 text-stone-50 px-6 py-2.5 rounded-lg hover:bg-stone-800 transition-all hover:shadow-lg hover:shadow-stone-900/25 focus:outline-none focus:ring-2 focus:ring-stone-900 focus:ring-offset-2 font-body"
+                  className="text-sm font-semibold bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-700 transition-all hover:shadow-lg hover:shadow-indigo-600/25 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 font-body"
                 >
                   Get Started
                 </button>
@@ -185,11 +185,11 @@ export function LandingPage() {
       </motion.nav>
 
       <main className="relative isolate pt-20">
-        {/* Emotional Gradient Background - More Organic/Subtle */}
+        {/* Emotional Gradient Background */}
         <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-sky-200/20 rounded-full blur-[120px] opacity-40 mix-blend-multiply animate-blob" />
-          <div className="absolute top-0 right-0 w-[900px] h-[700px] bg-stone-200/40 rounded-full blur-[120px] opacity-40 mix-blend-multiply animate-blob animation-delay-2000" />
-          <div className="absolute -bottom-32 left-0 w-[900px] h-[700px] bg-orange-100/30 rounded-full blur-[120px] opacity-40 mix-blend-multiply animate-blob animation-delay-4000" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-indigo-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob" />
+          <div className="absolute top-0 right-0 w-[900px] h-[700px] bg-purple-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob animation-delay-2000" />
+          <div className="absolute -bottom-32 left-0 w-[900px] h-[700px] bg-blue-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob animation-delay-4000" />
         </div>
 
         {/* Hero Section */}
@@ -200,42 +200,36 @@ export function LandingPage() {
             animate="animate"
             className="mx-auto max-w-4xl text-center"
           >
-            <motion.div variants={fadeInUp} className="mb-8 flex justify-center">
-              <div className="relative rounded-full px-4 py-1.5 text-xs font-medium tracking-wide text-stone-500 ring-1 ring-stone-900/5 bg-stone-50/50 backdrop-blur-md shadow-sm cursor-default">
-                Powered by <span className="font-bold text-stone-800">Claude 4.5</span> & <span className="font-bold text-stone-800">Gemini 3 Pro</span>
-              </div>
-            </motion.div>
-
             <motion.h1
               variants={fadeInUp}
-              className="text-5xl sm:text-7xl font-display font-medium tracking-tight text-stone-900 lg:text-8xl mb-6 leading-[1.1]"
+              className="text-5xl sm:text-7xl font-display font-medium tracking-tight text-slate-900 lg:text-8xl mb-6 leading-[1.1]"
             >
               Build the Future of <br />
               <TypewriterEffect
                 words={["Vertical SaaS.", "Market Intelligence.", "Deal Sourcing.", "Private Equity."]}
-                className="text-stone-400"
-                cursorClassName="bg-stone-900"
+                className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600"
+                cursorClassName="bg-indigo-600"
               />
             </motion.h1>
 
-            <motion.p variants={fadeInUp} className="mt-10 text-lg sm:text-xl leading-relaxed text-stone-600 max-w-2xl mx-auto font-body px-4">
+            <motion.p variants={fadeInUp} className="mt-10 text-lg sm:text-xl leading-relaxed text-slate-600 max-w-2xl mx-auto font-body px-4">
               Don't just find companies. Discover ecosystems. Zerpha transforms chaotic market signals into clear, actionable strategies for the boldest builders.
             </motion.p>
 
             {/* Search Simulation - Emotional/Visionary */}
             <motion.div variants={fadeInUp} className="mt-12 flex items-center justify-center">
               <div className="relative w-full max-w-xl group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-stone-200 via-stone-300 to-stone-200 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none">
-                    <Search className="h-5 w-5 text-stone-400 stroke-[2]" />
+                    <Search className="h-5 w-5 text-slate-400 stroke-[2]" />
                   </div>
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && !isAuthLoading && void handleSearch()}
-                    className="block w-full rounded-2xl border-0 py-5 pl-14 pr-20 text-stone-900 shadow-xl shadow-stone-900/5 ring-1 ring-inset ring-stone-200/50 placeholder:text-stone-400 focus:ring-2 focus:ring-inset focus:ring-stone-400 sm:text-lg sm:leading-6 bg-white transition-all font-body font-normal"
+                    className="block w-full rounded-2xl border-0 py-5 pl-14 pr-20 text-slate-900 shadow-xl shadow-indigo-900/5 ring-1 ring-inset ring-slate-200/50 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-lg sm:leading-6 bg-white transition-all font-body font-normal"
                     placeholder='What market will you disrupt today?'
                   />
                   <div className="absolute inset-y-2 right-2 flex items-center">
@@ -244,12 +238,12 @@ export function LandingPage() {
                       onClick={handleArrowClick}
                       disabled={!searchQuery.trim() || isAuthLoading}
                       className={`inline-flex items-center justify-center rounded-xl px-3 py-2 text-white transition-all shadow-sm ${searchQuery.trim() && !isAuthLoading
-                        ? 'bg-stone-900 hover:bg-stone-800 cursor-pointer'
-                        : 'bg-stone-200 cursor-not-allowed text-stone-400'
+                        ? 'bg-indigo-600 hover:bg-indigo-700 cursor-pointer'
+                        : 'bg-slate-200 cursor-not-allowed text-slate-400'
                         }`}
                     >
                       {isAuthLoading ? (
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-stone-400 border-t-transparent" />
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-300 border-t-transparent" />
                       ) : (
                         <ArrowRight className="h-5 w-5" />
                       )}
@@ -263,7 +257,7 @@ export function LandingPage() {
               <button
                 onClick={() => void handleSearch()}
                 disabled={isAuthLoading}
-                className={`w-full sm:w-auto rounded-xl px-8 py-4 text-base font-semibold text-white shadow-xl shadow-stone-900/10 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 ${isAuthLoading ? 'bg-stone-400 cursor-not-allowed' : 'bg-stone-900 hover:bg-stone-800 hover:scale-[1.01]'
+                className={`w-full sm:w-auto rounded-xl px-8 py-4 text-base font-semibold text-white shadow-xl shadow-indigo-600/20 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${isAuthLoading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:scale-[1.01]'
                   }`}
               >
                 {isAuthLoading ? 'Connecting...' : 'Start Your Journey'}
@@ -278,30 +272,30 @@ export function LandingPage() {
             transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
             className="mt-24 flow-root sm:mt-32 perspective-1000"
           >
-            <div className="-m-2 rounded-2xl bg-stone-100/50 p-2 ring-1 ring-inset ring-stone-900/5 lg:-m-4 lg:rounded-3xl lg:p-4 bg-white/40 backdrop-blur-xl shadow-2xl">
-              <div className="rounded-xl bg-white ring-1 ring-stone-200 shadow-sm overflow-hidden">
+            <div className="-m-2 rounded-2xl bg-slate-100/50 p-2 ring-1 ring-inset ring-slate-900/5 lg:-m-4 lg:rounded-3xl lg:p-4 bg-white/40 backdrop-blur-xl shadow-2xl">
+              <div className="rounded-xl bg-white ring-1 ring-slate-200 shadow-sm overflow-hidden">
                 {/* Dashboard Header */}
-                <div className="border-b border-stone-100 bg-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="border-b border-slate-100 bg-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                    <h3 className="text-sm sm:text-base font-display font-semibold text-stone-900">Market Intelligence: "Sustainable Logistics"</h3>
-                    <span className="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-600 ring-1 ring-inset ring-stone-200">High Opportunity</span>
+                    <h3 className="text-sm sm:text-base font-display font-semibold text-slate-900">Market Intelligence: "Sustainable Logistics"</h3>
+                    <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">High Opportunity</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button className="text-stone-400 hover:text-stone-900 transition-colors"><Download className="h-4 w-4" /></button>
-                    <button className="text-stone-400 hover:text-stone-900 transition-colors"><Settings className="h-4 w-4" /></button>
+                    <button className="text-slate-400 hover:text-indigo-600 transition-colors"><Download className="h-4 w-4" /></button>
+                    <button className="text-slate-400 hover:text-indigo-600 transition-colors"><Settings className="h-4 w-4" /></button>
                   </div>
                 </div>
 
                 {/* Global Insights (Condensed) */}
-                <div className="px-6 py-5 bg-stone-50/50 border-b border-stone-100">
+                <div className="px-6 py-5 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-slate-100">
                   <div className="flex gap-4">
-                    <div className="p-2 bg-white rounded-lg shadow-sm ring-1 ring-stone-100">
-                      <Sparkles className="h-5 w-5 text-stone-900" />
+                    <div className="p-2 bg-white rounded-lg shadow-sm ring-1 ring-slate-100">
+                      <Sparkles className="h-5 w-5 text-indigo-600" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-stone-900 font-display">The Zerpha Insight</h4>
-                      <p className="text-sm text-stone-600 mt-1 max-w-4xl font-medium leading-relaxed">
-                        The market is shifting from general fleet tracking to <span className="text-stone-900 font-bold underline decoration-stone-300 underline-offset-2">carbon-aware routing</span>.
+                      <h4 className="text-sm font-bold text-slate-900 font-display">The Zerpha Insight</h4>
+                      <p className="text-sm text-slate-600 mt-1 max-w-4xl font-medium leading-relaxed">
+                        The market is shifting from general fleet tracking to <span className="text-indigo-700 font-bold">carbon-aware routing</span>.
                         Incumbents are slow to adapt, creating a $4B opening for vertical-specific solutions in the EU market.
                       </p>
                     </div>
@@ -311,62 +305,62 @@ export function LandingPage() {
                 {/* Table */}
                 <div className="overflow-x-auto bg-white">
                   <table className="min-w-full text-left text-sm whitespace-nowrap">
-                    <thead className="bg-stone-50 border-b border-stone-100">
+                    <thead className="bg-slate-50 border-b border-slate-100">
                       <tr>
-                        <th scope="col" className="px-6 py-3 font-semibold text-stone-500 font-display">Disruptor</th>
-                        <th scope="col" className="px-6 py-3 font-semibold text-stone-500 font-display">Value Proposition</th>
-                        <th scope="col" className="px-6 py-3 font-semibold text-stone-500 font-display">Acquisition Fit</th>
-                        <th scope="col" className="px-6 py-3 font-semibold text-stone-500 text-right font-display">Action</th>
+                        <th scope="col" className="px-6 py-3 font-semibold text-slate-500 font-display">Disruptor</th>
+                        <th scope="col" className="px-6 py-3 font-semibold text-slate-500 font-display">Value Proposition</th>
+                        <th scope="col" className="px-6 py-3 font-semibold text-slate-500 font-display">Acquisition Fit</th>
+                        <th scope="col" className="px-6 py-3 font-semibold text-slate-500 text-right font-display">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-50">
-                      <tr className="hover:bg-stone-50 transition-colors group cursor-pointer">
+                    <tbody className="divide-y divide-slate-50">
+                      <tr className="hover:bg-indigo-50/40 transition-colors group cursor-pointer">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-stone-900 text-white flex items-center justify-center text-xs font-bold shadow-md shadow-stone-900/10">EL</div>
+                            <div className="h-10 w-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-md shadow-indigo-600/20">EL</div>
                             <div>
-                              <div className="font-bold text-stone-900 font-display">EcoLogistics</div>
-                              <div className="text-xs text-stone-500 font-medium">ecologistics.io</div>
+                              <div className="font-bold text-slate-900 font-display">EcoLogistics</div>
+                              <div className="text-xs text-slate-500 font-medium">ecologistics.io</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-stone-600 font-medium">AI-first carbon tracking for heavy freight.</td>
+                        <td className="px-6 py-4 text-slate-600 font-medium">AI-first carbon tracking for heavy freight.</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <div className="h-2 w-20 bg-stone-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-stone-800 w-[92%] rounded-full"></div>
+                            <div className="h-2 w-20 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 w-[92%] rounded-full"></div>
                             </div>
-                            <span className="text-xs font-bold text-stone-700">9.2/10</span>
+                            <span className="text-xs font-bold text-slate-700">9.2/10</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-stone-900 shadow-sm ring-1 ring-inset ring-stone-300 hover:bg-stone-50 hover:ring-stone-400 transition-all">
-                            <FileText className="h-3.5 w-3.5 text-stone-600" />
+                          <button className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-indigo-50 hover:ring-indigo-200 transition-all">
+                            <FileText className="h-3.5 w-3.5 text-indigo-600" />
                             Analysis
                           </button>
                         </td>
                       </tr>
-                      <tr className="hover:bg-stone-50 transition-colors group cursor-pointer">
+                      <tr className="hover:bg-indigo-50/40 transition-colors group cursor-pointer">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-white border border-stone-200 text-stone-600 flex items-center justify-center text-xs font-bold">GR</div>
+                            <div className="h-10 w-10 rounded-lg bg-white border border-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold">GR</div>
                             <div>
-                              <div className="font-bold text-stone-900 font-display">GreenRoute</div>
-                              <div className="text-xs text-stone-500 font-medium">greenroute.tech</div>
+                              <div className="font-bold text-slate-900 font-display">GreenRoute</div>
+                              <div className="text-xs text-slate-500 font-medium">greenroute.tech</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-stone-600 font-medium">Last-mile EV fleet management SaaS.</td>
+                        <td className="px-6 py-4 text-slate-600 font-medium">Last-mile EV fleet management SaaS.</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <div className="h-2 w-20 bg-stone-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-stone-400 w-[85%] rounded-full"></div>
+                            <div className="h-2 w-20 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 w-[85%] rounded-full"></div>
                             </div>
-                            <span className="text-xs font-bold text-stone-700">8.5/10</span>
+                            <span className="text-xs font-bold text-slate-700">8.5/10</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button className="text-stone-900 hover:text-stone-600 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">View Details</button>
+                          <button className="text-indigo-600 hover:text-indigo-800 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">View Details</button>
                         </td>
                       </tr>
                     </tbody>
@@ -386,9 +380,9 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="mx-auto max-w-2xl text-center"
           >
-            <h2 className="text-base font-bold leading-7 text-stone-900 tracking-wide uppercase font-display">The Zerpha Advantage</h2>
-            <p className="mt-2 text-3xl sm:text-4xl font-light tracking-tight text-stone-900 sm:text-5xl font-display">See what others miss.</p>
-            <p className="mt-6 text-lg sm:text-xl leading-8 text-stone-600 font-body">
+            <h2 className="text-base font-bold leading-7 text-indigo-600 tracking-wide uppercase font-display">The Zerpha Advantage</h2>
+            <p className="mt-2 text-3xl sm:text-4xl font-light tracking-tight text-slate-900 sm:text-5xl font-display">See what others miss.</p>
+            <p className="mt-6 text-lg sm:text-xl leading-8 text-slate-600 font-body">
               In the race for vertical dominance, speed and clarity are everything. Zerpha is your unfair advantage.
             </p>
           </motion.div>
@@ -401,15 +395,15 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="flex flex-col bg-white p-10 rounded-[2rem] shadow-sm ring-1 ring-stone-200 hover:shadow-xl hover:shadow-stone-900/5 hover:-translate-y-1 transition-all duration-500 group"
+                className="flex flex-col bg-white p-10 rounded-[2rem] shadow-sm ring-1 ring-slate-200 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all duration-500 group"
               >
-                <dt className="flex items-center gap-x-4 text-xl font-bold leading-7 text-stone-900 font-display">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-stone-100 text-stone-900 group-hover:bg-stone-900 group-hover:text-stone-50 transition-colors duration-500">
+                <dt className="flex items-center gap-x-4 text-xl font-bold leading-7 text-slate-900 font-display">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-500">
                     <Target className="h-6 w-6" />
                   </div>
                   Market X-Ray
                 </dt>
-                <dd className="mt-6 flex flex-auto flex-col text-base leading-7 text-stone-600 font-body">
+                <dd className="mt-6 flex flex-auto flex-col text-base leading-7 text-slate-600 font-body">
                   <p className="flex-auto">Stop guessing. Zerpha penetrates deep into niche markets to uncover the hidden gems and rising stars that traditional databases overlook.</p>
                 </dd>
               </motion.div>
@@ -420,15 +414,15 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="flex flex-col bg-stone-900 p-10 rounded-[2rem] shadow-xl shadow-stone-900/10 hover:-translate-y-1 transition-all duration-500 group"
+                className="flex flex-col bg-indigo-600 p-10 rounded-[2rem] shadow-xl shadow-indigo-600/20 hover:-translate-y-1 transition-all duration-500 group"
               >
                 <dt className="flex items-center gap-x-4 text-xl font-bold leading-7 text-white font-display">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-stone-800 text-white group-hover:bg-stone-700 transition-colors duration-500">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500 text-white group-hover:bg-indigo-400 transition-colors duration-500">
                     <Zap className="h-6 w-6" />
                   </div>
                   Claude 4.5 Intelligence
                 </dt>
-                <dd className="mt-6 flex flex-auto flex-col text-base leading-7 text-stone-300 font-body">
+                <dd className="mt-6 flex flex-auto flex-col text-base leading-7 text-indigo-100 font-body">
                   <p className="flex-auto">Powered by the reasoning of Claude 4.5, we don't just scrape data—we understand it. Get human-level strategic analysis at machine speed.</p>
                 </dd>
               </motion.div>
@@ -446,64 +440,64 @@ export function LandingPage() {
 
           <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
             <div className="mx-auto max-w-3xl text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-display font-medium tracking-tight text-stone-900 sm:text-5xl mb-6">
+              <h2 className="text-3xl sm:text-4xl font-display font-medium tracking-tight text-slate-900 sm:text-5xl mb-6">
                 Built for Serial Acquirers
               </h2>
-              <p className="text-lg leading-8 text-stone-600 font-body">
-                Zerpha is purpose-built to help <span className="font-bold text-stone-900">Volaris Group</span>, <span className="font-bold text-stone-900">Constellation Software</span>, and other serial acquirers discover and evaluate B2B vertical SaaS companies faster than ever before.
+              <p className="text-lg leading-8 text-slate-600 font-body">
+                Zerpha is purpose-built to help <span className="font-bold text-indigo-600">Volaris Group</span>, <span className="font-bold text-indigo-600">Constellation Software</span>, and other serial acquirers discover and evaluate B2B vertical SaaS companies faster than ever before.
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              {/* The Challenge Card - White */}
+              {/* The Challenge Card */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="relative overflow-hidden rounded-[2rem] bg-white p-10 shadow-xl shadow-stone-900/5 ring-1 ring-stone-200"
+                className="relative overflow-hidden rounded-[2rem] bg-white p-10 shadow-xl shadow-slate-900/5 ring-1 ring-slate-200"
               >
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-stone-100 text-stone-900">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
                       <Target className="h-6 w-6" />
                     </div>
-                    <h3 className="text-2xl font-bold text-stone-900 font-display">The Challenge</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 font-display">The Challenge</h3>
                   </div>
-                  <p className="text-lg leading-relaxed text-stone-600 font-body">
+                  <p className="text-lg leading-relaxed text-slate-600 font-body">
                     Finding high-quality B2B software acquisition targets is time-consuming. Traditional methods involve endless manual research, fragmented data sources, and missed opportunities in niche verticals.
                   </p>
                 </div>
               </motion.div>
 
-              {/* Our Solution Card - Dark */}
+              {/* Our Solution Card */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="relative overflow-hidden rounded-[2rem] bg-stone-900 p-10 shadow-xl shadow-stone-900/20 text-white"
+                className="relative overflow-hidden rounded-[2rem] bg-indigo-600 p-10 shadow-xl shadow-indigo-600/20 text-white"
               >
-                <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-stone-800/50 rounded-full blur-3xl"></div>
+                <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-indigo-500/50 rounded-full blur-3xl"></div>
 
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-stone-800 text-white">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500 text-white">
                       <Zap className="h-6 w-6" />
                     </div>
                     <h3 className="text-2xl font-bold text-white font-display">Our Solution</h3>
                   </div>
-                  <p className="text-lg leading-relaxed text-stone-300 font-body">
+                  <p className="text-lg leading-relaxed text-indigo-100 font-body">
                     Zerpha uses AI to instantly discover, analyze, and score vertical SaaS companies across any industry. Get acquisition-ready insights, contact information, and fit scores in seconds—not weeks.
                   </p>
                 </div>
               </motion.div>
             </div>
 
-            {/* Why Choose Zerpha - Light Stone */}
+            {/* Why Choose Zerpha */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="relative overflow-hidden rounded-[2rem] bg-[#292524] px-6 py-16 sm:px-12 lg:px-16 shadow-2xl"
+              className="relative overflow-hidden rounded-[2rem] bg-[#1e1b4b] px-6 py-16 sm:px-12 lg:px-16 shadow-2xl"
             >
               <div className="relative z-10">
                 <div className="text-center mb-12">
@@ -512,31 +506,31 @@ export function LandingPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                   <div className="text-center">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-stone-200 ring-1 ring-white/10 mb-6">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-indigo-300 ring-1 ring-white/10 mb-6">
                       <Check className="h-6 w-6" />
                     </div>
                     <h4 className="text-lg font-bold text-white mb-2 font-display">Faster Discovery</h4>
-                    <p className="text-sm leading-6 text-stone-400 font-body">
+                    <p className="text-sm leading-6 text-slate-400 font-body">
                       Find vertical SaaS targets in minutes instead of months of manual research.
                     </p>
                   </div>
 
                   <div className="text-center">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-stone-200 ring-1 ring-white/10 mb-6">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-indigo-300 ring-1 ring-white/10 mb-6">
                       <Check className="h-6 w-6" />
                     </div>
                     <h4 className="text-lg font-bold text-white mb-2 font-display">Acquisition Scoring</h4>
-                    <p className="text-sm leading-6 text-stone-400 font-body">
+                    <p className="text-sm leading-6 text-slate-400 font-body">
                       AI-powered fit scores help prioritize the best opportunities for your portfolio.
                     </p>
                   </div>
 
                   <div className="text-center">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-stone-200 ring-1 ring-white/10 mb-6">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-indigo-300 ring-1 ring-white/10 mb-6">
                       <Check className="h-6 w-6" />
                     </div>
                     <h4 className="text-lg font-bold text-white mb-2 font-display">Direct Outreach</h4>
-                    <p className="text-sm leading-6 text-stone-400 font-body">
+                    <p className="text-sm leading-6 text-slate-400 font-body">
                       Get verified emails and decision-maker contacts to start conversations immediately.
                     </p>
                   </div>
@@ -548,7 +542,7 @@ export function LandingPage() {
               <button
                 onClick={() => void handleSearch()}
                 disabled={isAuthLoading}
-                className={`group relative inline-flex items-center gap-2 rounded-xl px-8 py-4 text-base font-semibold text-white shadow-xl shadow-stone-900/10 transition-all duration-200 ${isAuthLoading ? 'bg-stone-400 cursor-not-allowed' : 'bg-stone-900 hover:bg-stone-800 hover:-translate-y-0.5'
+                className={`group relative inline-flex items-center gap-2 rounded-xl px-8 py-4 text-base font-semibold text-white shadow-xl shadow-indigo-600/20 transition-all duration-200 ${isAuthLoading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:-translate-y-0.5'
                   }`}
               >
                 {isAuthLoading ? 'Connecting...' : 'Start Discovering Targets'}
@@ -564,19 +558,19 @@ export function LandingPage() {
         <AboutMe />
 
         {/* Footer */}
-        <footer className="bg-white border-t border-stone-100" aria-labelledby="footer-heading">
+        <footer className="bg-white border-t border-slate-100" aria-labelledby="footer-heading">
           <h2 id="footer-heading" className="sr-only">Footer</h2>
           <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-900 text-white p-1.5 shadow-sm">
-                  <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full invert brightness-0" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white p-1.5 shadow-sm">
+                  <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
                 </div>
-                <span className="text-sm font-semibold text-stone-900 font-display">Zerpha</span>
+                <span className="text-sm font-semibold text-slate-900 font-display">Zerpha</span>
               </div>
-              <div className="flex items-center gap-6 text-sm text-stone-500 font-body">
-                <a href="/privacy" className="hover:text-stone-900 transition-colors">Privacy Policy</a>
-                <a href="/terms" className="hover:text-stone-900 transition-colors">Terms of Service</a>
+              <div className="flex items-center gap-6 text-sm text-slate-500 font-body">
+                <a href="/privacy" className="hover:text-indigo-600 transition-colors">Privacy Policy</a>
+                <a href="/terms" className="hover:text-indigo-600 transition-colors">Terms of Service</a>
                 <p>&copy; {new Date().getFullYear()} Zerpha Inc.</p>
               </div>
             </div>
