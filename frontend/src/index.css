@@ -15,6 +15,14 @@
     font-family: var(--font-body);
   }
 
+  /* Ensure buttons and inputs inherit the body font */
+  button,
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+  }
+
   h1,
   h2,
   h3,
