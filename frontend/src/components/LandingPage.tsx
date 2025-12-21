@@ -9,7 +9,6 @@ import {
   FileText,
   Zap,
   Target,
-  Check,
   Menu,
   X
 } from 'lucide-react';
@@ -185,11 +184,11 @@ export function LandingPage() {
       </motion.nav>
 
       <main className="relative isolate pt-20">
-        {/* Emotional Gradient Background */}
+        {/* Refined Ambient Gradients */}
         <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-indigo-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob" />
-          <div className="absolute top-0 right-0 w-[900px] h-[700px] bg-purple-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob animation-delay-2000" />
-          <div className="absolute -bottom-32 left-0 w-[900px] h-[700px] bg-blue-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob animation-delay-4000" />
+          <div className="absolute top-0 left-1/4 w-[800px] h-[600px] bg-rose-200/25 rounded-full blur-[100px] opacity-60 mix-blend-multiply" />
+          <div className="absolute top-20 right-1/4 w-[600px] h-[500px] bg-violet-200/30 rounded-full blur-[100px] opacity-50 mix-blend-multiply" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-indigo-100/40 rounded-full blur-[120px] opacity-40 mix-blend-multiply" />
         </div>
 
         {/* Hero Section */}
@@ -351,126 +350,185 @@ export function LandingPage() {
         </div>
 
         {/* Vision/Capabilities Section */}
-        <div id="capabilities" className="mx-auto mt-32 max-w-7xl px-6 lg:px-8 pb-24">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto max-w-2xl text-center"
-          >
-            <h2 className="text-base font-bold leading-7 text-indigo-600 tracking-wide uppercase font-display">The Zerpha Advantage</h2>
-            <p className="mt-2 text-3xl sm:text-4xl font-light tracking-tight text-slate-900 sm:text-5xl font-display">See what others miss.</p>
-            <p className="mt-6 text-lg sm:text-xl leading-8 text-slate-600 font-body">
-              In the race for vertical dominance, speed and clarity are everything. Zerpha is your unfair advantage.
-            </p>
-          </motion.div>
+        <div id="capabilities" className="relative mt-32 pb-24 overflow-hidden">
+          {/* Subtle gradient background */}
+          <div className="absolute inset-0 -z-10 pointer-events-none">
+            <div className="absolute top-0 right-0 w-[600px] h-[400px] bg-rose-100/40 rounded-full blur-[80px] opacity-50 mix-blend-multiply" />
+            <div className="absolute bottom-0 left-1/4 w-[500px] h-[400px] bg-violet-100/30 rounded-full blur-[100px] opacity-40 mix-blend-multiply" />
+          </div>
 
-          <div className="mx-auto mt-20 max-w-2xl sm:mt-24 lg:mt-24 lg:max-w-none">
-            <dl className="grid max-w-xl grid-cols-1 gap-x-12 gap-y-16 lg:max-w-none lg:grid-cols-2">
-              {/* Feature 1 */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="flex flex-col bg-white p-10 rounded-[2rem] shadow-sm ring-1 ring-slate-200 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all duration-500 group"
-              >
-                <dt className="flex items-center gap-x-4 text-xl font-bold leading-7 text-slate-900 font-display">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-500">
-                    <Target className="h-6 w-6" />
-                  </div>
-                  Market X-Ray
-                </dt>
-                <dd className="mt-6 flex flex-auto flex-col text-base leading-7 text-slate-600 font-body">
-                  <p className="flex-auto">Stop guessing. Zerpha penetrates deep into niche markets to uncover the hidden gems and rising stars that traditional databases overlook.</p>
-                </dd>
-              </motion.div>
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="mx-auto max-w-2xl text-center"
+            >
+              <p className="text-sm font-medium text-indigo-600 tracking-widest uppercase font-body mb-4">The Zerpha Advantage</p>
+              <h2 className="text-3xl sm:text-4xl font-medium tracking-tight text-slate-900 sm:text-5xl font-display">See what others miss.</h2>
+              <p className="mt-6 text-lg sm:text-xl leading-8 text-slate-600 font-body">
+                In the race for vertical dominance, speed and clarity are everything. Zerpha is your unfair advantage.
+              </p>
+            </motion.div>
 
-              {/* Feature 2 */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="flex flex-col bg-indigo-600 p-10 rounded-[2rem] shadow-xl shadow-indigo-600/20 hover:-translate-y-1 transition-all duration-500 group"
-              >
-                <dt className="flex items-center gap-x-4 text-xl font-bold leading-7 text-white font-display">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500 text-white group-hover:bg-indigo-400 transition-colors duration-500">
-                    <Zap className="h-6 w-6" />
-                  </div>
-                  Claude 4.5 Intelligence
-                </dt>
-                <dd className="mt-6 flex flex-auto flex-col text-base leading-7 text-indigo-100 font-body">
-                  <p className="flex-auto">Powered by the reasoning of Claude 4.5, we don't just scrape data—we understand it. Get human-level strategic analysis at machine speed.</p>
-                </dd>
-              </motion.div>
+            <div className="mx-auto mt-20 max-w-2xl sm:mt-24 lg:mt-24 lg:max-w-none">
+              <dl className="grid max-w-xl grid-cols-1 gap-x-12 gap-y-16 lg:max-w-none lg:grid-cols-2">
+                {/* Feature 1 */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="flex flex-col bg-white p-10 rounded-2xl shadow-sm ring-1 ring-slate-200/60 hover:shadow-lg hover:ring-slate-300 hover:-translate-y-1 transition-all duration-500 group"
+                >
+                  <dt className="flex items-center gap-x-4 text-xl font-semibold leading-7 text-slate-900 font-display">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-700 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-500">
+                      <Target className="h-6 w-6" />
+                    </div>
+                    Market X-Ray
+                  </dt>
+                  <dd className="mt-6 flex flex-auto flex-col text-base leading-7 text-slate-600 font-body">
+                    <p className="flex-auto">Stop guessing. Zerpha penetrates deep into niche markets to uncover the hidden gems and rising stars that traditional databases overlook.</p>
+                  </dd>
+                </motion.div>
+
+                {/* Feature 2 */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="flex flex-col bg-slate-900 p-10 rounded-2xl shadow-xl shadow-slate-900/10 hover:-translate-y-1 transition-all duration-500 group"
+                >
+                  <dt className="flex items-center gap-x-4 text-xl font-semibold leading-7 text-white font-display">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 text-white group-hover:bg-slate-700 transition-colors duration-500">
+                      <Zap className="h-6 w-6" />
+                    </div>
+                    Claude 4.5 Intelligence
+                  </dt>
+                  <dd className="mt-6 flex flex-auto flex-col text-base leading-7 text-slate-300 font-body">
+                    <p className="flex-auto">Powered by the reasoning of Claude 4.5, we don't just scrape data—we understand it. Get human-level strategic analysis at machine speed.</p>
+                  </dd>
+                </motion.div>
 
 
-            </dl>
+              </dl>
+            </div>
           </div>
         </div>
 
-        {/* Built for Serial Acquirers - Clean Purple & White */}
-        <div className="py-24 sm:py-32 bg-white relative overflow-hidden">
-          {/* Aurora Gradients */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-purple-200/30 rounded-full blur-[100px] opacity-60 mix-blend-multiply pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-indigo-200/30 rounded-full blur-[100px] opacity-60 mix-blend-multiply pointer-events-none" />
+        {/* Built for Serial Acquirers - Refined & Professional */}
+        <div className="py-24 sm:py-32 relative overflow-hidden">
+          {/* Refined gradient background */}
+          <div className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b from-white via-slate-50 to-white">
+            <div className="absolute top-1/4 left-0 w-[700px] h-[500px] bg-rose-100/30 rounded-full blur-[100px] opacity-50 mix-blend-multiply" />
+            <div className="absolute bottom-0 right-1/4 w-[600px] h-[400px] bg-violet-100/25 rounded-full blur-[80px] opacity-40 mix-blend-multiply" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-indigo-50/50 rounded-full blur-[100px] opacity-30 mix-blend-multiply" />
+          </div>
 
           <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
-            {/* Main Content Card */}
+            {/* Section Header */}
+            <div className="text-center mb-16">
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-sm font-medium text-indigo-600 tracking-widest uppercase mb-4 font-body"
+              >
+                Enterprise Solutions
+              </motion.p>
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-3xl sm:text-4xl lg:text-5xl font-display font-medium tracking-tight text-slate-900 mb-6"
+              >
+                Built for Serial Acquirers
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-lg leading-relaxed text-slate-600 font-body max-w-2xl mx-auto"
+              >
+                Purpose-built for <span className="font-semibold text-slate-900">Volaris Group</span>, <span className="font-semibold text-slate-900">Constellation Software</span>, and growth-focused investors seeking vertical SaaS opportunities.
+              </motion.p>
+            </div>
+
+            {/* Feature Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200/60 hover:shadow-lg hover:ring-slate-300 transition-all duration-300"
+              >
+                <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center mb-6">
+                  <Zap className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 font-display mb-3">Minutes, Not Months</h3>
+                <p className="text-slate-600 font-body leading-relaxed">
+                  Discover vertical SaaS targets instantly. Replace months of manual research with AI-powered market intelligence.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200/60 hover:shadow-lg hover:ring-slate-300 transition-all duration-300"
+              >
+                <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center mb-6">
+                  <Target className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 font-display mb-3">AI-Powered Fit Scores</h3>
+                <p className="text-slate-600 font-body leading-relaxed">
+                  Proprietary algorithms score acquisition fit based on your portfolio strategy and investment criteria.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200/60 hover:shadow-lg hover:ring-slate-300 transition-all duration-300"
+              >
+                <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center mb-6">
+                  <FileText className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 font-display mb-3">Direct Outreach</h3>
+                <p className="text-slate-600 font-body leading-relaxed">
+                  Access verified decision-maker contacts and company insights to start meaningful conversations immediately.
+                </p>
+              </motion.div>
+            </div>
+
+            {/* CTA */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 p-12 lg:p-16 shadow-2xl shadow-indigo-600/30"
+              className="text-center"
             >
-              {/* Decorative Elements */}
-              <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-              <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-purple-400/20 rounded-full blur-3xl"></div>
-
-              <div className="relative z-10 text-center max-w-3xl mx-auto">
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-medium tracking-tight text-white mb-6">
-                  Built for Serial Acquirers
-                </h2>
-                <p className="text-lg sm:text-xl leading-relaxed text-indigo-100 font-body mb-12">
-                  Discover and evaluate B2B vertical SaaS companies in seconds—not weeks. Purpose-built for <span className="text-white font-semibold">Volaris Group</span>, <span className="text-white font-semibold">Constellation Software</span>, and growth-focused investors.
-                </p>
-
-                {/* Benefit Pills */}
-                <div className="flex flex-wrap justify-center gap-4 mb-12">
-                  <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
-                    <Check className="h-5 w-5 text-white" />
-                    <span className="text-white font-medium font-body">Minutes, Not Months</span>
-                  </div>
-                  <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
-                    <Check className="h-5 w-5 text-white" />
-                    <span className="text-white font-medium font-body">AI-Powered Fit Scores</span>
-                  </div>
-                  <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
-                    <Check className="h-5 w-5 text-white" />
-                    <span className="text-white font-medium font-body">Direct Contact Info</span>
-                  </div>
-                </div>
-
-                {/* CTA Button */}
-                <button
-                  onClick={() => void handleSearch()}
-                  disabled={isAuthLoading}
-                  className={`inline-flex items-center gap-2 rounded-xl px-8 py-4 text-base font-semibold shadow-xl transition-all duration-200 font-body ${isAuthLoading
-                    ? 'bg-white/50 text-indigo-400 cursor-not-allowed'
-                    : 'bg-white text-indigo-600 hover:bg-indigo-50 hover:scale-[1.02] hover:shadow-2xl'
-                    }`}
-                >
-                  {isAuthLoading ? 'Connecting...' : 'Start Discovering Targets'}
-                  {!isAuthLoading && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}
-                </button>
-              </div>
+              <button
+                onClick={() => void handleSearch()}
+                disabled={isAuthLoading}
+                className={`inline-flex items-center gap-2 rounded-xl px-8 py-4 text-base font-semibold shadow-lg transition-all duration-200 font-body ${isAuthLoading
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-slate-900 text-white hover:bg-slate-800 hover:shadow-xl'
+                  }`}
+              >
+                {isAuthLoading ? 'Connecting...' : 'Start Discovering Targets'}
+                {!isAuthLoading && <ArrowRight className="h-4 w-4" />}
+              </button>
             </motion.div>
           </div>
         </div>
-
-
 
         {/* About Me Section */}
         <AboutMe />
@@ -498,3 +556,4 @@ export function LandingPage() {
     </div>
   );
 }
+

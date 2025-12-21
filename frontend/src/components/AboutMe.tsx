@@ -10,9 +10,10 @@ export function AboutMe() {
     return (
         <section id="about" className="py-24 relative overflow-hidden">
             {/* Background Elements */}
-            <div className="absolute inset-0 -z-10 bg-slate-50/50">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-indigo-100/40 rounded-full blur-[100px] opacity-60 mix-blend-multiply" />
-                <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-purple-100/40 rounded-full blur-[100px] opacity-60 mix-blend-multiply" />
+            <div className="absolute inset-0 -z-10 bg-white">
+                <div className="absolute top-0 right-1/4 w-[600px] h-[400px] bg-rose-100/40 rounded-full blur-[80px] opacity-50 mix-blend-multiply" />
+                <div className="absolute bottom-0 left-1/4 w-[500px] h-[400px] bg-violet-100/30 rounded-full blur-[100px] opacity-40 mix-blend-multiply" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-50/40 rounded-full blur-[100px] opacity-30 mix-blend-multiply" />
             </div>
 
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
