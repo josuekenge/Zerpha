@@ -184,11 +184,15 @@ export function LandingPage() {
       </motion.nav>
 
       <main className="relative isolate pt-20">
-        {/* Refined Ambient Gradients */}
+        {/* Original Indigo/Purple Gradients + Rose/Pink Enhancement */}
         <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-[800px] h-[600px] bg-rose-200/25 rounded-full blur-[100px] opacity-60 mix-blend-multiply" />
-          <div className="absolute top-20 right-1/4 w-[600px] h-[500px] bg-violet-200/30 rounded-full blur-[100px] opacity-50 mix-blend-multiply" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-indigo-100/40 rounded-full blur-[120px] opacity-40 mix-blend-multiply" />
+          {/* Original animated blobs */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-indigo-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob" />
+          <div className="absolute top-0 right-0 w-[900px] h-[700px] bg-purple-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob animation-delay-2000" />
+          <div className="absolute -bottom-32 left-0 w-[900px] h-[700px] bg-blue-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob animation-delay-4000" />
+          {/* Additional rose/pink warmth */}
+          <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-rose-200/20 rounded-full blur-[100px] opacity-40 mix-blend-multiply" />
+          <div className="absolute top-1/3 right-1/3 w-[500px] h-[400px] bg-pink-100/25 rounded-full blur-[120px] opacity-30 mix-blend-multiply" />
         </div>
 
         {/* Hero Section */}
@@ -351,10 +355,12 @@ export function LandingPage() {
 
         {/* Vision/Capabilities Section */}
         <div id="capabilities" className="relative mt-32 pb-24 overflow-hidden">
-          {/* Subtle gradient background */}
+          {/* Original indigo/purple gradients + rose/pink enhancement */}
           <div className="absolute inset-0 -z-10 pointer-events-none">
-            <div className="absolute top-0 right-0 w-[600px] h-[400px] bg-rose-100/40 rounded-full blur-[80px] opacity-50 mix-blend-multiply" />
-            <div className="absolute bottom-0 left-1/4 w-[500px] h-[400px] bg-violet-100/30 rounded-full blur-[100px] opacity-40 mix-blend-multiply" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-indigo-200/30 rounded-full blur-[100px] opacity-50 mix-blend-multiply" />
+            <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-purple-200/25 rounded-full blur-[80px] opacity-40 mix-blend-multiply" />
+            {/* Additional rose warmth */}
+            <div className="absolute top-1/4 right-1/4 w-[400px] h-[300px] bg-rose-100/25 rounded-full blur-[80px] opacity-30 mix-blend-multiply" />
           </div>
 
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -380,10 +386,10 @@ export function LandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.1 }}
-                  className="flex flex-col bg-white p-10 rounded-2xl shadow-sm ring-1 ring-slate-200/60 hover:shadow-lg hover:ring-slate-300 hover:-translate-y-1 transition-all duration-500 group"
+                  className="flex flex-col bg-white p-10 rounded-2xl shadow-sm ring-1 ring-slate-200 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all duration-500 group"
                 >
                   <dt className="flex items-center gap-x-4 text-xl font-semibold leading-7 text-slate-900 font-display">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-700 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-500">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-500">
                       <Target className="h-6 w-6" />
                     </div>
                     Market X-Ray
@@ -399,15 +405,15 @@ export function LandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  className="flex flex-col bg-slate-900 p-10 rounded-2xl shadow-xl shadow-slate-900/10 hover:-translate-y-1 transition-all duration-500 group"
+                  className="flex flex-col bg-indigo-600 p-10 rounded-2xl shadow-xl shadow-indigo-600/20 hover:-translate-y-1 transition-all duration-500 group"
                 >
                   <dt className="flex items-center gap-x-4 text-xl font-semibold leading-7 text-white font-display">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 text-white group-hover:bg-slate-700 transition-colors duration-500">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500 text-white group-hover:bg-indigo-400 transition-colors duration-500">
                       <Zap className="h-6 w-6" />
                     </div>
                     Claude 4.5 Intelligence
                   </dt>
-                  <dd className="mt-6 flex flex-auto flex-col text-base leading-7 text-slate-300 font-body">
+                  <dd className="mt-6 flex flex-auto flex-col text-base leading-7 text-indigo-100 font-body">
                     <p className="flex-auto">Powered by the reasoning of Claude 4.5, we don't just scrape data—we understand it. Get human-level strategic analysis at machine speed.</p>
                   </dd>
                 </motion.div>
@@ -418,13 +424,14 @@ export function LandingPage() {
           </div>
         </div>
 
-        {/* Built for Serial Acquirers - Refined & Professional */}
+        {/* Built for Serial Acquirers */}
         <div className="py-24 sm:py-32 relative overflow-hidden">
-          {/* Refined gradient background */}
+          {/* Original indigo/purple gradients + rose/pink enhancement */}
           <div className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b from-white via-slate-50 to-white">
-            <div className="absolute top-1/4 left-0 w-[700px] h-[500px] bg-rose-100/30 rounded-full blur-[100px] opacity-50 mix-blend-multiply" />
-            <div className="absolute bottom-0 right-1/4 w-[600px] h-[400px] bg-violet-100/25 rounded-full blur-[80px] opacity-40 mix-blend-multiply" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-indigo-50/50 rounded-full blur-[100px] opacity-30 mix-blend-multiply" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-indigo-200/25 rounded-full blur-[100px] opacity-50 mix-blend-multiply" />
+            <div className="absolute bottom-0 right-0 w-[700px] h-[500px] bg-purple-200/20 rounded-full blur-[100px] opacity-40 mix-blend-multiply" />
+            {/* Additional rose warmth */}
+            <div className="absolute top-1/3 left-1/4 w-[500px] h-[400px] bg-rose-100/20 rounded-full blur-[80px] opacity-30 mix-blend-multiply" />
           </div>
 
           <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
@@ -453,7 +460,7 @@ export function LandingPage() {
                 transition={{ delay: 0.1 }}
                 className="text-lg leading-relaxed text-slate-600 font-body max-w-2xl mx-auto"
               >
-                Purpose-built for <span className="font-semibold text-slate-900">Volaris Group</span>, <span className="font-semibold text-slate-900">Constellation Software</span>, and growth-focused investors seeking vertical SaaS opportunities.
+                Purpose-built for <span className="font-semibold text-indigo-600">Volaris Group</span>, <span className="font-semibold text-indigo-600">Constellation Software</span>, and growth-focused investors seeking vertical SaaS opportunities.
               </motion.p>
             </div>
 
@@ -464,9 +471,9 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200/60 hover:shadow-lg hover:ring-slate-300 transition-all duration-300"
+                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200 hover:shadow-xl hover:shadow-indigo-900/5 hover:ring-indigo-200 transition-all duration-300"
               >
-                <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center mb-6">
                   <Zap className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 font-display mb-3">Minutes, Not Months</h3>
@@ -480,9 +487,9 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
-                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200/60 hover:shadow-lg hover:ring-slate-300 transition-all duration-300"
+                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200 hover:shadow-xl hover:shadow-indigo-900/5 hover:ring-indigo-200 transition-all duration-300"
               >
-                <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center mb-6">
                   <Target className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 font-display mb-3">AI-Powered Fit Scores</h3>
@@ -496,9 +503,9 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
-                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200/60 hover:shadow-lg hover:ring-slate-300 transition-all duration-300"
+                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200 hover:shadow-xl hover:shadow-indigo-900/5 hover:ring-indigo-200 transition-all duration-300"
               >
-                <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center mb-6">
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 font-display mb-3">Direct Outreach</h3>
@@ -518,9 +525,9 @@ export function LandingPage() {
               <button
                 onClick={() => void handleSearch()}
                 disabled={isAuthLoading}
-                className={`inline-flex items-center gap-2 rounded-xl px-8 py-4 text-base font-semibold shadow-lg transition-all duration-200 font-body ${isAuthLoading
-                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                  : 'bg-slate-900 text-white hover:bg-slate-800 hover:shadow-xl'
+                className={`inline-flex items-center gap-2 rounded-xl px-8 py-4 text-base font-semibold shadow-lg shadow-indigo-600/20 transition-all duration-200 font-body ${isAuthLoading
+                  ? 'bg-indigo-400 text-white cursor-not-allowed'
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/25'
                   }`}
               >
                 {isAuthLoading ? 'Connecting...' : 'Start Discovering Targets'}
