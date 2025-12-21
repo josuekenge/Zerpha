@@ -79,7 +79,7 @@ export function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white font-body bg-noise relative overflow-x-hidden">
+    <div className="min-h-screen text-slate-900 selection:bg-indigo-500 selection:text-white font-body ambient-bg relative overflow-x-hidden">
       {/* Navbar */}
       <motion.nav
         initial={{ y: -100 }}
@@ -150,7 +150,7 @@ export function LandingPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="absolute top-20 left-0 w-full bg-white border-b border-slate-200 shadow-xl md:hidden z-40"
+            className="absolute top-20 left-0 w-full bg-white/95 backdrop-blur-lg border-b border-slate-200 shadow-xl md:hidden z-40"
           >
             <div className="flex flex-col p-6 space-y-4">
               <a href="#vision" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-slate-600 hover:text-indigo-600 py-2 border-b border-slate-100">Vision</a>
@@ -183,17 +183,7 @@ export function LandingPage() {
         )}
       </motion.nav>
 
-      <main className="relative isolate pt-20">
-        {/* Original Indigo/Purple Gradients + Rose/Pink Enhancement */}
-        <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          {/* Original animated blobs */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-indigo-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob" />
-          <div className="absolute top-0 right-0 w-[900px] h-[700px] bg-purple-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob animation-delay-2000" />
-          <div className="absolute -bottom-32 left-0 w-[900px] h-[700px] bg-blue-300/20 rounded-full blur-[120px] opacity-50 mix-blend-multiply animate-blob animation-delay-4000" />
-          {/* Additional rose/pink warmth */}
-          <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-rose-200/20 rounded-full blur-[100px] opacity-40 mix-blend-multiply" />
-          <div className="absolute top-1/3 right-1/3 w-[500px] h-[400px] bg-pink-100/25 rounded-full blur-[120px] opacity-30 mix-blend-multiply" />
-        </div>
+      <main className="relative isolate pt-20 z-10">
 
         {/* Hero Section */}
         <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 relative z-10">
@@ -275,8 +265,8 @@ export function LandingPage() {
             transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
             className="mt-24 flow-root sm:mt-32 perspective-1000"
           >
-            <div className="-m-2 rounded-2xl bg-gradient-to-br from-indigo-100/50 to-purple-100/50 p-2 ring-1 ring-inset ring-indigo-900/5 lg:-m-4 lg:rounded-3xl lg:p-4 backdrop-blur-xl shadow-2xl shadow-indigo-600/10">
-              <div className="rounded-xl bg-white ring-1 ring-slate-200 shadow-sm overflow-hidden">
+            <div className="-m-2 rounded-2xl bg-gradient-to-br from-indigo-100/40 to-purple-100/40 p-2 ring-1 ring-inset ring-indigo-900/5 lg:-m-4 lg:rounded-3xl lg:p-4 backdrop-blur-md shadow-2xl shadow-indigo-600/10">
+              <div className="rounded-xl bg-white/[0.97] backdrop-blur-sm ring-1 ring-slate-200/80 shadow-lg overflow-hidden">
                 {/* Dashboard Header */}
                 <div className="border-b border-slate-100 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
@@ -354,14 +344,7 @@ export function LandingPage() {
         </div>
 
         {/* Vision/Capabilities Section */}
-        <div id="capabilities" className="relative mt-32 pb-24 overflow-hidden">
-          {/* Original indigo/purple gradients + rose/pink enhancement */}
-          <div className="absolute inset-0 -z-10 pointer-events-none">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-indigo-200/30 rounded-full blur-[100px] opacity-50 mix-blend-multiply" />
-            <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-purple-200/25 rounded-full blur-[80px] opacity-40 mix-blend-multiply" />
-            {/* Additional rose warmth */}
-            <div className="absolute top-1/4 right-1/4 w-[400px] h-[300px] bg-rose-100/25 rounded-full blur-[80px] opacity-30 mix-blend-multiply" />
-          </div>
+        <div id="capabilities" className="relative mt-32 pb-24">
 
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <motion.div
@@ -386,7 +369,7 @@ export function LandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.1 }}
-                  className="flex flex-col bg-white p-10 rounded-2xl shadow-sm ring-1 ring-slate-200 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all duration-500 group"
+                  className="flex flex-col bg-white/[0.95] backdrop-blur-sm p-10 rounded-2xl shadow-lg shadow-slate-900/[0.03] ring-1 ring-slate-200/80 hover:shadow-xl hover:shadow-indigo-600/10 hover:ring-indigo-200 hover:-translate-y-1 transition-all duration-300 group"
                 >
                   <dt className="flex items-center gap-x-4 text-xl font-semibold leading-7 text-slate-900 font-display">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-500">
@@ -405,7 +388,7 @@ export function LandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  className="flex flex-col bg-indigo-600 p-10 rounded-2xl shadow-xl shadow-indigo-600/20 hover:-translate-y-1 transition-all duration-500 group"
+                  className="flex flex-col bg-indigo-600 p-10 rounded-2xl shadow-xl shadow-indigo-600/25 ring-1 ring-indigo-500/20 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-600/30 transition-all duration-300 group"
                 >
                   <dt className="flex items-center gap-x-4 text-xl font-semibold leading-7 text-white font-display">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500 text-white group-hover:bg-indigo-400 transition-colors duration-500">
@@ -425,14 +408,7 @@ export function LandingPage() {
         </div>
 
         {/* Built for Serial Acquirers */}
-        <div className="py-24 sm:py-32 relative overflow-hidden">
-          {/* Original indigo/purple gradients + rose/pink enhancement */}
-          <div className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b from-white via-slate-50 to-white">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-indigo-200/25 rounded-full blur-[100px] opacity-50 mix-blend-multiply" />
-            <div className="absolute bottom-0 right-0 w-[700px] h-[500px] bg-purple-200/20 rounded-full blur-[100px] opacity-40 mix-blend-multiply" />
-            {/* Additional rose warmth */}
-            <div className="absolute top-1/3 left-1/4 w-[500px] h-[400px] bg-rose-100/20 rounded-full blur-[80px] opacity-30 mix-blend-multiply" />
-          </div>
+        <div className="py-24 sm:py-32 relative">
 
           <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
             {/* Section Header */}
@@ -471,7 +447,7 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200 hover:shadow-xl hover:shadow-indigo-900/5 hover:ring-indigo-200 transition-all duration-300"
+                className="bg-white/[0.95] backdrop-blur-sm rounded-2xl p-8 shadow-lg shadow-slate-900/[0.03] ring-1 ring-slate-200/80 hover:shadow-xl hover:shadow-indigo-600/10 hover:ring-indigo-200 hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center mb-6">
                   <Zap className="h-6 w-6 text-white" />
@@ -487,7 +463,7 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
-                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200 hover:shadow-xl hover:shadow-indigo-900/5 hover:ring-indigo-200 transition-all duration-300"
+                className="bg-white/[0.95] backdrop-blur-sm rounded-2xl p-8 shadow-lg shadow-slate-900/[0.03] ring-1 ring-slate-200/80 hover:shadow-xl hover:shadow-indigo-600/10 hover:ring-indigo-200 hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center mb-6">
                   <Target className="h-6 w-6 text-white" />
@@ -503,7 +479,7 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
-                className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-slate-200 hover:shadow-xl hover:shadow-indigo-900/5 hover:ring-indigo-200 transition-all duration-300"
+                className="bg-white/[0.95] backdrop-blur-sm rounded-2xl p-8 shadow-lg shadow-slate-900/[0.03] ring-1 ring-slate-200/80 hover:shadow-xl hover:shadow-indigo-600/10 hover:ring-indigo-200 hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center mb-6">
                   <FileText className="h-6 w-6 text-white" />
@@ -541,7 +517,7 @@ export function LandingPage() {
         <AboutMe />
 
         {/* Footer */}
-        <footer className="bg-white border-t border-slate-100" aria-labelledby="footer-heading">
+        <footer className="bg-white/[0.9] backdrop-blur-sm border-t border-slate-200/80" aria-labelledby="footer-heading">
           <h2 id="footer-heading" className="sr-only">Footer</h2>
           <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">

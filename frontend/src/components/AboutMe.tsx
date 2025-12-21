@@ -8,14 +8,8 @@ import {
 
 export function AboutMe() {
     return (
-        <section id="about" className="py-24 relative overflow-hidden">
-            {/* Background Elements - Original indigo/purple + rose enhancement */}
-            <div className="absolute inset-0 -z-10 bg-slate-50/50">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-indigo-100/40 rounded-full blur-[100px] opacity-60 mix-blend-multiply" />
-                <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-purple-100/40 rounded-full blur-[100px] opacity-60 mix-blend-multiply" />
-                {/* Additional rose warmth */}
-                <div className="absolute top-1/3 left-1/4 w-[400px] h-[300px] bg-rose-100/25 rounded-full blur-[80px] opacity-30 mix-blend-multiply" />
-            </div>
+        <section id="about" className="py-24 relative">
+            {/* Background is now transparent - global ambient shows through */}
 
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">

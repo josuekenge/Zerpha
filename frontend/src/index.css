@@ -8,6 +8,13 @@
   :root {
     --font-display: 'Fraunces', serif;
     --font-body: 'Manrope', sans-serif;
+
+    /* Ambient Background Glow Tokens (HSL values for easy adjustment) */
+    --glow-purple: 224 64% 88%;
+    --glow-pink: 330 60% 90%;
+    --glow-lavender: 250 50% 92%;
+    --glow-blue: 210 60% 92%;
+    --bg-base: 220 30% 98%;
   }
 
   body {
@@ -30,6 +37,64 @@
   h5,
   h6 {
     font-family: var(--font-display);
+  }
+}
+
+/* Global Ambient Background Layer */
+.ambient-bg {
+  position: relative;
+  background: hsl(var(--bg-base));
+}
+
+.ambient-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+
+  /* Layered radial gradients for organic, non-cliched look */
+  background:
+    /* Top-left purple glow */
+    radial-gradient(ellipse 80% 60% at 15% 10%,
+      hsl(var(--glow-purple) / 0.12) 0%,
+      transparent 60%),
+    /* Mid-right pink glow */
+    radial-gradient(ellipse 70% 50% at 85% 40%,
+      hsl(var(--glow-pink) / 0.10) 0%,
+      transparent 55%),
+    /* Bottom-left lavender glow */
+    radial-gradient(ellipse 60% 70% at 20% 90%,
+      hsl(var(--glow-lavender) / 0.08) 0%,
+      transparent 50%),
+    /* Center blue-purple subtle wash */
+    radial-gradient(ellipse 100% 80% at 50% 50%,
+      hsl(var(--glow-blue) / 0.05) 0%,
+      transparent 70%),
+    /* Base layer */
+    hsl(var(--bg-base));
+
+  /* Optional: very subtle breathing animation */
+  animation: ambient-breathe 20s ease-in-out infinite;
+}
+
+/* Breathing animation - subtle position shift */
+@keyframes ambient-breathe {
+
+  0%,
+  100% {
+    background-position: 0% 0%, 100% 50%, 0% 100%, 50% 50%, 0 0;
+  }
+
+  50% {
+    background-position: 5% 5%, 95% 45%, 5% 95%, 50% 50%, 0 0;
+  }
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .ambient-bg::before {
+    animation: none;
   }
 }
 
