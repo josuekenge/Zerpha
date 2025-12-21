@@ -187,6 +187,11 @@ export function LandingPage() {
 
         {/* Hero Section */}
         <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 relative z-10">
+          {/* Local Hero Gradient */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -z-10 w-[800px] h-[800px] opacity-40 pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-purple-200/30 rounded-full blur-[120px] mix-blend-multiply" />
+            <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-pink-200/30 rounded-full blur-[120px] mix-blend-multiply" />
+          </div>
           <motion.div
             variants={staggerContainer}
             initial="initial"
@@ -345,6 +350,11 @@ export function LandingPage() {
 
         {/* Vision/Capabilities Section */}
         <div id="capabilities" className="relative mt-32 pb-24">
+          {/* Local Features Gradient */}
+          <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+            <div className="absolute top-0 right-1/4 w-[600px] h-[500px] bg-purple-100/40 rounded-full blur-[100px] opacity-60 mix-blend-multiply" />
+            <div className="absolute bottom-0 left-1/4 w-[600px] h-[500px] bg-pink-100/40 rounded-full blur-[100px] opacity-60 mix-blend-multiply" />
+          </div>
 
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <motion.div
@@ -409,6 +419,11 @@ export function LandingPage() {
 
         {/* Built for Serial Acquirers */}
         <div className="py-24 sm:py-32 relative">
+          {/* Local Acquirers Gradient */}
+          <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+            <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-pink-100/30 rounded-full blur-[100px] opacity-50 mix-blend-multiply" />
+            <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-purple-100/40 rounded-full blur-[100px] opacity-50 mix-blend-multiply" />
+          </div>
 
           <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
             {/* Section Header */}
@@ -535,8 +550,8 @@ export function LandingPage() {
             </div>
           </div>
         </footer>
-      </main>
-    </div>
+      </main >
+    </div >
   );
 }
 
