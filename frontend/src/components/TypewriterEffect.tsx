@@ -10,7 +10,7 @@ interface TypewriterEffectProps {
 export function TypewriterEffect({
     words,
     className = "",
-    cursorClassName = "bg-indigo-600"
+    cursorClassName = "bg-indigo-400"
 }: TypewriterEffectProps) {
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [currentText, setCurrentText] = useState("");

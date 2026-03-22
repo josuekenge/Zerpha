@@ -17,11 +17,12 @@ console.log('========================================');
 console.log('NODE_ENV:', process.env.NODE_ENV || 'development');
 console.log('PORT:', process.env.PORT || '3001');
 console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? '✅' : '❌ MISSING');
+console.log('SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅' : '❌ MISSING');
 console.log('CLAUDE_API_KEY:', process.env.CLAUDE_API_KEY ? '✅' : '❌ MISSING');
 console.log('========================================');
 
-// 3. IMPORT APP AFTER ENV LOADED
-import { app } from './app.js';
+// 3. IMPORT APP AFTER ENV LOADED (dynamic import so dotenv runs first)
+const { app } = await import('./app.js');
 
 // 4. START SERVER
 const PORT = parseInt(process.env.PORT || '3001', 10);

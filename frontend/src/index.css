@@ -8,21 +8,13 @@
   :root {
     --font-display: 'Fraunces', serif;
     --font-body: 'Manrope', sans-serif;
-
-    /* Ambient Background Glow Tokens (HSL values for easy adjustment) */
-    --glow-purple: 224 64% 88%;
-    --glow-pink: 330 60% 90%;
-    --glow-lavender: 250 50% 92%;
-    --glow-blue: 210 60% 92%;
-    --bg-base: 220 30% 98%;
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 antialiased min-h-screen dark:bg-slate-950 dark:text-slate-100;
+    @apply bg-white text-slate-900 antialiased min-h-screen dark:bg-slate-950 dark:text-slate-100;
     font-family: var(--font-body);
   }
 
-  /* Ensure buttons and inputs inherit the body font */
   button,
   input,
   textarea,
@@ -40,62 +32,18 @@
   }
 }
 
-/* Global Ambient Background Layer */
+/* Subtle grid pattern for dark sections */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+/* Ambient background for non-landing pages (workspace, etc.) */
 .ambient-bg {
   position: relative;
-  background: hsl(var(--bg-base));
-}
-
-.ambient-bg::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-
-  /* Layered radial gradients for organic, non-cliched look */
-  background:
-    /* Top-left purple glow */
-    radial-gradient(ellipse 80% 60% at 15% 10%,
-      hsl(var(--glow-purple) / 0.12) 0%,
-      transparent 60%),
-    /* Mid-right pink glow */
-    radial-gradient(ellipse 70% 50% at 85% 40%,
-      hsl(var(--glow-pink) / 0.10) 0%,
-      transparent 55%),
-    /* Bottom-left lavender glow */
-    radial-gradient(ellipse 60% 70% at 20% 90%,
-      hsl(var(--glow-lavender) / 0.08) 0%,
-      transparent 50%),
-    /* Center blue-purple subtle wash */
-    radial-gradient(ellipse 100% 80% at 50% 50%,
-      hsl(var(--glow-blue) / 0.05) 0%,
-      transparent 70%),
-    /* Base layer */
-    hsl(var(--bg-base));
-
-  /* Optional: very subtle breathing animation */
-  animation: ambient-breathe 20s ease-in-out infinite;
-}
-
-/* Breathing animation - subtle position shift */
-@keyframes ambient-breathe {
-
-  0%,
-  100% {
-    background-position: 0% 0%, 100% 50%, 0% 100%, 50% 50%, 0 0;
-  }
-
-  50% {
-    background-position: 5% 5%, 95% 45%, 5% 95%, 50% 50%, 0 0;
-  }
-}
-
-/* Respect prefers-reduced-motion */
-@media (prefers-reduced-motion: reduce) {
-  .ambient-bg::before {
-    animation: none;
-  }
+  background: #f8fafc; /* slate-50 */
 }
 
 @layer utilities {
@@ -105,10 +53,6 @@
 
   .font-body {
     font-family: var(--font-body);
-  }
-
-  .bg-noise {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
   }
 
   .animate-spin-slow {
@@ -122,14 +66,6 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
-  }
-
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-
-  .animation-delay-4000 {
-    animation-delay: 4s;
   }
 }
 
@@ -151,7 +87,6 @@
 
 ::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
-  /* slate-300 */
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: content-box;
@@ -159,15 +94,12 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: #94a3b8;
-  /* slate-400 */
 }
 
 .dark ::-webkit-scrollbar-thumb {
   background-color: #334155;
-  /* slate-700 */
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background-color: #475569;
-  /* slate-600 */
 }

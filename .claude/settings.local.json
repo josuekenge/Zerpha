@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l \"c:\\\\Users\\\\josue\\\\OneDrive\\\\Desktop\\\\Zerpha\\\\backend\\\\src\\\\routes\"/*.ts)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)",
+      "Bash(curl -s http://localhost:3001/health)",
+      "Bash(curl -s http://localhost:3001/api/companies -H \"Authorization: Bearer test\")"
+    ]
+  }
+}

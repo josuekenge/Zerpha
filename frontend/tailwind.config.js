@@ -8,8 +8,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['Cabinet Grotesk', 'Inter', 'sans-serif'],
+        sans: ['Manrope', 'Inter', 'sans-serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
+        body: ['Manrope', 'Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       colors: {
         primary: {
