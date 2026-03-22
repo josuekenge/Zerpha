@@ -6,7 +6,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className="h-screen flex overflow-hidden text-base antialiased selection:bg-indigo-100 selection:text-indigo-700 bg-white text-slate-900 font-sans">
+    <div className="h-screen flex overflow-hidden text-base antialiased selection:bg-indigo-400/20 selection:text-indigo-300 bg-[#09090b] text-white font-sans">
       {children}
     </div>
   );

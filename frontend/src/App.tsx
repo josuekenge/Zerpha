@@ -7,7 +7,7 @@ import {
   Download,
   Trash2,
   ChevronDown,
-  Zap,
+  ArrowRight,
   Building2,
   History,
   Table2,
@@ -23,8 +23,6 @@ import {
   TrendingUp,
   Kanban,
   Settings,
-  Moon,
-  Sun
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -67,7 +65,7 @@ import { useTheme } from './lib/theme';
 
 export function WorkspaceApp() {
   const { workspace } = useWorkspace();
-  const { theme, setTheme } = useTheme();
+  useTheme(); // ensure dark theme is applied
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -900,40 +898,40 @@ export function WorkspaceApp() {
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full transition-transform duration-300 lg:translate-x-0 lg:static lg:flex-shrink-0 shadow-2xl lg:shadow-none",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-[#0c0c0f]/95 backdrop-blur-xl border-r border-white/[0.06] flex flex-col h-full transition-transform duration-300 lg:translate-x-0 lg:static lg:flex-shrink-0 shadow-2xl lg:shadow-none",
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Brand */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
-          <div className="flex items-center gap-3 text-slate-900 dark:text-white cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 p-1.5">
-              <img src="/zerpha.svg" alt="Zerpha" className="w-full h-full" />
+        <div className="h-14 flex items-center justify-between px-5 border-b border-white/[0.06] flex-shrink-0">
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/')}>
+            <div className="w-7 h-7 rounded-md flex items-center justify-center bg-indigo-400">
+              <span className="font-body font-extrabold text-[13px] text-[#09090b] leading-none">Z</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-bold tracking-tight text-sm leading-none">Zerpha</span>
-              <span className="text-slate-500 text-[10px] font-medium leading-none mt-1">Intelligence</span>
+              <span className="font-semibold tracking-tight text-sm text-white leading-none">Zerpha</span>
+              <span className="text-white/30 text-[10px] font-medium leading-none mt-0.5">Intelligence</span>
             </div>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="lg:hidden p-2 -mr-2 text-slate-400 hover:text-slate-600"
+            className="lg:hidden p-2 -mr-2 text-white/40 hover:text-white"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-4 flex-1 overflow-y-auto space-y-8">
+        <div className="p-4 flex-1 overflow-y-auto space-y-6">
 
           {/* Workspace Switcher */}
           <div>
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 block px-3">Workspace</label>
+            <label className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-3 block px-3">Workspace</label>
             <WorkspaceSwitcher onNavigateToSettings={() => navigate('/settings')} />
 
             {/* Team Members Avatars */}
@@ -943,11 +941,10 @@ export function WorkspaceApp() {
                   {workspace.members.slice(0, 5).map((member, index) => (
                     <div
                       key={member.id}
-                      className="w-7 h-7 rounded-full border-2 flex items-center justify-center text-[10px] font-medium text-white shadow-sm relative overflow-hidden"
+                      className="w-6 h-6 rounded-full border border-[#0c0c0f] flex items-center justify-center text-[9px] font-medium text-white shadow-sm relative overflow-hidden"
                       style={{
                         zIndex: workspace.members.length - index,
-                        backgroundColor: member.color || '#6366F1',
-                        borderColor: member.color || '#6366F1',
+                        backgroundColor: member.color || '#818cf8',
                       }}
                       title={`${member.name} (${member.role})`}
                     >
@@ -960,14 +957,14 @@ export function WorkspaceApp() {
                   ))}
                   {workspace.members.length > 5 && (
                     <div
-                      className="w-7 h-7 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-medium text-slate-600 shadow-sm"
+                      className="w-6 h-6 rounded-full border border-[#0c0c0f] bg-white/10 flex items-center justify-center text-[9px] font-medium text-white/50 shadow-sm"
                       title={`+${workspace.members.length - 5} more`}
                     >
                       +{workspace.members.length - 5}
                     </div>
                   )}
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1.5">{workspace.members.length} team member{workspace.members.length !== 1 ? 's' : ''}</p>
+                <p className="text-[10px] text-white/20 mt-1.5">{workspace.members.length} team member{workspace.members.length !== 1 ? 's' : ''}</p>
               </div>
             )}
           </div>
@@ -975,124 +972,122 @@ export function WorkspaceApp() {
           {/* Search */}
           {activeView === 'search' && (
             <div className="relative group px-1">
-              <Search className="absolute left-4 top-2.5 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+              <Search className="absolute left-4 top-2.5 w-4 h-4 text-white/20 group-focus-within:text-indigo-400 transition-colors" />
               <input
                 type="text"
                 placeholder="Search vertical..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && void executeSearch()}
-                className="w-full pl-10 pr-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 transition-all shadow-sm"
+                className="w-full pl-10 pr-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 focus:border-indigo-400/30 transition-all"
               />
             </div>
           )}
 
           {/* Navigation */}
           <div>
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block px-3">Menu</label>
-            <nav className="space-y-1">
+            <label className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 block px-3">Menu</label>
+            <nav className="space-y-0.5">
               <button
                 onClick={() => handleNavigation('search')}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
                   activeView === 'search'
-                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200"
+                    ? "bg-indigo-400/10 text-indigo-400"
+                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
                 )}
               >
-                <Search className={cn("w-4 h-4", activeView === 'search' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
+                <Search className={cn("w-4 h-4", activeView === 'search' ? "text-indigo-400" : "text-white/25")} />
                 New Search
               </button>
 
               <button
                 onClick={() => handleNavigation('companies')}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
                   activeView === 'companies'
-                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200"
+                    ? "bg-indigo-400/10 text-indigo-400"
+                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
                 )}
               >
-                <Building2 className={cn("w-4 h-4", activeView === 'companies' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
+                <Building2 className={cn("w-4 h-4", activeView === 'companies' ? "text-indigo-400" : "text-white/25")} />
                 Companies
               </button>
 
               <button
                 onClick={() => handleNavigation('people')}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
                   activeView === 'people'
-                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200"
+                    ? "bg-indigo-400/10 text-indigo-400"
+                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
                 )}
               >
-                <Users className={cn("w-4 h-4", activeView === 'people' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
+                <Users className={cn("w-4 h-4", activeView === 'people' ? "text-indigo-400" : "text-white/25")} />
                 People
               </button>
 
               <button
                 onClick={() => handleNavigation('insights')}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
                   activeView === 'insights'
-                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200"
+                    ? "bg-indigo-400/10 text-indigo-400"
+                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
                 )}
               >
-                <TrendingUp className={cn("w-4 h-4", activeView === 'insights' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
+                <TrendingUp className={cn("w-4 h-4", activeView === 'insights' ? "text-indigo-400" : "text-white/25")} />
                 Insights
               </button>
 
               <button
                 onClick={() => handleNavigation('pipeline')}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
                   activeView === 'pipeline'
-                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200"
+                    ? "bg-indigo-400/10 text-indigo-400"
+                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
                 )}
               >
-                <Kanban className={cn("w-4 h-4", activeView === 'pipeline' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
+                <Kanban className={cn("w-4 h-4", activeView === 'pipeline' ? "text-indigo-400" : "text-white/25")} />
                 Pipeline
               </button>
 
               <button
                 onClick={() => handleNavigation('history')}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
                   activeView === 'history'
-                    ? "bg-violet-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200"
+                    ? "bg-indigo-400/10 text-indigo-400"
+                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
                 )}
               >
-                <History className={cn("w-4 h-4", activeView === 'history' ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600")} />
+                <History className={cn("w-4 h-4", activeView === 'history' ? "text-indigo-400" : "text-white/25")} />
                 Search history
               </button>
 
               <button
                 onClick={() => navigate('/settings')}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200"
+                className="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg text-white/40 hover:bg-white/[0.04] hover:text-white/70 transition-all duration-200"
               >
-                <Settings className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                <Settings className="w-4 h-4 text-white/25" />
                 Settings
               </button>
-
-
             </nav>
           </div>
 
           {/* View Toggle (Only visible in Companies view) */}
           {activeView === 'companies' && (
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block px-3">View</label>
-              <div className="flex p-1 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 mb-4 mx-1">
+              <label className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 block px-3">View</label>
+              <div className="flex p-1 bg-white/[0.03] rounded-lg border border-white/[0.06] mb-4 mx-1">
                 <button
                   onClick={() => setViewMode('table')}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded transition-all",
                     viewMode === 'table'
-                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-slate-700"
-                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                      ? "bg-white/[0.08] text-white"
+                      : "text-white/30 hover:text-white/50"
                   )}
                 >
                   <Table2 className="w-3.5 h-3.5" /> Table
@@ -1102,8 +1097,8 @@ export function WorkspaceApp() {
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded transition-all",
                     viewMode === 'cards'
-                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-slate-700"
-                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                      ? "bg-white/[0.08] text-white"
+                      : "text-white/30 hover:text-white/50"
                   )}
                 >
                   <LayoutGrid className="w-3.5 h-3.5" /> Cards
@@ -1115,16 +1110,16 @@ export function WorkspaceApp() {
           {/* Filters (Only visible in Companies view) */}
           {activeView === 'companies' && (
             <div className="space-y-4">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3">Filters</label>
+              <label className="text-[10px] font-semibold text-white/25 uppercase tracking-widest px-3">Filters</label>
 
               <div className="px-1 space-y-3">
                 <div>
-                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5 block px-2">Fit Score</span>
+                  <span className="text-[11px] font-medium text-white/30 mb-1.5 block px-2">Fit Score</span>
                   <div className="relative">
                     <select
                       value={workspaceFitFilter}
                       onChange={(e) => setWorkspaceFitFilter(e.target.value as FitFilter)}
-                      className="w-full appearance-none bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300 py-2 pl-3 pr-8 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full appearance-none bg-white/[0.04] border border-white/[0.08] text-sm text-white/70 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400/30 focus:border-indigo-400/30"
                     >
                       {workspaceFitFilters.map((filter) => (
                         <option key={filter.value} value={filter.value}>
@@ -1132,29 +1127,29 @@ export function WorkspaceApp() {
                         </option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-white/20 pointer-events-none" />
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5 block px-2">Industry</span>
+                  <span className="text-[11px] font-medium text-white/30 mb-1.5 block px-2">Industry</span>
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => setIsIndustryDropdownOpen(!isIndustryDropdownOpen)}
-                      className="w-full flex items-center justify-between bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300 py-2 pl-3 pr-2 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                      className="w-full flex items-center justify-between bg-white/[0.04] border border-white/[0.08] text-sm text-white/70 py-2 pl-3 pr-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400/30 cursor-pointer"
                     >
                       <span className="truncate">{industryFilter === 'all' ? 'All Industries' : industryFilter}</span>
-                      <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform", isIndustryDropdownOpen && "rotate-180")} />
+                      <ChevronDown className={cn("w-4 h-4 text-white/20 transition-transform", isIndustryDropdownOpen && "rotate-180")} />
                     </button>
                     {isIndustryDropdownOpen && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setIsIndustryDropdownOpen(false)} />
-                        <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50 max-h-[280px] overflow-y-auto">
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-[#141417] border border-white/[0.08] rounded-lg shadow-xl z-50 max-h-[280px] overflow-y-auto">
                           <button
                             type="button"
                             onClick={() => { setIndustryFilter('all'); setIsIndustryDropdownOpen(false); }}
-                            className={cn("w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors dark:text-slate-300", industryFilter === 'all' && "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-medium")}
+                            className={cn("w-full text-left px-3 py-2 text-sm hover:bg-white/[0.06] transition-colors text-white/60", industryFilter === 'all' && "bg-indigo-400/10 text-indigo-400 font-medium")}
                           >
                             All Industries
                           </button>
@@ -1163,7 +1158,7 @@ export function WorkspaceApp() {
                               key={industry}
                               type="button"
                               onClick={() => { setIndustryFilter(industry); setIsIndustryDropdownOpen(false); }}
-                              className={cn("w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors dark:text-slate-300", industryFilter === industry && "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-medium")}
+                              className={cn("w-full text-left px-3 py-2 text-sm hover:bg-white/[0.06] transition-colors text-white/60", industryFilter === industry && "bg-indigo-400/10 text-indigo-400 font-medium")}
                             >
                               {industry}
                             </button>
@@ -1175,7 +1170,7 @@ export function WorkspaceApp() {
                 </div>
 
                 <div>
-                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5 block px-2">Location</span>
+                  <span className="text-[11px] font-medium text-white/30 mb-1.5 block px-2">Location</span>
                   <div className="relative">
                     <input
                       type="text"
@@ -1186,13 +1181,13 @@ export function WorkspaceApp() {
                         setIsLocationDropdownOpen(e.target.value.length > 0);
                       }}
                       onFocus={() => locationFilter.length > 0 && setIsLocationDropdownOpen(true)}
-                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300 py-2 pl-3 pr-8 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] text-sm text-white/70 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400/30 focus:border-indigo-400/30 placeholder:text-white/20"
                     />
                     {locationFilter && (
                       <button
                         type="button"
                         onClick={() => { setLocationFilter(''); setIsLocationDropdownOpen(false); }}
-                        className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600"
+                        className="absolute right-2 top-2.5 text-white/30 hover:text-white/60"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -1200,19 +1195,19 @@ export function WorkspaceApp() {
                     {isLocationDropdownOpen && locationFilter.length > 0 && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setIsLocationDropdownOpen(false)} />
-                        <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50 max-h-[200px] overflow-y-auto">
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-[#141417] border border-white/[0.08] rounded-lg shadow-xl z-50 max-h-[200px] overflow-y-auto">
                           {LOCATIONS.filter(loc => loc.toLowerCase().includes(locationFilter.toLowerCase())).slice(0, 8).map((loc) => (
                             <button
                               key={loc}
                               type="button"
                               onClick={() => { setLocationFilter(loc); setIsLocationDropdownOpen(false); }}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors dark:text-slate-300"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-white/[0.06] transition-colors text-white/60"
                             >
                               {loc}
                             </button>
                           ))}
                           {LOCATIONS.filter(loc => loc.toLowerCase().includes(locationFilter.toLowerCase())).length === 0 && (
-                            <div className="px-3 py-2 text-sm text-slate-400 dark:text-slate-500">No matches found</div>
+                            <div className="px-3 py-2 text-sm text-white/25">No matches found</div>
                           )}
                         </div>
                       </>
@@ -1225,8 +1220,8 @@ export function WorkspaceApp() {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex-shrink-0 bg-white dark:bg-slate-950">
-          <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed px-2">
+        <div className="p-4 border-t border-white/[0.06] flex-shrink-0">
+          <p className="text-[11px] text-white/15 leading-relaxed px-2">
             {activeView === 'companies'
               ? "Select a row to view detailed insights."
               : activeView === 'search'
@@ -1237,45 +1232,44 @@ export function WorkspaceApp() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 bg-slate-50/50 dark:bg-slate-950 overflow-hidden relative">
-        <header className="h-16 flex items-center justify-between px-4 sm:px-8 border-b border-slate-200 dark:border-slate-800 flex-shrink-0 bg-white/80 dark:bg-slate-950/80">
+      <main className="flex-1 flex flex-col min-w-0 bg-[#09090b] overflow-hidden relative">
+        {/* Ambient background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-grid-pattern opacity-50" />
+          <div className="absolute top-0 right-1/4 w-[500px] h-[400px] bg-indigo-400/[0.03] rounded-full blur-[150px]" />
+          <div className="absolute bottom-0 left-1/3 w-[400px] h-[300px] bg-purple-500/[0.02] rounded-full blur-[120px]" />
+        </div>
+        <header className="relative z-10 h-14 flex items-center justify-between px-4 sm:px-8 border-b border-white/[0.06] flex-shrink-0 bg-[#09090b]/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+              className="lg:hidden p-2 -ml-2 text-white/40 hover:text-white hover:bg-white/[0.06] rounded-lg transition-colors"
             >
               <Menu className="w-5 h-5" />
             </button>
             <div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 font-medium">{viewMeta.subtitle}</div>
-              <h1 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight">{viewMeta.title}</h1>
+              <div className="text-[11px] text-white/30 mb-0.5 font-medium">{viewMeta.subtitle}</div>
+              <h1 className="text-base font-semibold text-white tracking-tight">{viewMeta.title}</h1>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {activeView === 'search' && (hasSearched || query) && (
               <button
                 onClick={handleClearSearchData}
-                className="px-3.5 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-red-50 hover:text-red-700 hover:border-red-200 shadow-sm transition-all flex items-center gap-2"
+                className="px-3 py-1.5 text-[13px] font-medium text-white/50 bg-white/[0.04] border border-white/[0.08] rounded-lg hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all flex items-center gap-2"
               >
-                <Trash2 className="w-4 h-4" /> Clear Data
+                <Trash2 className="w-3.5 h-3.5" /> Clear
               </button>
             )}
             {activeView === 'companies' && (
               <button
                 onClick={() => openInfographicModal(selectedWorkspaceCompanyId)}
                 disabled={!selectedWorkspaceCompanyId}
-                className="px-3.5 py-1.5 text-sm font-medium text-white bg-slate-900 border border-transparent rounded-md hover:bg-slate-800 shadow-sm transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 text-[13px] font-medium text-white bg-white/[0.06] border border-white/[0.08] rounded-lg hover:bg-white/[0.1] transition-all flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                <Download className="w-4 h-4" /> Export selection
+                <Download className="w-3.5 h-3.5" /> Export
               </button>
             )}
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors mr-2"
-              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
             <button
               onClick={async () => {
                 try {
@@ -1285,78 +1279,68 @@ export function WorkspaceApp() {
                   console.error('Failed to sign out', error);
                 }
               }}
-              className="px-3.5 py-1.5 text-sm font-medium text-white bg-indigo-600 border border-indigo-600 rounded-md hover:bg-indigo-500 shadow-sm transition-all"
+              className="px-3 py-1.5 text-[13px] font-medium text-white/50 bg-white/[0.04] border border-white/[0.08] rounded-lg hover:bg-white/[0.08] hover:text-white/70 transition-all"
             >
               Logout
             </button>
           </div>
         </header>
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="relative z-10 flex-1 flex flex-col min-h-0">
           {activeView === 'search' && (
             <div className="flex-1 overflow-auto px-4 sm:px-8 py-6">
               {!hasSearched && !isSearching && searchCompaniesList.length === 0 && (
                 <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto relative">
-                  <div className="h-full flex flex-col items-center justify-center relative overflow-hidden bg-slate-50/50 dark:bg-slate-900/50">
-                    {/* Dot Pattern Background */}
-                    <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '40px 40px', opacity: 0.5 }}></div>
+                  <div className="h-full flex flex-col items-center justify-center relative overflow-hidden">
 
                     {/* Content */}
-                    <div className="relative z-10 w-full max-w-3xl px-6 text-center">
-
-                      {/* Badge */}
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 mb-8 shadow-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></div>
-                        <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">AI ENGINE UPDATED V2.4</span>
-                      </div>
+                    <div className="relative z-10 w-full max-w-2xl px-6 text-center">
 
                       {/* Headings */}
-                      <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight">What market are you scouting today?</h2>
-                      <p className="text-slate-500 dark:text-slate-400 text-lg mb-12">Search for verticals, competitors, or specific technologies.</p>
+                      <h2 className="text-3xl md:text-4xl font-display font-medium text-white mb-3 tracking-tight">What market are you scouting?</h2>
+                      <p className="text-white/30 text-sm mb-10">Search verticals, competitors, or technologies.</p>
 
                       {/* Search Bar */}
-                      <div className="relative group max-w-2xl mx-auto mb-10">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-100 via-purple-100 to-indigo-100 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-indigo-900/30 rounded-full blur opacity-50 group-hover:opacity-75 transition duration-500"></div>
-                        <div className="relative bg-white dark:bg-slate-900 rounded-full shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 ring-1 ring-slate-200 dark:ring-slate-700 flex items-center p-2 transition-all focus-within:ring-2 focus-within:ring-indigo-500/20">
-                          <Search className="w-5 h-5 text-slate-400 ml-4" />
+                      <div className="relative max-w-xl mx-auto mb-8">
+                        <div className="relative bg-white/[0.04] rounded-xl border border-white/[0.08] flex items-center transition-all focus-within:border-indigo-400/30 focus-within:bg-white/[0.06]">
+                          <Search className="w-4 h-4 text-white/20 ml-4" />
                           <input
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
                             placeholder="e.g. B2B SaaS for Construction in Europe..."
-                            className="flex-1 px-4 py-3 bg-transparent border-none text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-0"
+                            className="flex-1 px-4 py-3.5 bg-transparent border-none text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-0 font-body"
                             autoFocus
                           />
                           <div className="pr-2">
                             <button
                               onClick={() => executeSearch()}
-                              className="p-2 bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-full transition-all"
+                              className="p-2 bg-white/[0.06] hover:bg-indigo-400/20 text-white/30 hover:text-indigo-400 rounded-lg transition-all"
                             >
-                              <Zap className="w-4 h-4 fill-current" />
+                              <ArrowRight className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
                       </div>
 
                       {/* Suggestions */}
-                      {/* Suggestions */}
-                      <div className="flex items-center justify-center gap-3 text-sm">
-                        <span className="font-medium text-slate-400 dark:text-slate-500 mr-1">Try:</span>
+                      <div className="flex items-center justify-center gap-2 text-sm">
+                        <span className="text-white/15 text-xs mr-1">Try:</span>
                         <button
                           onClick={() => handleQuickFilter('Fintech API')}
-                          className="px-3 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all text-xs font-medium shadow-sm"
+                          className="px-3 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/30 hover:border-indigo-400/20 hover:text-indigo-400 transition-all text-xs font-medium"
                         >
                           Fintech API
                         </button>
                         <button
                           onClick={() => handleQuickFilter('Green Energy')}
-                          className="px-3 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all text-xs font-medium shadow-sm"
+                          className="px-3 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/30 hover:border-indigo-400/20 hover:text-indigo-400 transition-all text-xs font-medium"
                         >
                           Green Energy
                         </button>
                         <button
                           onClick={() => handleQuickFilter('EdTech Mobile')}
-                          className="px-3 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all text-xs font-medium shadow-sm"
+                          className="px-3 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/30 hover:border-indigo-400/20 hover:text-indigo-400 transition-all text-xs font-medium"
                         >
                           EdTech Mobile
                         </button>
@@ -1368,31 +1352,31 @@ export function WorkspaceApp() {
               )}
 
               {(hasSearched || isSearching || searchCompaniesList.length > 0) && (
-                <div className="flex flex-col lg:flex-row h-full gap-6">
-                  <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden relative h-[500px] lg:h-auto">
+                <div className="flex flex-col lg:flex-row h-full gap-4">
+                  <div className="flex-1 flex flex-col min-h-0 bg-[#0c0c0f] border border-white/[0.06] rounded-xl overflow-hidden relative h-[500px] lg:h-auto">
                     {isSearching ? (
-                      <div className="absolute inset-0 z-20 bg-white dark:bg-slate-950 flex flex-col items-center justify-center">
+                      <div className="absolute inset-0 z-20 bg-[#0c0c0f] flex flex-col items-center justify-center">
                         <LoadingStats />
                       </div>
                     ) : (
                       <>
-                        <div className="bg-slate-50 dark:bg-slate-900 px-4 py-3 border-b border-slate-200 dark:border-slate-800">
+                        <div className="bg-white/[0.02] px-4 py-3 border-b border-white/[0.06]">
                           <div className="flex justify-between items-center mb-3">
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            <span className="text-sm font-medium text-white/60">
                               Results ({filteredSearchCompanies.length}
                               {filteredSearchCompanies.length !== searchCompaniesList.length &&
                                 ` of ${searchCompaniesList.length}`})
                             </span>
-                            {searchError && <span className="text-xs text-red-600">{searchError}</span>}
+                            {searchError && <span className="text-xs text-red-400">{searchError}</span>}
                           </div>
                           {/* Search Filters */}
                           <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-slate-500">Fit:</span>
+                              <span className="text-[11px] font-medium text-white/25">Fit:</span>
                               <select
                                 value={searchFitFilter}
                                 onChange={(e) => setSearchFitFilter(e.target.value as FitFilter)}
-                                className="appearance-none bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 py-1.5 pl-2 pr-6 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                                className="appearance-none bg-white/[0.04] border border-white/[0.08] text-xs text-white/60 py-1.5 pl-2 pr-6 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-400/30 cursor-pointer"
                               >
                                 <option value="all">All Scores</option>
                                 <option value="high">High (8+)</option>
@@ -1401,11 +1385,11 @@ export function WorkspaceApp() {
                               </select>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-slate-500">Industry:</span>
+                              <span className="text-[11px] font-medium text-white/25">Industry:</span>
                               <select
                                 value={searchIndustryFilter}
                                 onChange={(e) => setSearchIndustryFilter(e.target.value)}
-                                className="appearance-none bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 py-1.5 pl-2 pr-6 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                                className="appearance-none bg-white/[0.04] border border-white/[0.08] text-xs text-white/60 py-1.5 pl-2 pr-6 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-400/30 cursor-pointer"
                               >
                                 <option value="all">All Industries</option>
                                 {INDUSTRIES.map((industry) => (
@@ -1421,51 +1405,51 @@ export function WorkspaceApp() {
                                   setSearchFitFilter('all');
                                   setSearchIndustryFilter('all');
                                 }}
-                                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                                className="text-xs text-indigo-400 hover:text-indigo-300 font-medium"
                               >
                                 Clear filters
                               </button>
                             )}
                           </div>
                         </div>
-                        <div className="flex-1 overflow-auto bg-white dark:bg-slate-950">
+                        <div className="flex-1 overflow-auto">
                           {filteredSearchCompanies.length === 0 ? (
-                            <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+                            <div className="p-8 text-center text-white/30 text-sm">
                               {searchCompaniesList.length === 0
                                 ? "No results found."
                                 : "No companies match the selected filters."}
                             </div>
                           ) : (
                             <table className="w-full text-left border-collapse">
-                              <thead className="sticky top-0 bg-white dark:bg-slate-950 z-10 shadow-sm">
+                              <thead className="sticky top-0 bg-[#0c0c0f] z-10">
                                 <tr>
-                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">Name</th>
-                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">Industry</th>
-                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 text-right">Fit</th>
-                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 text-right">Action</th>
+                                  <th className="py-3 px-4 text-[10px] font-semibold text-white/25 uppercase tracking-widest border-b border-white/[0.06]">Name</th>
+                                  <th className="py-3 px-4 text-[10px] font-semibold text-white/25 uppercase tracking-widest border-b border-white/[0.06]">Industry</th>
+                                  <th className="py-3 px-4 text-[10px] font-semibold text-white/25 uppercase tracking-widest border-b border-white/[0.06] text-right">Fit</th>
+                                  <th className="py-3 px-4 text-[10px] font-semibold text-white/25 uppercase tracking-widest border-b border-white/[0.06] text-right">Action</th>
                                 </tr>
                               </thead>
-                              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                              <tbody className="divide-y divide-white/[0.04]">
                                 {filteredSearchCompanies.map(company => (
                                   <tr
                                     key={company.id}
                                     onClick={() => setSelectedSearchCompanyId(company.id)}
                                     className={cn(
-                                      "group cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors",
-                                      selectedSearchCompanyId === company.id ? "bg-violet-50 dark:bg-indigo-900/20" : ""
+                                      "group cursor-pointer hover:bg-white/[0.03] transition-colors",
+                                      selectedSearchCompanyId === company.id ? "bg-indigo-400/[0.06]" : ""
                                     )}
                                   >
                                     <td className="py-3 px-4">
                                       <div className="flex items-center gap-2">
                                         <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.website} size={24} />
                                         <div>
-                                          <div className="font-medium text-slate-900 dark:text-white">{company.name}</div>
-                                          <div className="text-xs text-slate-500 dark:text-slate-400">{company.website}</div>
+                                          <div className="font-medium text-white text-sm">{company.name}</div>
+                                          <div className="text-[11px] text-white/25">{company.website}</div>
                                         </div>
                                       </div>
                                     </td>
                                     <td className="py-3 px-4">
-                                      <span className="text-xs text-slate-600 dark:text-slate-300">
+                                      <span className="text-xs text-white/40">
                                         {company.primary_industry || 'Unknown'}
                                       </span>
                                     </td>
@@ -1482,8 +1466,8 @@ export function WorkspaceApp() {
                                         className={cn(
                                           "text-xs font-medium transition-colors",
                                           company.is_saved
-                                            ? "text-green-600 cursor-default"
-                                            : "text-indigo-600 hover:text-indigo-800"
+                                            ? "text-emerald-400 cursor-default"
+                                            : "text-indigo-400 hover:text-indigo-300"
                                         )}
                                       >
                                         {savingMap[company.id] ? 'Saving...' : company.is_saved ? 'Saved' : 'Save'}
@@ -1502,7 +1486,7 @@ export function WorkspaceApp() {
                   {/* Detail View for Search */}
                   {selectedSearchCompany && (
                     <>
-                      <aside className="w-full lg:w-[400px] flex-shrink-0 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-sm flex flex-col h-[600px] lg:h-auto">
+                      <aside className="w-full lg:w-[400px] flex-shrink-0 bg-[#0c0c0f] border border-white/[0.06] rounded-xl overflow-hidden flex flex-col h-[600px] lg:h-auto">
                         <div className="flex-1 overflow-y-auto">
                           <CompanyDetailPanel
                             company={selectedSearchCompany}
@@ -1510,7 +1494,7 @@ export function WorkspaceApp() {
                         </div>
                       </aside>
                       {/* Embedded Chat for Search */}
-                      <aside className="w-full lg:w-[350px] flex-shrink-0 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-sm flex flex-col h-[500px] lg:h-auto">
+                      <aside className="w-full lg:w-[350px] flex-shrink-0 bg-[#0c0c0f] border border-white/[0.06] rounded-xl overflow-hidden flex flex-col h-[500px] lg:h-auto">
                         <ChatWidget mode="embedded" context={chatContext} />
                       </aside>
                     </>
@@ -1527,12 +1511,12 @@ export function WorkspaceApp() {
                 <div className="px-4 sm:px-8 pt-6 pb-4">
                   {/* Top Row: All Companies Tab and View Toggle */}
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-1 border-b border-white/[0.06]">
                       <button
                         onClick={() => setWorkspaceCategory('all')}
                         className={cn(
                           "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
-                          "text-indigo-600 border-indigo-600 dark:text-indigo-400 dark:border-indigo-400"
+                          "text-indigo-400 border-indigo-400"
                         )}
                       >
                         All Companies
@@ -1541,15 +1525,15 @@ export function WorkspaceApp() {
 
                     {/* View Toggle - Top Right */}
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">View</span>
-                      <div className="inline-flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                      <span className="text-[10px] text-white/25 font-semibold uppercase tracking-widest">View</span>
+                      <div className="inline-flex bg-white/[0.03] border border-white/[0.06] rounded-lg p-1">
                         <button
                           onClick={() => setViewMode('table')}
                           className={cn(
                             "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
                             viewMode === 'table'
-                              ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
-                              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                              ? "bg-white/[0.08] text-white"
+                              : "text-white/30 hover:text-white/50"
                           )}
                         >
                           <Table2 className="w-3.5 h-3.5" />
