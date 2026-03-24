@@ -5,7 +5,9 @@
       "Bash(npx tsc:*)",
       "Bash(npx vite:*)",
       "Bash(curl -s http://localhost:3001/health)",
-      "Bash(curl -s http://localhost:3001/api/companies -H \"Authorization: Bearer test\")"
+      "Bash(curl -s http://localhost:3001/api/companies -H \"Authorization: Bearer test\")",
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ]
   }
 }
