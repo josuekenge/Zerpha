@@ -19,19 +19,19 @@ export function FitScoreBar({ score, size = 'md' }: FitScoreBarProps) {
     const percentage = Math.min((displayScore / 10) * 100, 100);
 
     // Determine color based on score tier
-    let barColor = 'bg-slate-300'; // No score / 0
-    let textColor = 'text-slate-500';
+    let barColor = 'bg-white/20'; // No score / 0
+    let textColor = 'text-white/25';
 
     if (score !== null && score > 0) {
         if (score >= 7.5) {
             barColor = 'bg-teal-500';
-            textColor = 'text-slate-700';
+            textColor = 'text-white/70';
         } else if (score >= 5) {
             barColor = 'bg-amber-500';
-            textColor = 'text-slate-700';
+            textColor = 'text-white/70';
         } else {
             barColor = 'bg-red-500';
-            textColor = 'text-slate-700';
+            textColor = 'text-white/70';
         }
     }
 
@@ -42,7 +42,7 @@ export function FitScoreBar({ score, size = 'md' }: FitScoreBarProps) {
     return (
         <div className="flex items-center gap-2">
             {/* Progress bar */}
-            <div className={cn("bg-slate-100 rounded-full overflow-hidden", barHeight, barWidth)}>
+            <div className={cn("bg-white/[0.08] rounded-full overflow-hidden", barHeight, barWidth)}>
                 <div
                     className={cn("h-full rounded-full transition-all duration-300", barColor)}
                     style={{ width: `${percentage}%` }}

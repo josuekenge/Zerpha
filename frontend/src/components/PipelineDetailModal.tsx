@@ -112,10 +112,10 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
     };
 
     const getScoreColor = (score: number | null) => {
-        if (score === null) return 'text-slate-400 bg-slate-100';
-        if (score >= 7.5) return 'text-teal-700 bg-teal-100';
-        if (score >= 5) return 'text-amber-700 bg-amber-100';
-        return 'text-red-700 bg-red-100';
+        if (score === null) return 'text-white/30 bg-white/[0.06]';
+        if (score >= 7.5) return 'text-teal-400 bg-teal-500/15';
+        if (score >= 5) return 'text-amber-400 bg-amber-500/15';
+        return 'text-red-400 bg-red-500/15';
     };
 
     const formatDate = (dateStr: string | null) => {
@@ -131,9 +131,9 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
 
     if (loading) {
         return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                <div className="bg-white rounded-xl p-8">
-                    <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <div className="bg-[#0e0e11] ring-1 ring-white/[0.08] rounded-xl p-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
                 </div>
             </div>
         );
@@ -141,10 +141,10 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
 
     if (error || !company) {
         return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                <div className="bg-white rounded-xl p-8 max-w-md">
-                    <p className="text-red-600">{error || 'Company not found'}</p>
-                    <button onClick={onClose} className="mt-4 px-4 py-2 bg-slate-100 rounded-lg">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <div className="bg-[#0e0e11] ring-1 ring-white/[0.08] rounded-xl p-8 max-w-md">
+                    <p className="text-red-400">{error || 'Company not found'}</p>
+                    <button onClick={onClose} className="mt-4 px-4 py-2 bg-white/[0.06] text-white/60 rounded-lg hover:bg-white/[0.1]">
                         Close
                     </button>
                 </div>
@@ -153,13 +153,13 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div
-                className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+                className="bg-[#0e0e11] ring-1 ring-white/[0.08] rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
                     <div className="flex items-center gap-3">
                         <CompanyAvatar
                             name={company.name}
@@ -168,12 +168,12 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
                             size={32}
                         />
                         <div>
-                            <h2 className="text-lg font-semibold text-slate-900">{company.name}</h2>
+                            <h2 className="text-lg font-semibold text-white">{company.name}</h2>
                             <a
                                 href={`https://${company.domain}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                                className="text-sm text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
                             >
                                 {company.domain}
                                 <ExternalLink className="w-3 h-3" />
@@ -185,7 +185,7 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
                         <div className="relative">
                             <button
                                 onClick={() => setStageDropdownOpen(!stageDropdownOpen)}
-                                className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium flex items-center gap-2"
+                                className="px-3 py-1.5 bg-indigo-400/[0.08] text-indigo-400 rounded-lg text-sm font-medium flex items-center gap-2"
                             >
                                 {PIPELINE_STAGES.find(s => s.id === selectedStage)?.label}
                                 <ChevronDown className="w-4 h-4" />
@@ -193,23 +193,23 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
                             {stageDropdownOpen && (
                                 <>
                                     <div className="fixed inset-0" onClick={() => setStageDropdownOpen(false)} />
-                                    <div className="absolute right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10 py-1 min-w-[150px]">
+                                    <div className="absolute right-0 mt-1 bg-[#0e0e11] border border-white/[0.08] rounded-lg shadow-lg z-10 py-1 min-w-[150px]">
                                         {PIPELINE_STAGES.map((stage) => (
                                             <button
                                                 key={stage.id}
                                                 onClick={() => handleStageChange(stage.id)}
-                                                className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 flex items-center justify-between"
+                                                className="w-full px-3 py-2 text-left text-sm text-white/60 hover:bg-white/[0.04] flex items-center justify-between"
                                             >
                                                 {stage.label}
-                                                {selectedStage === stage.id && <Check className="w-4 h-4 text-indigo-600" />}
+                                                {selectedStage === stage.id && <Check className="w-4 h-4 text-indigo-400" />}
                                             </button>
                                         ))}
                                     </div>
                                 </>
                             )}
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg">
-                            <X className="w-5 h-5 text-slate-500" />
+                        <button onClick={onClose} className="p-2 hover:bg-white/[0.06] rounded-lg">
+                            <X className="w-5 h-5 text-white/60" />
                         </button>
                     </div>
                 </div>
@@ -217,33 +217,33 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto flex">
                     {/* Left Panel - Notes */}
-                    <div className="flex-1 p-6 border-r border-slate-100">
+                    <div className="flex-1 p-6 border-r border-white/[0.06]">
                         {/* Summary */}
                         {company.summary && (
                             <div className="mb-6">
-                                <h3 className="text-sm font-medium text-slate-700 mb-2">Summary</h3>
-                                <p className="text-sm text-slate-600">{company.summary}</p>
+                                <h3 className="text-sm font-medium text-white/60 mb-2">Summary</h3>
+                                <p className="text-sm text-white/60">{company.summary}</p>
                             </div>
                         )}
 
                         {/* Notes Section */}
                         <div>
-                            <h3 className="text-sm font-medium text-slate-700 mb-2">Notes</h3>
+                            <h3 className="text-sm font-medium text-white/60 mb-2">Notes</h3>
                             <input
                                 type="text"
                                 placeholder="Note title (optional)"
                                 value={notesTitle}
                                 onChange={(e) => { setNotesTitle(e.target.value); setHasChanges(true); }}
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white mb-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                             <textarea
                                 placeholder="Write your notes here... Research findings, contact method, due diligence notes, etc."
                                 value={notes}
                                 onChange={(e) => { setNotes(e.target.value); setHasChanges(true); }}
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm min-h-[200px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white min-h-[200px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                             {company.notesUpdatedAt && (
-                                <div className="flex items-center gap-1 mt-2 text-xs text-slate-400">
+                                <div className="flex items-center gap-1 mt-2 text-xs text-white/30">
                                     <Clock className="w-3 h-3" />
                                     Last updated: {formatDate(company.notesUpdatedAt)}
                                 </div>
@@ -252,9 +252,9 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
                     </div>
 
                     {/* Right Panel - Details & Contacts */}
-                    <div className="w-80 p-6 bg-slate-50 overflow-y-auto">
+                    <div className="w-80 p-6 bg-white/[0.02] overflow-y-auto">
                         {/* Details Section */}
-                        <h3 className="text-sm font-medium text-slate-700 mb-4">Details</h3>
+                        <h3 className="text-sm font-medium text-white/60 mb-4">Details</h3>
                         <div className="space-y-4 mb-6">
                             <DetailRow label="Industry" value={company.industry} />
                             <DetailRow
@@ -272,25 +272,25 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
                         </div>
 
                         {/* Key Contacts Section */}
-                        <div className="border-t border-slate-200 pt-5">
+                        <div className="border-t border-white/[0.06] pt-5">
                             <div className="flex items-center gap-2 mb-4">
-                                <Users className="w-4 h-4 text-slate-500" />
-                                <h3 className="text-sm font-medium text-slate-700">Key Contacts</h3>
+                                <Users className="w-4 h-4 text-white/60" />
+                                <h3 className="text-sm font-medium text-white/60">Key Contacts</h3>
                             </div>
 
                             {contactsLoading ? (
                                 <div className="flex items-center justify-center py-4">
-                                    <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                                    <Loader2 className="w-4 h-4 animate-spin text-white/30" />
                                 </div>
                             ) : contacts.length === 0 ? (
-                                <p className="text-xs text-slate-400 py-2">No contacts added yet</p>
+                                <p className="text-xs text-white/30 py-2">No contacts added yet</p>
                             ) : (
                                 <div className="space-y-3">
                                     {contacts.slice(0, 5).map((contact) => (
                                         <ContactCard key={contact.id} contact={contact} />
                                     ))}
                                     {contacts.length > 5 && (
-                                        <p className="text-xs text-slate-500 pt-1">
+                                        <p className="text-xs text-white/60 pt-1">
                                             +{contacts.length - 5} more contacts
                                         </p>
                                     )}
@@ -301,24 +301,24 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-slate-50">
+                <div className="flex items-center justify-between px-6 py-4 border-t border-white/[0.06] bg-white/[0.02]">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={handleDelete}
                             disabled={saving}
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg"
                         >
                             <Trash2 className="w-4 h-4" />
                             Remove
                         </button>
                         {hasChanges && (
-                            <span className="text-xs text-slate-400">Unsaved changes</span>
+                            <span className="text-xs text-white/30">Unsaved changes</span>
                         )}
                     </div>
                     <div className="flex items-center gap-3">
                         <button
                             onClick={onClose}
-                            className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+                            className="px-4 py-2 text-sm text-white/60 hover:bg-white/[0.06] rounded-lg"
                         >
                             Cancel
                         </button>
@@ -329,7 +329,7 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
                                 "px-4 py-2 text-sm font-medium rounded-lg",
                                 hasChanges
                                     ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                                    : "bg-white/[0.06] text-white/30 cursor-not-allowed"
                             )}
                         >
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
@@ -344,8 +344,8 @@ export function PipelineDetailModal({ companyId, onClose, onUpdate, onDelete }: 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
     return (
         <div>
-            <div className="text-xs text-slate-500 mb-1">{label}</div>
-            <div className="text-sm text-slate-900">{value || '—'}</div>
+            <div className="text-xs text-white/60 mb-1">{label}</div>
+            <div className="text-sm text-white">{value || '—'}</div>
         </div>
     );
 }
@@ -354,16 +354,16 @@ function ContactCard({ contact }: { contact: Person }) {
     const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ');
 
     return (
-        <div className="bg-white rounded-lg border border-slate-200 p-3">
-            <p className="text-sm font-medium text-slate-900 truncate">{fullName}</p>
+        <div className="bg-white/[0.03] rounded-lg border border-white/[0.06] p-3">
+            <p className="text-sm font-medium text-white truncate">{fullName}</p>
             {contact.role && (
-                <p className="text-xs text-slate-500 truncate">{contact.role}</p>
+                <p className="text-xs text-white/60 truncate">{contact.role}</p>
             )}
             <div className="flex items-center gap-2 mt-2">
                 {contact.email && (
                     <a
                         href={`mailto:${contact.email}`}
-                        className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600"
+                        className="p-1 hover:bg-white/[0.06] rounded text-white/30 hover:text-white/60"
                         title={contact.email}
                     >
                         <Mail className="w-3.5 h-3.5" />
@@ -374,7 +374,7 @@ function ContactCard({ contact }: { contact: Person }) {
                         href={contact.linkedin_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600"
+                        className="p-1 hover:bg-white/[0.06] rounded text-white/30 hover:text-blue-400"
                         title="LinkedIn"
                     >
                         <Linkedin className="w-3.5 h-3.5" />
@@ -384,4 +384,3 @@ function ContactCard({ contact }: { contact: Person }) {
         </div>
     );
 }
-

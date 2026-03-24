@@ -153,21 +153,21 @@ export function ChatWidget({ context, mode = 'floating', className }: ChatWidget
     const renderFilePreview = (file: File, index: number) => {
         const isImage = file.type.startsWith('image/');
         return (
-            <div key={index} className="relative group flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg p-2 pr-7 border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div key={index} className="relative group flex items-center gap-2 bg-white/[0.04] rounded-lg p-2 pr-7 border border-white/[0.08]">
                 {isImage ? (
                     <div className="w-6 h-6 rounded overflow-hidden flex-shrink-0">
                         <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
                     </div>
                 ) : (
-                    <div className="w-6 h-6 rounded bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                        <FileIcon className="w-3 h-3 text-indigo-500" />
+                    <div className="w-6 h-6 rounded bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                        <FileIcon className="w-3 h-3 text-indigo-400" />
                     </div>
                 )}
-                <span className="text-xs text-slate-600 dark:text-slate-300 truncate max-w-[100px]">{file.name}</span>
+                <span className="text-xs text-white/60 truncate max-w-[100px]">{file.name}</span>
                 <button
                     type="button"
                     onClick={() => removeFile(index)}
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-red-500 rounded transition-colors"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 text-white/40 hover:text-red-500 rounded transition-colors"
                 >
                     <X className="w-3 h-3" />
                 </button>
@@ -202,8 +202,8 @@ export function ChatWidget({ context, mode = 'floating', className }: ChatWidget
                 className={cn(
                     "w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200",
                     isOpen
-                        ? "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
-                        : "bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl"
+                        ? "bg-white/[0.06] text-white/40 border border-white/[0.08] hover:bg-white/[0.1]"
+                        : "bg-indigo-500 text-white hover:bg-indigo-400 hover:shadow-xl"
                 )}
             >
                 {isOpen ? (
@@ -248,29 +248,29 @@ function ChatInterface({
 }: ChatInterfaceProps) {
     return (
         <div className={cn(
-            "flex flex-col h-full bg-white dark:bg-slate-950",
+            "flex flex-col h-full bg-[#0e0e11]",
             mode === 'embedded'
-                ? "border-l border-slate-200 dark:border-slate-800"
-                : "rounded-2xl shadow-2xl border border-slate-200/80 dark:border-slate-700 overflow-hidden"
+                ? "border-l border-white/[0.06]"
+                : "rounded-2xl shadow-2xl border border-white/[0.08] overflow-hidden"
         )}>
             {/* Header */}
-            <div className="px-4 py-3 flex items-center justify-between bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800">
+            <div className="px-4 py-3 flex items-center justify-between bg-white/[0.03] border-b border-white/[0.06]">
                 <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shadow-indigo-500/20">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-sm shadow-indigo-500/20">
                         Z
                     </div>
                     <div>
-                        <h3 className="font-semibold text-sm text-slate-800 dark:text-white">Zerpha AI</h3>
+                        <h3 className="font-semibold text-sm text-white">Zerpha AI</h3>
                         <div className="flex items-center gap-1">
                             <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                            <span className="text-[10px] text-slate-400">Online</span>
+                            <span className="text-[10px] text-white/30">Online</span>
                         </div>
                     </div>
                 </div>
                 {mode === 'floating' && (
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-1.5 text-white/40 hover:text-white hover:bg-white/[0.06] rounded-lg transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -278,7 +278,7 @@ function ChatInterface({
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 dark:bg-slate-950">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-transparent">
                 {messages.map((message) => (
                     <div
                         key={message.id}
@@ -288,8 +288,8 @@ function ChatInterface({
                             className={cn(
                                 "max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm whitespace-pre-wrap",
                                 message.role === 'user'
-                                    ? "bg-indigo-600 text-white rounded-br-md"
-                                    : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-bl-md shadow-sm"
+                                    ? "bg-indigo-500/20 text-white rounded-br-md"
+                                    : "bg-white/[0.04] text-white/80 border border-white/[0.08] rounded-bl-md"
                             )}
                         >
                             {message.content}
@@ -298,10 +298,10 @@ function ChatInterface({
                 ))}
                 {isTyping && (
                     <div className="flex justify-start">
-                        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm flex gap-1.5">
-                            <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></span>
-                            <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
-                            <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                        <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl rounded-bl-md px-4 py-3 flex gap-1.5">
+                            <span className="w-1.5 h-1.5 bg-white/30 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></span>
+                            <span className="w-1.5 h-1.5 bg-white/30 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+                            <span className="w-1.5 h-1.5 bg-white/30 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
                         </div>
                     </div>
                 )}
@@ -309,7 +309,7 @@ function ChatInterface({
             </div>
 
             {/* Input Area */}
-            <div className="p-3 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800">
+            <div className="p-3 bg-transparent border-t border-white/[0.06]">
                 {selectedFiles.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-2 max-h-[60px] overflow-y-auto">
                         {selectedFiles.map((file, index) => renderFilePreview(file, index))}
@@ -328,7 +328,7 @@ function ChatInterface({
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex-shrink-0"
+                        className="p-2 text-white/40 hover:text-indigo-400 hover:bg-white/[0.06] rounded-lg transition-colors flex-shrink-0"
                         title="Attach files"
                     >
                         <Paperclip className="w-4 h-4" />
@@ -340,20 +340,20 @@ function ChatInterface({
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             placeholder="Type a message..."
-                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all placeholder:text-slate-400 dark:text-white"
+                            className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all placeholder:text-white/20"
                         />
                     </div>
 
                     <button
                         type="submit"
                         disabled={(!inputValue.trim() && selectedFiles.length === 0) || isTyping}
-                        className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                        className="p-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                     >
                         {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     </button>
                 </form>
 
-                <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-slate-400">
+                <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-white/20">
                     <Sparkles className="w-2.5 h-2.5" />
                     <span>Powered by Zerpha AI</span>
                 </div>

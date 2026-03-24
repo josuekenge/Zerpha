@@ -878,8 +878,8 @@ export function WorkspaceApp() {
           className={cn(
             'fixed top-20 right-6 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-card animate-in slide-in-from-right',
             toast.type === 'success'
-              ? 'bg-white border border-green-200 text-green-700'
-              : 'bg-white border border-red-200 text-red-700',
+              ? 'bg-[#0e0e11] border border-green-500/20 text-green-400'
+              : 'bg-[#0e0e11] border border-red-500/20 text-red-400',
           )}
         >
           {toast.message}
@@ -1233,11 +1233,16 @@ export function WorkspaceApp() {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#09090b] overflow-hidden relative">
-        {/* Ambient background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-grid-pattern opacity-50" />
-          <div className="absolute top-0 right-1/4 w-[500px] h-[400px] bg-indigo-400/[0.03] rounded-full blur-[150px]" />
-          <div className="absolute bottom-0 left-1/3 w-[400px] h-[300px] bg-purple-500/[0.02] rounded-full blur-[120px]" />
+        {/* Ambient background — indigo tones */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Full-screen indigo wash */}
+          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 70% at 55% 35%, rgba(129,140,248,0.16) 0%, rgba(99,102,241,0.08) 35%, rgba(79,70,229,0.04) 55%, transparent 80%)' }} />
+          {/* Hot spot — center */}
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full blur-[120px]" style={{ background: 'radial-gradient(ellipse, rgba(129,140,248,0.22) 0%, rgba(99,102,241,0.10) 45%, transparent 70%)' }} />
+          {/* Accent — top right */}
+          <div className="absolute -top-20 -right-20 w-[500px] h-[400px] rounded-full blur-[140px]" style={{ background: 'radial-gradient(ellipse, rgba(129,140,248,0.14) 0%, transparent 65%)' }} />
+          {/* Accent — bottom left */}
+          <div className="absolute -bottom-20 -left-20 w-[450px] h-[350px] rounded-full blur-[130px]" style={{ background: 'radial-gradient(ellipse, rgba(99,102,241,0.10) 0%, transparent 65%)' }} />
         </div>
         <header className="relative z-10 h-14 flex items-center justify-between px-4 sm:px-8 border-b border-white/[0.06] flex-shrink-0 bg-[#09090b]/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">
@@ -1293,54 +1298,54 @@ export function WorkspaceApp() {
                   <div className="h-full flex flex-col items-center justify-center relative overflow-hidden">
 
                     {/* Content */}
-                    <div className="relative z-10 w-full max-w-2xl px-6 text-center">
+                    <div className="relative z-10 w-full max-w-3xl px-6 text-center">
 
                       {/* Headings */}
-                      <h2 className="text-3xl md:text-4xl font-display font-medium text-white mb-3 tracking-tight">What market are you scouting?</h2>
-                      <p className="text-white/30 text-sm mb-10">Search verticals, competitors, or technologies.</p>
+                      <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-medium text-white mb-5 tracking-tight leading-[1.1]">What market are you scouting?</h2>
+                      <p className="text-white/35 text-base md:text-lg mb-14">Search verticals, competitors, or technologies.</p>
 
                       {/* Search Bar */}
-                      <div className="relative max-w-xl mx-auto mb-8">
-                        <div className="relative bg-white/[0.04] rounded-xl border border-white/[0.08] flex items-center transition-all focus-within:border-indigo-400/30 focus-within:bg-white/[0.06]">
-                          <Search className="w-4 h-4 text-white/20 ml-4" />
+                      <div className="relative max-w-2xl mx-auto mb-10">
+                        <div className="relative bg-white/[0.05] rounded-2xl border border-white/[0.1] flex items-center transition-all focus-within:border-indigo-400/40 focus-within:bg-white/[0.07] backdrop-blur-sm">
+                          <Search className="w-5 h-5 text-white/25 ml-5" />
                           <input
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
                             placeholder="e.g. B2B SaaS for Construction in Europe..."
-                            className="flex-1 px-4 py-3.5 bg-transparent border-none text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-0 font-body"
+                            className="flex-1 px-5 py-5 bg-transparent border-none text-base text-white placeholder:text-white/25 focus:outline-none focus:ring-0 font-body"
                             autoFocus
                           />
-                          <div className="pr-2">
+                          <div className="pr-3">
                             <button
                               onClick={() => executeSearch()}
-                              className="p-2 bg-white/[0.06] hover:bg-indigo-400/20 text-white/30 hover:text-indigo-400 rounded-lg transition-all"
+                              className="p-3 bg-indigo-500/20 hover:bg-indigo-400/30 text-indigo-400 hover:text-indigo-300 rounded-xl transition-all"
                             >
-                              <ArrowRight className="w-4 h-4" />
+                              <ArrowRight className="w-5 h-5" />
                             </button>
                           </div>
                         </div>
                       </div>
 
                       {/* Suggestions */}
-                      <div className="flex items-center justify-center gap-2 text-sm">
-                        <span className="text-white/15 text-xs mr-1">Try:</span>
+                      <div className="flex items-center justify-center gap-3">
+                        <span className="text-white/20 text-sm mr-1">Try:</span>
                         <button
                           onClick={() => handleQuickFilter('Fintech API')}
-                          className="px-3 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/30 hover:border-indigo-400/20 hover:text-indigo-400 transition-all text-xs font-medium"
+                          className="px-4 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white/35 hover:border-indigo-400/30 hover:text-indigo-400 hover:bg-indigo-400/[0.06] transition-all text-sm font-medium"
                         >
                           Fintech API
                         </button>
                         <button
                           onClick={() => handleQuickFilter('Green Energy')}
-                          className="px-3 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/30 hover:border-indigo-400/20 hover:text-indigo-400 transition-all text-xs font-medium"
+                          className="px-4 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white/35 hover:border-indigo-400/30 hover:text-indigo-400 hover:bg-indigo-400/[0.06] transition-all text-sm font-medium"
                         >
                           Green Energy
                         </button>
                         <button
                           onClick={() => handleQuickFilter('EdTech Mobile')}
-                          className="px-3 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/30 hover:border-indigo-400/20 hover:text-indigo-400 transition-all text-xs font-medium"
+                          className="px-4 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white/35 hover:border-indigo-400/30 hover:text-indigo-400 hover:bg-indigo-400/[0.06] transition-all text-sm font-medium"
                         >
                           EdTech Mobile
                         </button>
@@ -1353,16 +1358,16 @@ export function WorkspaceApp() {
 
               {(hasSearched || isSearching || searchCompaniesList.length > 0) && (
                 <div className="flex flex-col lg:flex-row h-full gap-4">
-                  <div className="flex-1 flex flex-col min-h-0 bg-[#0c0c0f] border border-white/[0.06] rounded-xl overflow-hidden relative h-[500px] lg:h-auto">
+                  <div className="flex-1 flex flex-col min-h-0 bg-[#0e0e11] rounded-xl overflow-hidden relative h-[500px] lg:h-auto ring-1 ring-white/[0.08]">
                     {isSearching ? (
-                      <div className="absolute inset-0 z-20 bg-[#0c0c0f] flex flex-col items-center justify-center">
+                      <div className="absolute inset-0 z-20 bg-[#0e0e11] flex flex-col items-center justify-center">
                         <LoadingStats />
                       </div>
                     ) : (
                       <>
-                        <div className="bg-white/[0.02] px-4 py-3 border-b border-white/[0.06]">
+                        <div className="bg-white/[0.03] px-4 py-3 border-b border-white/[0.08]">
                           <div className="flex justify-between items-center mb-3">
-                            <span className="text-sm font-medium text-white/60">
+                            <span className="text-sm font-semibold text-white/80">
                               Results ({filteredSearchCompanies.length}
                               {filteredSearchCompanies.length !== searchCompaniesList.length &&
                                 ` of ${searchCompaniesList.length}`})
@@ -1372,11 +1377,11 @@ export function WorkspaceApp() {
                           {/* Search Filters */}
                           <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2">
-                              <span className="text-[11px] font-medium text-white/25">Fit:</span>
+                              <span className="text-[11px] font-medium text-white/30">Fit:</span>
                               <select
                                 value={searchFitFilter}
                                 onChange={(e) => setSearchFitFilter(e.target.value as FitFilter)}
-                                className="appearance-none bg-white/[0.04] border border-white/[0.08] text-xs text-white/60 py-1.5 pl-2 pr-6 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-400/30 cursor-pointer"
+                                className="appearance-none bg-white/[0.05] border border-white/[0.08] text-xs text-white/60 py-1.5 pl-2 pr-6 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500/30 cursor-pointer"
                               >
                                 <option value="all">All Scores</option>
                                 <option value="high">High (8+)</option>
@@ -1385,11 +1390,11 @@ export function WorkspaceApp() {
                               </select>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-[11px] font-medium text-white/25">Industry:</span>
+                              <span className="text-[11px] font-medium text-white/30">Industry:</span>
                               <select
                                 value={searchIndustryFilter}
                                 onChange={(e) => setSearchIndustryFilter(e.target.value)}
-                                className="appearance-none bg-white/[0.04] border border-white/[0.08] text-xs text-white/60 py-1.5 pl-2 pr-6 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-400/30 cursor-pointer"
+                                className="appearance-none bg-white/[0.05] border border-white/[0.08] text-xs text-white/60 py-1.5 pl-2 pr-6 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500/30 cursor-pointer"
                               >
                                 <option value="all">All Industries</option>
                                 {INDUSTRIES.map((industry) => (
@@ -1421,39 +1426,39 @@ export function WorkspaceApp() {
                             </div>
                           ) : (
                             <table className="w-full text-left border-collapse">
-                              <thead className="sticky top-0 bg-[#0c0c0f] z-10">
+                              <thead className="sticky top-0 bg-white/[0.04] z-10">
                                 <tr>
-                                  <th className="py-3 px-4 text-[10px] font-semibold text-white/25 uppercase tracking-widest border-b border-white/[0.06]">Name</th>
-                                  <th className="py-3 px-4 text-[10px] font-semibold text-white/25 uppercase tracking-widest border-b border-white/[0.06]">Industry</th>
-                                  <th className="py-3 px-4 text-[10px] font-semibold text-white/25 uppercase tracking-widest border-b border-white/[0.06] text-right">Fit</th>
-                                  <th className="py-3 px-4 text-[10px] font-semibold text-white/25 uppercase tracking-widest border-b border-white/[0.06] text-right">Action</th>
+                                  <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] border-r border-r-white/[0.04]">Name</th>
+                                  <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] border-r border-r-white/[0.04]">Industry</th>
+                                  <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] border-r border-r-white/[0.04] text-right">Fit</th>
+                                  <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] text-right">Action</th>
                                 </tr>
                               </thead>
-                              <tbody className="divide-y divide-white/[0.04]">
+                              <tbody>
                                 {filteredSearchCompanies.map(company => (
                                   <tr
                                     key={company.id}
                                     onClick={() => setSelectedSearchCompanyId(company.id)}
                                     className={cn(
-                                      "group cursor-pointer hover:bg-white/[0.03] transition-colors",
-                                      selectedSearchCompanyId === company.id ? "bg-indigo-400/[0.06]" : ""
+                                      "group cursor-pointer hover:bg-indigo-500/[0.06] transition-colors border-b border-white/[0.04]",
+                                      selectedSearchCompanyId === company.id ? "bg-indigo-500/[0.08]" : ""
                                     )}
                                   >
-                                    <td className="py-3 px-4">
-                                      <div className="flex items-center gap-2">
-                                        <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.website} size={24} />
+                                    <td className="py-3 px-4 border-r border-white/[0.04]">
+                                      <div className="flex items-center gap-3">
+                                        <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.website} size={28} />
                                         <div>
-                                          <div className="font-medium text-white text-sm">{company.name}</div>
-                                          <div className="text-[11px] text-white/25">{company.website}</div>
+                                          <div className="font-semibold text-white text-sm">{company.name}</div>
+                                          <div className="text-[11px] text-white/30">{company.website}</div>
                                         </div>
                                       </div>
                                     </td>
-                                    <td className="py-3 px-4">
-                                      <span className="text-xs text-white/40">
+                                    <td className="py-3 px-4 border-r border-white/[0.04]">
+                                      <span className="text-xs text-white/50 font-medium">
                                         {company.primary_industry || 'Unknown'}
                                       </span>
                                     </td>
-                                    <td className="py-3 px-4">
+                                    <td className="py-3 px-4 border-r border-white/[0.04]">
                                       <FitScoreBar score={company.acquisition_fit_score} size="sm" />
                                     </td>
                                     <td className="py-3 px-4 text-right">
@@ -1464,7 +1469,7 @@ export function WorkspaceApp() {
                                         }}
                                         disabled={company.is_saved || savingMap[company.id]}
                                         className={cn(
-                                          "text-xs font-medium transition-colors",
+                                          "text-xs font-semibold transition-colors",
                                           company.is_saved
                                             ? "text-emerald-400 cursor-default"
                                             : "text-indigo-400 hover:text-indigo-300"
@@ -1486,7 +1491,7 @@ export function WorkspaceApp() {
                   {/* Detail View for Search */}
                   {selectedSearchCompany && (
                     <>
-                      <aside className="w-full lg:w-[400px] flex-shrink-0 bg-[#0c0c0f] border border-white/[0.06] rounded-xl overflow-hidden flex flex-col h-[600px] lg:h-auto">
+                      <aside className="w-full lg:w-[400px] flex-shrink-0 bg-[#0e0e11] rounded-xl overflow-hidden flex flex-col h-[600px] lg:h-auto ring-1 ring-white/[0.08]">
                         <div className="flex-1 overflow-y-auto">
                           <CompanyDetailPanel
                             company={selectedSearchCompany}
@@ -1494,7 +1499,7 @@ export function WorkspaceApp() {
                         </div>
                       </aside>
                       {/* Embedded Chat for Search */}
-                      <aside className="w-full lg:w-[350px] flex-shrink-0 bg-[#0c0c0f] border border-white/[0.06] rounded-xl overflow-hidden flex flex-col h-[500px] lg:h-auto">
+                      <aside className="w-full lg:w-[350px] flex-shrink-0 bg-[#0e0e11] rounded-xl overflow-hidden flex flex-col h-[500px] lg:h-auto ring-1 ring-white/[0.08]">
                         <ChatWidget mode="embedded" context={chatContext} />
                       </aside>
                     </>
@@ -1544,8 +1549,8 @@ export function WorkspaceApp() {
                           className={cn(
                             "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
                             viewMode === 'cards'
-                              ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
-                              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                              ? "bg-white/[0.08] text-white"
+                              : "text-white/30 hover:text-white/50"
                           )}
                         >
                           <LayoutGrid className="w-3.5 h-3.5" />
@@ -1557,28 +1562,28 @@ export function WorkspaceApp() {
 
                   {/* Search Bar */}
                   <div className="relative max-w-md">
-                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-white/30 pointer-events-none" />
                     <input
                       type="text"
                       placeholder="Filter by name, domain..."
                       value={shortlistSearchQuery}
                       onChange={(e) => setShortlistSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all text-slate-900 dark:text-white"
+                      className="w-full pl-9 pr-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-sm placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 focus:border-indigo-400/30 shadow-black/20 transition-all text-white"
                     />
                   </div>
                 </div>
 
                 {/* Table Container */}
                 <div className="flex-1 overflow-hidden px-4 sm:px-8 py-4">
-                  <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                  <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-[#0e0e11] rounded-xl shadow-black/20 border border-white/[0.06]">
                     <div className={cn(
-                      "border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-y-auto flex flex-col transition-all duration-300",
+                      "border-r border-white/[0.06] bg-[#0e0e11] overflow-y-auto flex flex-col transition-all duration-300",
                       selectedWorkspaceCompanyId ? "w-full lg:w-[30%] h-1/3 lg:h-full border-b lg:border-b-0" : "w-full border-r-0"
                     )}>
                       {workspaceLoading ? (
                         <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 text-indigo-600 animate-spin" /></div>
                       ) : filteredWorkspaceCompanies.length === 0 ? (
-                        <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 border-dashed">
+                        <div className="p-8 text-center text-white/40 text-sm bg-white/[0.03] rounded-lg border border-white/[0.06] border-dashed">
                           {workspaceCompanies.length > 0 ? "No companies match the selected filters." : "No saved companies yet."}
                         </div>
                       ) : viewMode === 'cards' ? (
@@ -1596,15 +1601,15 @@ export function WorkspaceApp() {
                                 }
                               }}
                               className={cn(
-                                "group relative bg-white dark:bg-slate-800 rounded-xl border-2 p-5 cursor-pointer transition-all duration-200",
+                                "group relative bg-[#0e0e11] rounded-xl border-2 p-5 cursor-pointer transition-all duration-200",
                                 selectedWorkspaceCompanyId === company.id
-                                  ? "border-violet-400 dark:border-violet-500 shadow-lg shadow-violet-200/50 dark:shadow-violet-900/20 bg-violet-50 dark:bg-violet-900/20"
-                                  : "border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-md"
+                                  ? "border-indigo-400 shadow-lg shadow-black/20 bg-indigo-500/[0.08]"
+                                  : "border-white/[0.06] hover:border-indigo-400/30 hover:shadow-md hover:shadow-black/20"
                               )}
                             >
                               {/* Selected Indicator */}
                               {selectedWorkspaceCompanyId === company.id && (
-                                <div className="absolute top-3 right-3 w-6 h-6 bg-violet-500 rounded-full flex items-center justify-center">
+                                <div className="absolute top-3 right-3 w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center">
                                   <Check className="w-4 h-4 text-white" />
                                 </div>
                               )}
@@ -1612,7 +1617,7 @@ export function WorkspaceApp() {
                               {/* Company Name */}
                               <div className="flex items-center gap-2 mb-2 pr-8">
                                 <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.domain} size={28} />
-                                <h3 className="font-semibold text-slate-900 dark:text-white truncate text-base">
+                                <h3 className="font-semibold text-white truncate text-base">
                                   {company.name}
                                 </h3>
                               </div>
@@ -1623,20 +1628,20 @@ export function WorkspaceApp() {
                                 target="_blank"
                                 rel="noreferrer"
                                 onClick={(e) => e.stopPropagation()}
-                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mb-3 block truncate"
+                                className="text-xs text-indigo-400 hover:text-indigo-300 mb-3 block truncate"
                               >
                                 {company.domain}
                               </a>
 
                               {/* Summary */}
                               {company.summary && (
-                                <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 line-clamp-3 leading-relaxed">
+                                <p className="text-xs text-white/60 mb-4 line-clamp-3 leading-relaxed">
                                   {company.summary}
                                 </p>
                               )}
 
                               {/* Metadata Row */}
-                              <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700">
+                              <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
                                 {/* Fit Score */}
                                 <div className="flex-1">
                                   <FitScoreBar score={company.fitScore} size="sm" />
@@ -1648,7 +1653,7 @@ export function WorkspaceApp() {
                                     e.stopPropagation();
                                     handleUnsaveCompany(company.id);
                                   }}
-                                  className="p-1.5 rounded-md text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                                  className="p-1.5 rounded-md text-white/30 hover:text-red-400 hover:bg-red-900/30 transition-colors"
                                   title="Remove from shortlist"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -1660,18 +1665,18 @@ export function WorkspaceApp() {
                       ) : (
                         /* Table View */
                         <table className="w-full text-left border-collapse">
-                          <thead className="sticky top-0 bg-white dark:bg-slate-900 z-10">
+                          <thead className="sticky top-0 bg-white/[0.04] z-10">
                             <tr>
-                              <th className="py-3 pr-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 w-8 pl-2">
-                                <div className="w-4 h-4 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"></div>
+                              <th className="py-3 pr-4 pl-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] border-r border-r-white/[0.04] w-8">
+                                <div className="w-4 h-4 rounded border border-white/[0.15] bg-white/[0.05]"></div>
                               </th>
-                              <th className="py-3 pr-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 w-1/3">Name</th>
-                              <th className="py-3 pr-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 w-1/3 hidden sm:table-cell">Domain</th>
-                              <th className="py-3 pr-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-right hidden md:table-cell">Fit Score</th>
-                              <th className="py-3 pr-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-right w-10"></th>
+                              <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] border-r border-r-white/[0.04] w-1/3">Name</th>
+                              <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] border-r border-r-white/[0.04] w-1/3 hidden sm:table-cell">Domain</th>
+                              <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] border-r border-r-white/[0.04] text-right hidden md:table-cell">Fit Score</th>
+                              <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] text-right w-10"></th>
                             </tr>
                           </thead>
-                          <tbody className="text-sm divide-y divide-slate-100 dark:divide-slate-800">
+                          <tbody className="text-sm">
                             {filteredWorkspaceCompanies.map(company => (
                               <tr
                                 key={company.id}
@@ -1683,50 +1688,50 @@ export function WorkspaceApp() {
                                   }
                                 }}
                                 className={cn(
-                                  "group hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer",
-                                  selectedWorkspaceCompanyId === company.id ? "bg-violet-50 dark:bg-violet-900/20" : ""
+                                  "group hover:bg-indigo-500/[0.06] transition-colors cursor-pointer border-b border-white/[0.04]",
+                                  selectedWorkspaceCompanyId === company.id ? "bg-indigo-500/[0.08]" : ""
                                 )}
                               >
                                 <td className={cn(
-                                  "py-3 pr-4 pl-4 border-l-2",
-                                  selectedWorkspaceCompanyId === company.id ? "border-violet-500" : "border-transparent"
+                                  "py-3 pr-4 pl-4 border-l-2 border-r border-r-white/[0.04]",
+                                  selectedWorkspaceCompanyId === company.id ? "border-l-indigo-400" : "border-l-transparent"
                                 )}>
                                   <div className={cn(
                                     "w-4 h-4 rounded border flex items-center justify-center",
-                                    selectedWorkspaceCompanyId === company.id ? "border-violet-500 bg-violet-500 text-white" : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                    selectedWorkspaceCompanyId === company.id ? "border-indigo-400 bg-indigo-500 text-white" : "border-white/[0.15] bg-white/[0.05]"
                                   )}>
                                     {selectedWorkspaceCompanyId === company.id && <Check className="w-3 h-3" />}
                                   </div>
                                 </td>
-                                <td className="py-3 pr-4 font-medium text-slate-900 dark:text-white">
-                                  <div className="flex items-center gap-2">
-                                    <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.domain} size={20} />
+                                <td className="py-3 px-4 font-semibold text-white border-r border-white/[0.04]">
+                                  <div className="flex items-center gap-3">
+                                    <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.domain} size={24} />
                                     <div className="truncate max-w-[160px]">{company.name}</div>
                                   </div>
                                 </td>
-                                <td className="py-3 pr-4 hidden sm:table-cell">
+                                <td className="py-3 px-4 hidden sm:table-cell border-r border-white/[0.04]">
                                   <a
                                     href={normalizeWebsite(company.domain)}
                                     target="_blank"
                                     rel="noreferrer"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1 w-fit truncate max-w-[150px]"
+                                    className="text-indigo-400 hover:text-indigo-300 flex items-center gap-1 w-fit truncate max-w-[150px] font-medium"
                                   >
                                     {company.domain}
                                   </a>
                                 </td>
-                                <td className="py-3 pr-4 hidden md:table-cell text-right">
+                                <td className="py-3 px-4 hidden md:table-cell text-right border-r border-white/[0.04]">
                                   <div className="flex justify-end">
                                     <FitScoreBar score={company.fitScore} size="sm" />
                                   </div>
                                 </td>
-                                <td className="py-3 pr-4 text-right">
+                                <td className="py-3 px-4 text-right">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleUnsaveCompany(company.id);
                                     }}
-                                    className="p-1.5 rounded-md text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                                    className="p-1.5 rounded-md text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                                     title="Remove from shortlist"
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -1741,11 +1746,11 @@ export function WorkspaceApp() {
 
                     {selectedWorkspaceCompanyId && workspaceSelectionDetail && (
                       <>
-                        <div className="w-[40%] bg-white dark:bg-slate-900 overflow-y-auto border-l border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 z-20 h-full animate-in slide-in-from-right duration-300">
+                        <div className="w-[40%] bg-[#0e0e11] overflow-y-auto border-l border-white/[0.06] z-20 h-full animate-in slide-in-from-right duration-300">
                           <CompanyDetailPanel company={workspaceSelectionDetail} />
                         </div>
                         {/* Embedded Chat for Workspace */}
-                        <div className="flex-1 min-w-[300px] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 z-10 h-full">
+                        <div className="flex-1 min-w-[300px] bg-[#0e0e11] border-l border-white/[0.06] z-10 h-full">
                           <ChatWidget mode="embedded" context={chatContext} />
                         </div>
                       </>
@@ -1788,11 +1793,11 @@ export function WorkspaceApp() {
           {
             activeView === 'history' && (
               <div className="flex-1 flex min-h-0 px-8 py-6">
-                <div className="flex-1 flex h-full bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="flex-1 flex h-full bg-[#0e0e11] rounded-xl shadow-black/20 border border-white/[0.06] overflow-hidden">
                   {/* Left Panel: Search History List */}
-                  <div className="w-64 border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex flex-col overflow-hidden">
-                    <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-                      <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Past Searches</h3>
+                  <div className="w-64 border-r border-white/[0.06] bg-white/[0.03] flex flex-col overflow-hidden">
+                    <div className="p-4 border-b border-white/[0.06]">
+                      <h3 className="text-sm font-semibold text-white">Past Searches</h3>
                     </div>
                     <div className="flex-1 overflow-y-auto">
                       {historyLoading ? (
@@ -1800,22 +1805,22 @@ export function WorkspaceApp() {
                           <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
                         </div>
                       ) : historyItems.length === 0 ? (
-                        <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">No search history yet.</div>
+                        <div className="p-4 text-center text-sm text-white/40">No search history yet.</div>
                       ) : (
-                        <div className="divide-y divide-slate-200 dark:divide-slate-700">
+                        <div className="divide-y divide-white/[0.06]">
                           {historyItems.map((item) => (
                             <button
                               key={item.id}
                               onClick={() => handleHistoryRowClick(item)}
                               className={cn(
-                                "w-full text-left p-3 hover:bg-white dark:hover:bg-slate-700/50 transition-colors",
-                                selectedHistoryId === item.id ? "bg-white dark:bg-slate-900 border-l-2 border-indigo-600" : ""
+                                "w-full text-left p-3 hover:bg-white/[0.06] transition-colors",
+                                selectedHistoryId === item.id ? "bg-indigo-500/[0.08] border-l-2 border-indigo-400" : ""
                               )}
                             >
-                              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{item.query}</p>
+                              <p className="text-sm font-medium text-white truncate">{item.query}</p>
                               <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs text-slate-500 dark:text-slate-400">{formatDate(item.created_at)}</span>
-                                <span className="text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">
+                                <span className="text-xs text-white/40">{formatDate(item.created_at)}</span>
+                                <span className="text-xs bg-white/[0.06] text-white/60 px-1.5 py-0.5 rounded">
                                   {item.company_count}
                                 </span>
                               </div>
@@ -1828,11 +1833,11 @@ export function WorkspaceApp() {
 
                   {/* Middle Panel: Companies for Selected Search */}
                   <div className={cn(
-                    "flex flex-col overflow-hidden transition-all duration-300 border-r border-slate-200 dark:border-slate-700",
+                    "flex flex-col overflow-hidden transition-all duration-300 border-r border-white/[0.06]",
                     selectedHistoryCompanyId ? "w-[30%]" : "flex-1"
                   )}>
                     {!selectedHistoryId ? (
-                      <div className="flex-1 flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">
+                      <div className="flex-1 flex items-center justify-center text-white/40 text-sm">
                         Select a search from the left to view companies
                       </div>
                     ) : historyDetailsLoading ? (
@@ -1841,61 +1846,61 @@ export function WorkspaceApp() {
                       </div>
                     ) : (
                       <>
-                        <div className="p-4 border-b border-slate-200 dark:border-slate-700 space-y-3">
+                        <div className="p-4 border-b border-white/[0.06] space-y-3">
                           <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                            <h3 className="text-sm font-semibold text-white">
                               Companies ({filteredHistoryCompanies.length})
                             </h3>
                           </div>
                           <div className="relative">
-                            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                            <Search className="absolute left-3 top-2.5 w-4 h-4 text-white/30 pointer-events-none" />
                             <input
                               type="text"
                               placeholder="Filter companies..."
                               value={historySearchQuery}
                               onChange={(e) => setHistorySearchQuery(e.target.value)}
-                              className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-900 dark:text-white"
+                              className="w-full pl-9 pr-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-sm placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 text-white"
                             />
                           </div>
                         </div>
                         <div className="flex-1 overflow-y-auto">
                           {filteredHistoryCompanies.length === 0 ? (
-                            <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
+                            <div className="p-4 text-center text-sm text-white/40">
                               {historyCompanies.length > 0 ? "No companies match your filter." : "No companies found for this search."}
                             </div>
                           ) : (
                             <table className="w-full text-left border-collapse">
-                              <thead className="sticky top-0 bg-white dark:bg-slate-900 z-10">
+                              <thead className="sticky top-0 bg-white/[0.04] z-10">
                                 <tr>
-                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Company</th>
-                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-right">Fit</th>
-                                  <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 text-center">People</th>
+                                  <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] border-r border-r-white/[0.04]">Company</th>
+                                  <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] border-r border-r-white/[0.04] text-right">Fit</th>
+                                  <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] text-center">People</th>
                                 </tr>
                               </thead>
-                              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                              <tbody>
                                 {filteredHistoryCompanies.map((company) => (
                                   <tr
                                     key={company.id}
                                     onClick={() => setSelectedHistoryCompanyId(company.id)}
                                     className={cn(
-                                      "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors",
-                                      selectedHistoryCompanyId === company.id ? "bg-violet-50 dark:bg-violet-900/20" : ""
+                                      "cursor-pointer hover:bg-indigo-500/[0.06] transition-colors border-b border-white/[0.04]",
+                                      selectedHistoryCompanyId === company.id ? "bg-indigo-500/[0.08]" : ""
                                     )}
                                   >
-                                    <td className="py-3 px-4">
-                                      <div className="flex items-center gap-2">
-                                        <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.website} size={24} />
+                                    <td className="py-3 px-4 border-r border-white/[0.04]">
+                                      <div className="flex items-center gap-3">
+                                        <CompanyAvatar name={company.name} faviconUrl={company.favicon_url} website={company.website} size={28} />
                                         <div>
-                                          <div className="font-medium text-slate-900 dark:text-white">{company.name}</div>
-                                          <div className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px]">{company.website}</div>
+                                          <div className="font-semibold text-white">{company.name}</div>
+                                          <div className="text-[11px] text-white/30 truncate max-w-[200px]">{company.website}</div>
                                         </div>
                                       </div>
                                     </td>
-                                    <td className="py-3 px-4">
+                                    <td className="py-3 px-4 border-r border-white/[0.04]">
                                       <FitScoreBar score={company.acquisition_fit_score} size="sm" />
                                     </td>
                                     <td className="py-3 px-4 text-center">
-                                      <span className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
+                                      <span className="inline-flex items-center gap-1 text-xs text-white/40 font-medium">
                                         <Users className="w-3.5 h-3.5" />
                                         {company.people?.length ?? 0}
                                       </span>
@@ -1913,21 +1918,21 @@ export function WorkspaceApp() {
                   {/* Right Panel: Company Detail + People */}
                   {selectedHistoryCompanyId && selectedHistoryCompany && (
                     <>
-                      <div className="w-[40%] bg-white dark:bg-slate-900 overflow-y-auto animate-in slide-in-from-right duration-300 border-r border-slate-200 dark:border-slate-700">
+                      <div className="w-[40%] bg-[#0e0e11] overflow-y-auto animate-in slide-in-from-right duration-300 border-r border-white/[0.06]">
                         {/* Company Details */}
-                        <div className="border-b border-slate-200 dark:border-slate-700">
+                        <div className="border-b border-white/[0.06]">
                           <CompanyDetailPanel company={selectedHistoryCompanyAsCompany!} />
                         </div>
 
                         {/* People Section */}
                         <div className="p-6">
-                          <h3 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide mb-4 flex items-center gap-2">
-                            <Users className="w-4 h-4 text-slate-400" />
+                          <h3 className="text-sm font-semibold text-white uppercase tracking-wide mb-4 flex items-center gap-2">
+                            <Users className="w-4 h-4 text-white/30" />
                             Contacts ({selectedHistoryCompany.people?.length ?? 0})
                           </h3>
 
                           {(!selectedHistoryCompany.people || selectedHistoryCompany.people.length === 0) ? (
-                            <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-lg p-4 border border-slate-100 dark:border-slate-700 border-dashed">
+                            <div className="text-sm text-white/40 bg-white/[0.03] rounded-lg p-4 border border-white/[0.06] border-dashed">
                               No contacts found for this company yet.
                             </div>
                           ) : (
@@ -1945,14 +1950,14 @@ export function WorkspaceApp() {
                                     key={person.id}
                                     className={cn(
                                       "p-4 rounded-lg border transition-colors",
-                                      isHighlighted ? "bg-amber-50/50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                                      isHighlighted ? "bg-amber-900/20 border-amber-800" : "bg-white/[0.03] border-white/[0.06]"
                                     )}
                                   >
                                     <div className="flex items-start justify-between">
                                       <div>
                                         <div className="flex items-center gap-2">
                                           <span className={cn(
-                                            "font-medium text-slate-900 dark:text-white",
+                                            "font-medium text-white",
                                             isHighlighted && "font-bold"
                                           )}>
                                             {displayName}
@@ -1967,10 +1972,10 @@ export function WorkspaceApp() {
                                             <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 rounded">Exec</span>
                                           )}
                                         </div>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">{person.role || 'Unknown Role'}</p>
+                                        <p className="text-sm text-white/60 mt-0.5">{person.role || 'Unknown Role'}</p>
                                       </div>
                                       {person.source && (
-                                        <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded capitalize">
+                                        <span className="text-xs text-white/40 bg-white/[0.06] px-2 py-0.5 rounded capitalize">
                                           {person.source}
                                         </span>
                                       )}
@@ -2068,7 +2073,7 @@ export function WorkspaceApp() {
                                         return (
                                           <a
                                             href={`mailto:josuekenge4@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
-                                            className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800"
+                                            className="flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300"
                                           >
                                             <Mail className="w-4 h-4" />
                                             <span className="truncate max-w-[200px]">{person.email}</span>
@@ -2076,7 +2081,7 @@ export function WorkspaceApp() {
                                         );
                                       })()}
                                       {person.phone && (
-                                        <span className="flex items-center gap-1.5 text-slate-600">
+                                        <span className="flex items-center gap-1.5 text-white/60">
                                           <Phone className="w-4 h-4" />
                                           {person.phone}
                                         </span>
@@ -2090,7 +2095,7 @@ export function WorkspaceApp() {
                         </div>
                       </div>
                       {/* Embedded Chat for History */}
-                      <div className="flex-1 min-w-[300px] bg-white dark:bg-slate-900 z-10 h-full border-l border-slate-200 dark:border-slate-700">
+                      <div className="flex-1 min-w-[300px] bg-[#0e0e11] z-10 h-full border-l border-white/[0.06]">
                         <ChatWidget mode="embedded" context={chatContext} />
                       </div>
                     </>
@@ -2107,13 +2112,13 @@ export function WorkspaceApp() {
                 {/* Search Bar */}
                 <div className="px-8 pt-6 pb-4">
                   <div className="relative max-w-md">
-                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-white/30 pointer-events-none" />
                     <input
                       type="text"
                       placeholder="Search by name, email, role, or company..."
                       value={peopleSearchQuery}
                       onChange={(e) => setPeopleSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all text-slate-900 dark:text-white"
+                      className="w-full pl-9 pr-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-sm placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 focus:border-indigo-400/30 shadow-black/20 transition-all text-white"
                     />
                   </div>
                 </div>
@@ -2123,28 +2128,28 @@ export function WorkspaceApp() {
                   <div className="flex h-full overflow-hidden">
                     {/* People List */}
                     <div className={cn(
-                      "bg-white dark:bg-slate-900 overflow-y-auto flex flex-col transition-all duration-300 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm",
+                      "bg-[#0e0e11] overflow-y-auto flex flex-col transition-all duration-300 border border-white/[0.06] rounded-xl shadow-black/20",
                       selectedPersonId ? "w-[30%] border-r-0 rounded-r-none" : "w-full"
                     )}>
                       {peopleLoading ? (
                         <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 text-indigo-600 animate-spin" /></div>
                       ) : filteredPeople.length === 0 ? (
-                        <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 border-dashed m-4">
+                        <div className="p-8 text-center text-white/40 text-sm bg-white/[0.03] rounded-lg border border-white/[0.06] border-dashed m-4">
                           {allPeople.length > 0 ? "No people match your search." : "No contacts found yet. Run a search to discover companies and their decision makers."}
                         </div>
                       ) : (
                         <table className="w-full text-left border-collapse">
-                          <thead className="sticky top-0 bg-white dark:bg-slate-900 z-10">
+                          <thead className="sticky top-0 bg-white/[0.04] z-10">
                             <tr>
-                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Company</th>
-                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Email</th>
-                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Name</th>
-                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 hidden md:table-cell">Role</th>
-                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 hidden sm:table-cell">Source</th>
-                              <th className="py-3 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Actions</th>
+                              <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08]">Company</th>
+                              <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08]">Email</th>
+                              <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08]">Name</th>
+                              <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] hidden md:table-cell">Role</th>
+                              <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08] hidden sm:table-cell">Source</th>
+                              <th className="py-3 px-4 text-[11px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.08]">Actions</th>
                             </tr>
                           </thead>
-                          <tbody className="text-sm divide-y divide-slate-100 dark:divide-slate-800">
+                          <tbody className="text-sm divide-y divide-white/[0.04]">
                             {filteredPeople.map((person) => {
                               const isHighlighted = person.is_ceo || person.is_founder || person.is_executive;
                               return (
@@ -2152,12 +2157,12 @@ export function WorkspaceApp() {
                                   key={person.id}
                                   onClick={() => setSelectedPersonId(selectedPersonId === person.id ? null : person.id)}
                                   className={cn(
-                                    "group hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer",
-                                    selectedPersonId === person.id ? "bg-indigo-50/30 dark:bg-indigo-900/20" : "",
-                                    isHighlighted ? "bg-amber-50/30 dark:bg-amber-900/20" : ""
+                                    "group hover:bg-indigo-500/[0.06] transition-colors cursor-pointer",
+                                    selectedPersonId === person.id ? "bg-indigo-500/[0.08]" : "",
+                                    isHighlighted ? "bg-amber-900/20" : ""
                                   )}
                                 >
-                                  <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                                  <td className="py-3 px-4 text-white/60">
                                     <div className="flex items-center gap-2">
                                       <CompanyAvatar name={person.company_name || '?'} website={person.company_website} size={20} />
                                       <span className="truncate max-w-[150px]">{person.company_name || '—'}</span>
@@ -2168,19 +2173,19 @@ export function WorkspaceApp() {
                                       <a
                                         href={generateEmailLink(person)}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                                        className="text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
                                       >
                                         <Mail className="w-3.5 h-3.5" />
                                         <span className="truncate max-w-[180px]">{person.email}</span>
                                       </a>
                                     ) : (
-                                      <span className="text-slate-400 dark:text-slate-500">—</span>
+                                      <span className="text-white/20">—</span>
                                     )}
                                   </td>
                                   <td className="py-3 px-4">
                                     <div className="flex items-center gap-2">
                                       <span className={cn(
-                                        "font-medium text-slate-900 dark:text-white",
+                                        "font-medium text-white",
                                         isHighlighted && "font-bold"
                                       )}>
                                         {person.full_name || 'Unknown'}
@@ -2196,11 +2201,11 @@ export function WorkspaceApp() {
                                       )}
                                     </div>
                                   </td>
-                                  <td className="py-3 px-4 text-slate-600 dark:text-slate-300 hidden md:table-cell">
+                                  <td className="py-3 px-4 text-white/60 hidden md:table-cell">
                                     {person.role || '—'}
                                   </td>
                                   <td className="py-3 px-4 hidden sm:table-cell">
-                                    <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded capitalize">
+                                    <span className="px-2 py-0.5 text-xs font-medium bg-white/[0.06] text-white/60 rounded capitalize">
                                       {person.source || 'unknown'}
                                     </span>
                                   </td>
@@ -2222,7 +2227,7 @@ export function WorkspaceApp() {
                                           }
                                         }
                                       }}
-                                      className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
+                                      className="text-white/30 hover:text-red-400 transition-colors p-1 hover:bg-red-900/30 rounded"
                                       title="Delete person"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -2239,12 +2244,12 @@ export function WorkspaceApp() {
                     {/* Person Detail Panel */}
                     {selectedPersonId && selectedPerson && (
                       <>
-                        <div className="w-[40%] bg-white dark:bg-slate-900 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-r-none shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 z-20 h-full animate-in slide-in-from-right duration-300">
+                        <div className="w-[40%] bg-[#0e0e11] overflow-y-auto border border-white/[0.06] rounded-r-none shadow-xl shadow-black/20 z-20 h-full animate-in slide-in-from-right duration-300">
                           {/* Header */}
-                          <div className="sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-6 py-5 z-20">
+                          <div className="sticky top-0 bg-[#0e0e11]/90 backdrop-blur-md border-b border-white/[0.06] px-6 py-5 z-20">
                             <div className="flex items-start justify-between">
                               <div>
-                                <h2 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                                <h2 className="text-xl font-semibold text-white tracking-tight flex items-center gap-2">
                                   {selectedPerson.full_name || 'Unknown Contact'}
                                   {selectedPerson.is_ceo && (
                                     <span className="px-2 py-0.5 text-xs font-semibold uppercase bg-amber-100 text-amber-700 rounded">CEO</span>
@@ -2253,46 +2258,46 @@ export function WorkspaceApp() {
                                     <span className="px-2 py-0.5 text-xs font-semibold uppercase bg-purple-100 text-purple-700 rounded">Founder</span>
                                   )}
                                 </h2>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{selectedPerson.role || 'Unknown Role'}</p>
+                                <p className="text-sm text-white/60 mt-0.5">{selectedPerson.role || 'Unknown Role'}</p>
                               </div>
                             </div>
                           </div>
 
                           <div className="p-6 space-y-6">
                             {/* Contact Info */}
-                            <section className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                              <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
-                                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Contact Information</h3>
+                            <section className="border border-white/[0.06] rounded-lg overflow-hidden">
+                              <div className="bg-white/[0.03] px-4 py-2 border-b border-white/[0.06]">
+                                <h3 className="text-sm font-semibold text-white">Contact Information</h3>
                               </div>
-                              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                              <div className="divide-y divide-white/[0.04]">
                                 {selectedPerson.email && (
                                   <div className="p-4 flex items-center gap-3">
-                                    <Mail className="w-4 h-4 text-slate-400" />
-                                    <a href={`mailto:${selectedPerson.email}`} className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
+                                    <Mail className="w-4 h-4 text-white/30" />
+                                    <a href={`mailto:${selectedPerson.email}`} className="text-sm text-indigo-400 hover:text-indigo-300">
                                       {selectedPerson.email}
                                     </a>
                                   </div>
                                 )}
                                 {selectedPerson.phone && (
                                   <div className="p-4 flex items-center gap-3">
-                                    <Phone className="w-4 h-4 text-slate-400" />
-                                    <a href={`tel:${selectedPerson.phone}`} className="text-sm text-slate-700 dark:text-slate-300">
+                                    <Phone className="w-4 h-4 text-white/30" />
+                                    <a href={`tel:${selectedPerson.phone}`} className="text-sm text-white/60">
                                       {selectedPerson.phone}
                                     </a>
                                   </div>
                                 )}
                                 {selectedPerson.linkedin_url && (
                                   <div className="p-4 flex items-center gap-3">
-                                    <Linkedin className="w-4 h-4 text-slate-400" />
-                                    <a href={selectedPerson.linkedin_url} target="_blank" rel="noreferrer" className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1">
+                                    <Linkedin className="w-4 h-4 text-white/30" />
+                                    <a href={selectedPerson.linkedin_url} target="_blank" rel="noreferrer" className="text-sm text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
                                       LinkedIn Profile <ExternalLink className="w-3 h-3" />
                                     </a>
                                   </div>
                                 )}
                                 {(selectedPerson.location_city || selectedPerson.location_country) && (
                                   <div className="p-4 flex items-center gap-3">
-                                    <MapPin className="w-4 h-4 text-slate-400" />
-                                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                                    <MapPin className="w-4 h-4 text-white/30" />
+                                    <span className="text-sm text-white/60">
                                       {[selectedPerson.location_city, selectedPerson.location_country].filter(Boolean).join(', ')}
                                     </span>
                                   </div>
@@ -2302,21 +2307,21 @@ export function WorkspaceApp() {
 
                             {/* Company Info */}
                             {selectedPerson.company_name && (
-                              <section className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                                <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
-                                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Company</h3>
+                              <section className="border border-white/[0.06] rounded-lg overflow-hidden">
+                                <div className="bg-white/[0.03] px-4 py-2 border-b border-white/[0.06]">
+                                  <h3 className="text-sm font-semibold text-white">Company</h3>
                                 </div>
                                 <div className="p-4">
                                   <div className="flex items-center gap-3">
                                     <CompanyAvatar name={selectedPerson.company_name || '?'} website={selectedPerson.company_website} size={32} />
                                     <div>
-                                      <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedPerson.company_name}</p>
+                                      <p className="text-sm font-medium text-white">{selectedPerson.company_name}</p>
                                       {selectedPerson.company_website && (
                                         <a
                                           href={normalizeWebsite(selectedPerson.company_website)}
                                           target="_blank"
                                           rel="noreferrer"
-                                          className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                                          className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
                                         >
                                           {selectedPerson.company_website} <ExternalLink className="w-3 h-3" />
                                         </a>
@@ -2328,35 +2333,35 @@ export function WorkspaceApp() {
                             )}
 
                             {/* Professional Info */}
-                            <section className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                              <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
-                                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Professional Details</h3>
+                            <section className="border border-white/[0.06] rounded-lg overflow-hidden">
+                              <div className="bg-white/[0.03] px-4 py-2 border-b border-white/[0.06]">
+                                <h3 className="text-sm font-semibold text-white">Professional Details</h3>
                               </div>
-                              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                              <div className="divide-y divide-white/[0.04]">
                                 {selectedPerson.department && (
                                   <div className="p-4 grid grid-cols-3 gap-4">
-                                    <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Department</div>
-                                    <div className="col-span-2 text-sm text-slate-700 dark:text-slate-300">{selectedPerson.department}</div>
+                                    <div className="text-sm font-medium text-white/40">Department</div>
+                                    <div className="col-span-2 text-sm text-white/60">{selectedPerson.department}</div>
                                   </div>
                                 )}
                                 {selectedPerson.seniority && (
                                   <div className="p-4 grid grid-cols-3 gap-4">
-                                    <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Seniority</div>
-                                    <div className="col-span-2 text-sm text-slate-700 dark:text-slate-300">{selectedPerson.seniority}</div>
+                                    <div className="text-sm font-medium text-white/40">Seniority</div>
+                                    <div className="col-span-2 text-sm text-white/60">{selectedPerson.seniority}</div>
                                   </div>
                                 )}
                                 <div className="p-4 grid grid-cols-3 gap-4">
-                                  <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Source</div>
+                                  <div className="text-sm font-medium text-white/40">Source</div>
                                   <div className="col-span-2">
-                                    <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded capitalize">
+                                    <span className="px-2 py-0.5 text-xs font-medium bg-white/[0.06] text-white/60 rounded capitalize">
                                       {selectedPerson.source || 'unknown'}
                                     </span>
                                   </div>
                                 </div>
                                 {selectedPerson.confidence_score !== null && (
                                   <div className="p-4 grid grid-cols-3 gap-4">
-                                    <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Confidence</div>
-                                    <div className="col-span-2 text-sm text-slate-700 dark:text-slate-300">{selectedPerson.confidence_score}%</div>
+                                    <div className="text-sm font-medium text-white/40">Confidence</div>
+                                    <div className="col-span-2 text-sm text-white/60">{selectedPerson.confidence_score}%</div>
                                   </div>
                                 )}
                               </div>
@@ -2364,27 +2369,27 @@ export function WorkspaceApp() {
 
                             {/* Notes */}
                             {selectedPerson.notes && (
-                              <section className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                                <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
-                                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Notes</h3>
+                              <section className="border border-white/[0.06] rounded-lg overflow-hidden">
+                                <div className="bg-white/[0.03] px-4 py-2 border-b border-white/[0.06]">
+                                  <h3 className="text-sm font-semibold text-white">Notes</h3>
                                 </div>
                                 <div className="p-4">
-                                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{selectedPerson.notes}</p>
+                                  <p className="text-sm text-white/60 leading-relaxed">{selectedPerson.notes}</p>
                                 </div>
                               </section>
                             )}
 
                             {/* Key Info */}
-                            <section className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-                              <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Record Info</h3>
+                            <section className="bg-white/[0.03] rounded-lg p-4 border border-white/[0.06]">
+                              <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Record Info</h3>
                               <div className="grid grid-cols-1 gap-2">
                                 <div className="flex justify-between">
-                                  <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">ID</span>
-                                  <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{selectedPerson.id.slice(0, 24)}</span>
+                                  <span className="text-xs text-white/20 font-mono">ID</span>
+                                  <span className="text-xs text-white/40 font-mono">{selectedPerson.id.slice(0, 24)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-xs text-slate-400 dark:text-slate-500">Added</span>
-                                  <span className="text-xs text-slate-600 dark:text-slate-300">{formatDate(selectedPerson.created_at)}</span>
+                                  <span className="text-xs text-white/20">Added</span>
+                                  <span className="text-xs text-white/60">{formatDate(selectedPerson.created_at)}</span>
                                 </div>
                               </div>
                             </section>
@@ -2393,7 +2398,7 @@ export function WorkspaceApp() {
                           </div>
                         </div>
                         {/* Embedded Chat for People */}
-                        <div className="flex-1 min-w-[300px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 border-l-0 rounded-r-lg z-10 h-full">
+                        <div className="flex-1 min-w-[300px] bg-[#0e0e11] border border-white/[0.06] border-l-0 rounded-r-lg z-10 h-full">
                           <ChatWidget mode="embedded" context={chatContext} />
                         </div>
                       </>
@@ -2422,10 +2427,10 @@ function App() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-slate-50">
+      <div className="h-screen flex items-center justify-center bg-[#09090b]">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto mb-4" />
-          <p className="text-sm text-slate-600">Loading your workspace...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-400 mx-auto mb-4" />
+          <p className="text-sm text-white/60">Loading your workspace...</p>
         </div>
       </div>
     );

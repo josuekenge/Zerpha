@@ -17,13 +17,13 @@ export function SettingsSectionCard({
     action,
 }: SettingsSectionCardProps) {
     return (
-        <div className={cn("bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden", className)}>
+        <div className={cn("bg-[#0e0e11] rounded-xl border border-white/[0.06] overflow-hidden", className)}>
             <div className="p-6">
                 <div className="flex items-start justify-between mb-6">
                     <div>
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h3>
+                        <h3 className="text-lg font-semibold text-white">{title}</h3>
                         {description && (
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{description}</p>
+                            <p className="text-sm text-white/60 mt-1">{description}</p>
                         )}
                     </div>
                     {action && <div>{action}</div>}

@@ -19,25 +19,25 @@ export function PreferencesSettings() {
                     {/* Theme Mode */}
                     <div className="flex items-center justify-between py-2">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                                {isDark ? <Moon className="w-5 h-5 text-slate-600 dark:text-slate-400" /> : <Sun className="w-5 h-5 text-slate-600 dark:text-slate-400" />}
+                            <div className="p-2 bg-white/[0.06] rounded-lg">
+                                {isDark ? <Moon className="w-5 h-5 text-white/60" /> : <Sun className="w-5 h-5 text-white/60" />}
                             </div>
                             <div>
-                                <h4 className="text-sm font-medium text-slate-900 dark:text-white">Theme Mode</h4>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Switch between light and dark themes</p>
+                                <h4 className="text-sm font-medium text-white">Theme Mode</h4>
+                                <p className="text-sm text-white/60">Switch between light and dark themes</p>
                             </div>
                         </div>
-                        <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                        <div className="flex items-center bg-white/[0.06] rounded-lg p-1">
                             <button
                                 onClick={() => setTheme('light')}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${!isDark ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${!isDark ? 'bg-white/[0.1] text-white' : 'text-white/30 hover:text-white/60'
                                     }`}
                             >
                                 Light
                             </button>
                             <button
                                 onClick={() => setTheme('dark')}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${isDark ? 'bg-slate-700 shadow-sm text-white' : 'text-slate-500 hover:text-slate-700'
+                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${isDark ? 'bg-white/[0.1] text-white' : 'text-white/30 hover:text-white/60'
                                     }`}
                             >
                                 Dark
@@ -45,22 +45,22 @@ export function PreferencesSettings() {
                         </div>
                     </div>
 
-                    <div className="border-t border-slate-100 dark:border-slate-800" />
+                    <div className="border-t border-white/[0.06]" />
 
                     {/* Show Favicons */}
                     <div className="flex items-center justify-between py-2">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                                <Eye className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                            <div className="p-2 bg-white/[0.06] rounded-lg">
+                                <Eye className="w-5 h-5 text-white/60" />
                             </div>
                             <div>
-                                <h4 className="text-sm font-medium text-slate-900 dark:text-white">Show Favicons</h4>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Display company logos in lists</p>
+                                <h4 className="text-sm font-medium text-white">Show Favicons</h4>
+                                <p className="text-sm text-white/60">Display company logos in lists</p>
                             </div>
                         </div>
                         <button
                             onClick={() => setShowFavicons(!showFavicons)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${showFavicons ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-[#09090b] ${showFavicons ? 'bg-indigo-600' : 'bg-white/[0.12]'
                                 }`}
                         >
                             <span

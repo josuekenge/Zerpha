@@ -20,10 +20,10 @@ const PIPELINE_STAGES: { id: PipelineStage; label: string }[] = [
 ];
 
 const STAGE_BADGE_STYLES: Record<PipelineStage, { bg: string; text: string }> = {
-    new: { bg: 'bg-slate-200', text: 'text-slate-700' },
-    researching: { bg: 'bg-blue-100', text: 'text-blue-700' },
-    contacted: { bg: 'bg-amber-100', text: 'text-amber-700' },
-    in_diligence: { bg: 'bg-purple-100', text: 'text-purple-700' },
+    new: { bg: 'bg-white/[0.06]', text: 'text-white/50' },
+    researching: { bg: 'bg-blue-500/15', text: 'text-blue-400' },
+    contacted: { bg: 'bg-amber-500/15', text: 'text-amber-400' },
+    in_diligence: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
     closed: { bg: 'bg-green-500', text: 'text-white' },
 };
 
@@ -135,10 +135,10 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
     };
 
     const getScoreColor = (score: number | null) => {
-        if (score === null) return 'text-slate-400 bg-slate-100';
-        if (score >= 7.5) return 'text-teal-700 bg-teal-100';
-        if (score >= 5) return 'text-amber-700 bg-amber-100';
-        return 'text-red-700 bg-red-100';
+        if (score === null) return 'text-white/30 bg-white/[0.06]';
+        if (score >= 7.5) return 'text-teal-400 bg-teal-500/15';
+        if (score >= 5) return 'text-amber-400 bg-amber-500/15';
+        return 'text-red-400 bg-red-500/15';
     };
 
     const formatDate = (dateStr: string | null) => {
@@ -152,17 +152,17 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
 
     if (loading) {
         return (
-            <div className="h-full flex items-center justify-center bg-white border-l border-slate-200">
-                <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+            <div className="h-full flex items-center justify-center bg-[#0e0e11] border-l border-white/[0.06]">
+                <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
             </div>
         );
     }
 
     if (error || !company) {
         return (
-            <div className="h-full flex flex-col items-center justify-center bg-white border-l border-slate-200 p-6">
-                <p className="text-red-600 text-sm mb-4">{error || 'Company not found'}</p>
-                <button onClick={onClose} className="text-sm text-slate-600 hover:text-slate-900">
+            <div className="h-full flex flex-col items-center justify-center bg-[#0e0e11] border-l border-white/[0.06] p-6">
+                <p className="text-red-400 text-sm mb-4">{error || 'Company not found'}</p>
+                <button onClick={onClose} className="text-sm text-white/60 hover:text-white">
                     Close
                 </button>
             </div>
@@ -172,9 +172,9 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
     const stageBadge = STAGE_BADGE_STYLES[selectedStage];
 
     return (
-        <div className="h-full flex flex-col bg-white border-l border-slate-200 overflow-hidden">
+        <div className="h-full flex flex-col bg-[#0e0e11] border-l border-white/[0.06] overflow-hidden">
             {/* Header */}
-            <div className="flex items-start justify-between p-4 border-b border-slate-100">
+            <div className="flex items-start justify-between p-4 border-b border-white/[0.06]">
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                         <CompanyAvatar
@@ -183,7 +183,7 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
                             website={company.domain}
                             size={24}
                         />
-                        <h2 className="text-lg font-semibold text-slate-900 truncate">{company.name}</h2>
+                        <h2 className="text-lg font-semibold text-white truncate">{company.name}</h2>
                     </div>
                     <div className="flex items-center gap-2">
                         {/* Stage Dropdown */}
@@ -202,12 +202,12 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
                             {stageDropdownOpen && (
                                 <>
                                     <div className="fixed inset-0 z-10" onClick={() => setStageDropdownOpen(false)} />
-                                    <div className="absolute left-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 min-w-[140px]">
+                                    <div className="absolute left-0 mt-1 bg-[#0e0e11] border border-white/[0.08] rounded-lg shadow-lg z-20 py-1 min-w-[140px]">
                                         {PIPELINE_STAGES.map((stage) => (
                                             <button
                                                 key={stage.id}
                                                 onClick={() => handleStageChange(stage.id)}
-                                                className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 flex items-center justify-between"
+                                                className="w-full px-3 py-2 text-left text-sm text-white/60 hover:bg-white/[0.04] flex items-center justify-between"
                                             >
                                                 <span className={cn(
                                                     "px-2 py-0.5 text-xs font-bold rounded",
@@ -216,7 +216,7 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
                                                 )}>
                                                     {stage.label.toUpperCase()}
                                                 </span>
-                                                {selectedStage === stage.id && <Check className="w-4 h-4 text-indigo-600" />}
+                                                {selectedStage === stage.id && <Check className="w-4 h-4 text-indigo-400" />}
                                             </button>
                                         ))}
                                     </div>
@@ -227,15 +227,15 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
                             href={`https://${company.domain}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                            className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
                         >
                             {company.domain}
                             <ExternalLink className="w-3 h-3" />
                         </a>
                     </div>
                 </div>
-                <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-lg">
-                    <X className="w-4 h-4 text-slate-500" />
+                <button onClick={onClose} className="p-1.5 hover:bg-white/[0.06] rounded-lg">
+                    <X className="w-4 h-4 text-white/60" />
                 </button>
             </div>
 
@@ -243,8 +243,8 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
                 {/* Description / Summary */}
                 <section>
-                    <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2">Description</h3>
-                    <p className="text-sm text-slate-700">
+                    <h3 className="text-xs font-semibold text-white/60 uppercase mb-2">Description</h3>
+                    <p className="text-sm text-white/60">
                         {company.summary || 'No description available'}
                     </p>
                 </section>
@@ -252,11 +252,11 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
                 {/* Notes Section */}
                 <section>
                     <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xs font-semibold text-slate-500 uppercase">Notes</h3>
+                        <h3 className="text-xs font-semibold text-white/60 uppercase">Notes</h3>
                         {!editingNotes && (
                             <button
                                 onClick={() => setEditingNotes(true)}
-                                className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                                className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
                             >
                                 <Edit2 className="w-3 h-3" />
                                 Edit
@@ -270,13 +270,13 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
                                 placeholder="Note title"
                                 value={notesTitle}
                                 onChange={(e) => { setNotesTitle(e.target.value); setHasChanges(true); }}
-                                className="w-full px-2 py-1.5 border border-slate-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full px-2 py-1.5 bg-white/[0.04] border border-white/[0.08] rounded text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                             <textarea
                                 placeholder="Add notes..."
                                 value={notes}
                                 onChange={(e) => { setNotes(e.target.value); setHasChanges(true); }}
-                                className="w-full px-2 py-1.5 border border-slate-200 rounded text-sm min-h-[100px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full px-2 py-1.5 bg-white/[0.04] border border-white/[0.08] rounded text-sm text-white min-h-[100px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                             <div className="flex items-center gap-2">
                                 <button
@@ -293,18 +293,18 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
                                         setHasChanges(false);
                                         setEditingNotes(false);
                                     }}
-                                    className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded"
+                                    className="px-3 py-1.5 text-xs text-white/60 hover:bg-white/[0.06] rounded"
                                 >
                                     Cancel
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-slate-50 rounded-lg p-3">
-                            {notesTitle && <p className="text-sm font-medium text-slate-900 mb-1">{notesTitle}</p>}
-                            <p className="text-sm text-slate-600">{notes || 'No notes yet. Click Edit to add notes.'}</p>
+                        <div className="bg-white/[0.04] border border-white/[0.06] rounded-md p-3">
+                            {notesTitle && <p className="text-sm font-medium text-white mb-1">{notesTitle}</p>}
+                            <p className="text-sm text-white/60">{notes || 'No notes yet. Click Edit to add notes.'}</p>
                             {company.notesUpdatedAt && (
-                                <div className="flex items-center gap-1 mt-2 text-xs text-slate-400">
+                                <div className="flex items-center gap-1 mt-2 text-xs text-white/30">
                                     <Clock className="w-3 h-3" />
                                     Updated {formatDate(company.notesUpdatedAt)}
                                 </div>
@@ -316,38 +316,38 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
                 {/* Key Contacts */}
                 <section>
                     <div className="flex items-center gap-2 mb-2">
-                        <Users className="w-3.5 h-3.5 text-slate-500" />
-                        <h3 className="text-xs font-semibold text-slate-500 uppercase">Key Contacts</h3>
+                        <Users className="w-3.5 h-3.5 text-white/60" />
+                        <h3 className="text-xs font-semibold text-white/60 uppercase">Key Contacts</h3>
                     </div>
                     {contactsLoading ? (
                         <div className="flex justify-center py-3">
-                            <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                            <Loader2 className="w-4 h-4 animate-spin text-white/30" />
                         </div>
                     ) : contacts.length === 0 ? (
-                        <p className="text-xs text-slate-400">No contacts added</p>
+                        <p className="text-xs text-white/30">No contacts added</p>
                     ) : (
                         <div className="space-y-2">
                             {contacts.slice(0, 4).map((contact) => (
                                 <div key={contact.id} className="flex items-center gap-2 py-1">
-                                    <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
-                                        <span className="text-xs font-medium text-indigo-600">
+                                    <div className="w-6 h-6 rounded-full bg-indigo-400/[0.08] flex items-center justify-center">
+                                        <span className="text-xs font-medium text-indigo-400">
                                             {contact.first_name?.charAt(0) || '?'}
                                         </span>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm text-slate-900 truncate">
+                                        <p className="text-sm text-white truncate">
                                             {[contact.first_name, contact.last_name].filter(Boolean).join(' ')}
                                         </p>
-                                        {contact.role && <p className="text-xs text-slate-500 truncate">{contact.role}</p>}
+                                        {contact.role && <p className="text-xs text-white/60 truncate">{contact.role}</p>}
                                     </div>
                                     <div className="flex items-center gap-1">
                                         {contact.email && (
-                                            <a href={`mailto:${contact.email}`} className="p-1 text-slate-400 hover:text-slate-600">
+                                            <a href={`mailto:${contact.email}`} className="p-1 text-white/30 hover:text-white/60">
                                                 <Mail className="w-3.5 h-3.5" />
                                             </a>
                                         )}
                                         {contact.linkedin_url && (
-                                            <a href={contact.linkedin_url} target="_blank" rel="noreferrer" className="p-1 text-slate-400 hover:text-blue-600">
+                                            <a href={contact.linkedin_url} target="_blank" rel="noreferrer" className="p-1 text-white/30 hover:text-blue-400">
                                                 <Linkedin className="w-3.5 h-3.5" />
                                             </a>
                                         )}
@@ -360,7 +360,7 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
 
                 {/* Details */}
                 <section>
-                    <h3 className="text-xs font-semibold text-slate-500 uppercase mb-3">Details</h3>
+                    <h3 className="text-xs font-semibold text-white/60 uppercase mb-3">Details</h3>
                     <div className="space-y-3">
                         <DetailRow label="Industry" value={company.industry} />
                         <DetailRow
@@ -379,11 +379,11 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
             </div>
 
             {/* Footer Actions */}
-            <div className="p-4 border-t border-slate-100">
+            <div className="p-4 border-t border-white/[0.06]">
                 <button
                     onClick={handleDelete}
                     disabled={saving}
-                    className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700"
+                    className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300"
                 >
                     <Trash2 className="w-4 h-4" />
                     Remove from pipeline
@@ -396,8 +396,8 @@ export function PipelineDetailPanel({ companyId, onClose, onUpdate, onDelete }: 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
     return (
         <div className="flex items-start">
-            <div className="w-28 text-xs text-slate-500">{label}</div>
-            <div className="flex-1 text-sm text-slate-900">{value || '—'}</div>
+            <div className="w-28 text-xs text-white/60">{label}</div>
+            <div className="flex-1 text-sm text-white">{value || '—'}</div>
         </div>
     );
 }

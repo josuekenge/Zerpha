@@ -244,8 +244,8 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
         return (
             <div className="h-full flex items-center justify-center">
                 <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto mb-4" />
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Loading pipeline...</p>
+                    <Loader2 className="w-8 h-8 animate-spin text-indigo-400 mx-auto mb-4" />
+                    <p className="text-sm text-white/60">Loading pipeline...</p>
                 </div>
             </div>
         );
@@ -256,7 +256,7 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
             <div className="h-full flex items-center justify-center">
                 <div className="text-center">
                     <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-4" />
-                    <p className="text-sm text-slate-600 dark:text-slate-400">{error}</p>
+                    <p className="text-sm text-white/60">{error}</p>
                 </div>
             </div>
         );
@@ -270,11 +270,11 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
         return (
             <div className="h-full flex items-center justify-center p-8">
                 <div className="text-center max-w-md">
-                    <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
-                        <GripVertical className="w-8 h-8 text-slate-400 dark:text-slate-500" />
+                    <div className="w-16 h-16 rounded-full bg-white/[0.06] flex items-center justify-center mx-auto mb-4">
+                        <GripVertical className="w-8 h-8 text-white/30" />
                     </div>
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No companies in pipeline</h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <h2 className="text-lg font-semibold text-white mb-2">No companies in pipeline</h2>
+                    <p className="text-sm text-white/40">
                         Save companies from the Companies page to add them to your pipeline.
                         Drag and drop to move them through stages.
                     </p>
@@ -284,30 +284,30 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
     }
 
     return (
-        <div className="h-full flex flex-col overflow-hidden p-6 bg-slate-50 dark:bg-slate-950">
+        <div className="h-full flex flex-col overflow-hidden p-6 bg-[#09090b]">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-white">Pipeline</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{totalCompanies} companies in your pipeline</p>
+                    <h1 className="text-xl font-bold text-white">Pipeline</h1>
+                    <p className="text-sm text-white/60">{totalCompanies} companies in your pipeline</p>
                 </div>
             </div>
 
             {/* Search Bar + View Toggle */}
             <div className="flex items-center justify-between gap-4 mb-6">
                 <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                     <input
                         type="text"
                         placeholder="Search companies, notes..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
+                        className="w-full pl-10 pr-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                     {searchQuery && (
                         <button
                             onClick={() => setSearchQuery('')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/30 hover:text-white/60"
                         >
                             Clear
                         </button>
@@ -315,14 +315,14 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                 </div>
 
                 {/* View Toggle */}
-                <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1 gap-1">
+                <div className="flex bg-white/[0.04] rounded-lg p-1 gap-1">
                     <button
                         onClick={() => setActiveView('board')}
                         className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all shadow-sm",
+                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all",
                             activeView === 'board'
-                                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow"
-                                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 shadow-none"
+                                ? "bg-white/[0.08] text-white"
+                                : "text-white/60 hover:text-white hover:bg-white/[0.06]"
                         )}
                     >
                         <LayoutGrid className="w-4 h-4" />
@@ -331,10 +331,10 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                     <button
                         onClick={() => setActiveView('summary')}
                         className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all shadow-sm",
+                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all",
                             activeView === 'summary'
-                                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow"
-                                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 shadow-none"
+                                ? "bg-white/[0.08] text-white"
+                                : "text-white/60 hover:text-white hover:bg-white/[0.06]"
                         )}
                     >
                         <BarChart2 className="w-4 h-4" />
@@ -343,10 +343,10 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                     <button
                         onClick={() => setActiveView('backlog')}
                         className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all shadow-sm",
+                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all",
                             activeView === 'backlog'
-                                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow"
-                                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 shadow-none"
+                                ? "bg-white/[0.08] text-white"
+                                : "text-white/60 hover:text-white hover:bg-white/[0.06]"
                         )}
                     >
                         <Calendar className="w-4 h-4" />
@@ -357,14 +357,14 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
 
             {/* Error toast */}
             {updateError && (
-                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
                     {updateError}
                 </div>
             )}
 
             {/* Success toast */}
             {successToast && (
-                <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+                <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm text-green-400 flex items-center gap-2">
                     <Check className="w-4 h-4" />
                     {successToast}
                 </div>
@@ -469,14 +469,14 @@ function PipelineColumn({ stage, onCompanyClick, onNotesClick }: PipelineColumnP
     return (
         <div
             ref={setNodeRef}
-            className="flex-shrink-0 w-72 flex flex-col rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+            className="flex-shrink-0 w-72 flex flex-col rounded-xl border border-white/[0.06] bg-white/[0.02]"
         >
             {/* Column Header */}
-            <div className="p-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="p-3 border-b border-white/[0.06]">
                 <div className="flex items-center gap-2">
                     <span className={cn("w-2 h-2 rounded-full", STAGE_BADGE_COLORS[stage.id])} />
-                    <h3 className="font-semibold text-sm text-slate-800 dark:text-slate-200">{stage.label}</h3>
-                    <span className="ml-auto text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                    <h3 className="font-semibold text-sm text-white">{stage.label}</h3>
+                    <span className="ml-auto text-xs font-medium text-white/50 bg-white/[0.08] px-2 py-0.5 rounded-full">
                         {stage.companies.length}
                     </span>
                 </div>
@@ -494,7 +494,7 @@ function PipelineColumn({ stage, onCompanyClick, onNotesClick }: PipelineColumnP
                 >
                     {stage.companies.length === 0 ? (
                         <div className="h-full flex items-center justify-center">
-                            <p className="text-xs text-slate-400 text-center p-4">
+                            <p className="text-xs text-white/30 text-center p-4">
                                 Drop companies here
                             </p>
                         </div>
@@ -554,10 +554,10 @@ interface PipelineCardProps {
 
 function PipelineCard({ company, isDragging, onCompanyClick, onNotesClick }: PipelineCardProps) {
     const getScoreColor = (score: number | null) => {
-        if (score === null) return 'text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800';
-        if (score >= 7.5) return 'text-teal-700 dark:text-teal-300 bg-teal-100 dark:bg-teal-900/50';
-        if (score >= 5) return 'text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/50';
-        return 'text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/50';
+        if (score === null) return 'text-white/30 bg-white/[0.06]';
+        if (score >= 7.5) return 'text-teal-400 bg-teal-500/15';
+        if (score >= 5) return 'text-amber-400 bg-amber-500/15';
+        return 'text-red-400 bg-red-500/15';
     };
 
     const hasNotes = company.notes || company.notesTitle;
@@ -565,8 +565,8 @@ function PipelineCard({ company, isDragging, onCompanyClick, onNotesClick }: Pip
     return (
         <div
             className={cn(
-                "bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-3 shadow-sm cursor-grab active:cursor-grabbing hover:border-slate-300 dark:hover:border-slate-600 hover:shadow transition-all",
-                isDragging && "shadow-lg ring-2 ring-indigo-500"
+                "bg-[#0e0e11] rounded-lg border border-white/[0.06] p-3 cursor-grab active:cursor-grabbing hover:border-white/[0.12] hover:bg-white/[0.04] transition-all",
+                isDragging && "ring-2 ring-indigo-400"
             )}
             onClick={() => onCompanyClick?.(company.id)}
         >
@@ -580,13 +580,13 @@ function PipelineCard({ company, isDragging, onCompanyClick, onNotesClick }: Pip
                 />
 
                 <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm text-slate-900 dark:text-white truncate">{company.name}</h4>
+                    <h4 className="font-medium text-sm text-white truncate">{company.name}</h4>
                     <a
                         href={`https://${company.domain}`}
                         target="_blank"
                         rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1 truncate"
+                        className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 truncate"
                     >
                         {company.domain}
                         <ExternalLink className="w-2.5 h-2.5" />
@@ -597,8 +597,8 @@ function PipelineCard({ company, isDragging, onCompanyClick, onNotesClick }: Pip
                 <button
                     onClick={(e) => onNotesClick?.(company.id, e)}
                     className={cn(
-                        "p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 flex-shrink-0 transition-colors",
-                        hasNotes ? "text-indigo-500" : "text-slate-300 dark:text-slate-600 hover:text-slate-500 dark:hover:text-slate-400"
+                        "p-1 rounded hover:bg-white/[0.06] flex-shrink-0 transition-colors",
+                        hasNotes ? "text-indigo-400" : "text-white/30 hover:text-white/60"
                     )}
                     title={hasNotes ? "View notes" : "Add notes"}
                 >
@@ -608,19 +608,19 @@ function PipelineCard({ company, isDragging, onCompanyClick, onNotesClick }: Pip
 
             {/* Notes Preview */}
             {hasNotes && (
-                <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-700/50 rounded-md border border-slate-100 dark:border-slate-600">
+                <div className="mt-2 p-2 bg-white/[0.04] rounded-md border border-white/[0.06]">
                     {company.notesTitle && (
-                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">{company.notesTitle}</p>
+                        <p className="text-xs font-medium text-white truncate">{company.notesTitle}</p>
                     )}
                     {company.notes && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{company.notes}</p>
+                        <p className="text-xs text-white/60 truncate mt-0.5">{company.notes}</p>
                     )}
                 </div>
             )}
 
             <div className="mt-2 flex items-center justify-between">
                 {company.industry && (
-                    <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[60%]">{company.industry}</span>
+                    <span className="text-xs text-white/60 truncate max-w-[60%]">{company.industry}</span>
                 )}
                 <span
                     className={cn(

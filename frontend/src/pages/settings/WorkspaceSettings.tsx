@@ -189,15 +189,15 @@ export function WorkspaceSettings() {
             {/* Success/Error Messages */}
             {(successMessage || errorMessage || workspaceError) && (
                 <div className={`p-4 rounded-lg flex items-center gap-3 ${successMessage
-                    ? 'bg-green-50 border border-green-100'
-                    : 'bg-red-50 border border-red-100'
+                    ? 'bg-green-500/15 border border-green-500/20'
+                    : 'bg-red-500/15 border border-red-500/20'
                     }`}>
                     {successMessage ? (
-                        <Check className="w-5 h-5 text-green-600" />
+                        <Check className="w-5 h-5 text-green-400" />
                     ) : (
-                        <AlertCircle className="w-5 h-5 text-red-600" />
+                        <AlertCircle className="w-5 h-5 text-red-400" />
                     )}
-                    <p className={`text-sm ${successMessage ? 'text-green-700' : 'text-red-700'}`}>
+                    <p className={`text-sm ${successMessage ? 'text-green-400' : 'text-red-400'}`}>
                         {successMessage || errorMessage || workspaceError}
                     </p>
                 </div>
@@ -210,7 +210,7 @@ export function WorkspaceSettings() {
                 <div className="flex items-start gap-6">
                     <div className="flex-shrink-0">
                         <div
-                            className="w-20 h-20 rounded-lg bg-indigo-600 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden cursor-pointer group relative"
+                            className="w-20 h-20 rounded-lg bg-indigo-600 flex items-center justify-center border-2 border-white/[0.06] overflow-hidden cursor-pointer group relative"
                             onClick={() => fileInputRef.current?.click()}
                         >
                             {workspace?.logo_url ? (
@@ -237,7 +237,7 @@ export function WorkspaceSettings() {
                         />
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="mt-2 text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center justify-center w-full gap-1"
+                            className="mt-2 text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center justify-center w-full gap-1"
                         >
                             <Upload className="w-3 h-3" />
                             Upload Logo
@@ -246,19 +246,19 @@ export function WorkspaceSettings() {
 
                     <div className="flex-1 space-y-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Workspace Name</label>
+                            <label className="text-sm font-medium text-white/60">Workspace Name</label>
                             <div className="flex gap-2">
                                 <input
                                     type="text"
                                     value={workspaceName}
                                     onChange={(e) => setWorkspaceName(e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="flex-1 px-3 py-2 border border-white/[0.08] bg-white/[0.04] text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-white/20"
                                     placeholder="Enter workspace name"
                                 />
                                 <button
                                     onClick={handleSaveWorkspaceName}
                                     disabled={isSaving || !workspaceName.trim() || workspaceName === workspace?.name}
-                                    className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
                                     {isSaving ? (
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -278,7 +278,7 @@ export function WorkspaceSettings() {
                 description="Manage access and roles for your team."
                 action={
                     <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-500 dark:text-slate-400">{members.length} / {maxSeats} seats used</span>
+                        <span className="text-sm text-white/60">{members.length} / {maxSeats} seats used</span>
                     </div>
                 }
             >
@@ -293,15 +293,15 @@ export function WorkspaceSettings() {
                                     value={inviteEmail}
                                     onChange={handleEmailChange}
                                     disabled={members.length >= maxSeats}
-                                    className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-900 dark:text-white ${emailError ? 'border-red-300 bg-red-50 dark:bg-red-900/10 dark:border-red-800' : 'border-slate-200 dark:border-slate-700'
-                                        } ${members.length >= maxSeats ? 'bg-slate-50 dark:bg-slate-800 cursor-not-allowed' : ''}`}
+                                    className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/[0.04] text-white placeholder:text-white/20 ${emailError ? 'border-red-500/20 bg-red-500/10' : 'border-white/[0.08]'
+                                        } ${members.length >= maxSeats ? 'bg-white/[0.03] cursor-not-allowed' : ''}`}
                                 />
                             </div>
                             <select
                                 value={inviteRole}
                                 onChange={(e) => setInviteRole(e.target.value as TeamRole)}
                                 disabled={members.length >= maxSeats}
-                                className="px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="px-3 py-2 border border-white/[0.08] bg-white/[0.04] text-white/70 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             >
                                 <option value="admin">Admin</option>
                                 <option value="member">Member</option>
@@ -310,7 +310,7 @@ export function WorkspaceSettings() {
                             <button
                                 onClick={handleInvite}
                                 disabled={isInviting || !inviteEmail.trim() || !!emailError || members.length >= maxSeats}
-                                className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {isInviting ? (
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -321,13 +321,13 @@ export function WorkspaceSettings() {
                             </button>
                         </div>
                         {emailError && (
-                            <p className="text-xs text-red-600 flex items-center gap-1">
+                            <p className="text-xs text-red-400 flex items-center gap-1">
                                 <AlertCircle className="w-3 h-3" />
                                 {emailError}
                             </p>
                         )}
                         {members.length >= maxSeats && (
-                            <p className="text-xs text-amber-600 flex items-center gap-1">
+                            <p className="text-xs text-amber-400 flex items-center gap-1">
                                 <AlertCircle className="w-3 h-3" />
                                 Maximum seats reached. Upgrade to add more team members.
                             </p>
@@ -337,7 +337,7 @@ export function WorkspaceSettings() {
                     {/* Team Members List */}
                     <div className="space-y-3">
                         {members.map((member) => (
-                            <div key={member.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
+                            <div key={member.id} className="flex items-center justify-between p-3 bg-white/[0.03] rounded-lg border border-white/[0.06]">
                                 <div className="flex items-center gap-3">
                                     <div
                                         className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white overflow-hidden"
@@ -350,13 +350,13 @@ export function WorkspaceSettings() {
                                         )}
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-slate-900 dark:text-white">{member.name}</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">{member.email}</p>
+                                        <p className="text-sm font-medium text-white">{member.name}</p>
+                                        <p className="text-xs text-white/30">{member.email}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <select
-                                        className="text-xs font-medium text-slate-600 dark:text-slate-300 bg-transparent border border-slate-200 dark:border-slate-700 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                                        className="text-xs font-medium text-white/60 bg-transparent border border-white/[0.08] rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                                         value={member.role}
                                         onChange={(e) => handleRoleChange(member.id, e.target.value as TeamRole)}
                                         disabled={!canManage || member.role === 'owner'}
@@ -391,11 +391,11 @@ export function WorkspaceSettings() {
                                             <button
                                                 onClick={() => handleRemoveMember(member.id)}
                                                 disabled={disabled}
-                                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                                                className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/15 rounded transition-colors disabled:opacity-50"
                                                 title={title}
                                             >
                                                 {disabled ? (
-                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400"></div>
                                                 ) : (
                                                     <Trash2 className="w-4 h-4" />
                                                 )}
@@ -408,17 +408,17 @@ export function WorkspaceSettings() {
                     </div>
 
                     {/* Leave Workspace (self-service) */}
-                    <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-slate-900 dark:text-white">Leave workspace</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                            <p className="text-sm font-medium text-white">Leave workspace</p>
+                            <p className="text-xs text-white/30">
                                 You can leave this workspace at any time. Owners must transfer ownership first.
                             </p>
                         </div>
                         <button
                             onClick={handleLeaveWorkspace}
                             disabled={isLeaving || isLastOwner}
-                            className="px-4 py-2 text-sm font-medium rounded-lg border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-4 py-2 text-sm font-medium rounded-lg border border-red-500/20 text-red-400 bg-red-500/10 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                             title={isLastOwner ? 'You are the last owner. Transfer ownership first.' : 'Leave workspace'}
                         >
                             {isLeaving ? 'Leaving…' : 'Leave'}

@@ -36,43 +36,43 @@ export function PipelineSummary({ pipeline }: PipelineSummaryProps) {
             {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <MetricCard
-                    icon={<Zap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />}
+                    icon={<Zap className="w-5 h-5 text-indigo-400" />}
                     label="Total Companies"
                     value={stats.total}
-                    iconBg="bg-indigo-100 dark:bg-indigo-900/50"
+                    iconBg="bg-indigo-500/15"
                 />
                 <MetricCard
-                    icon={<Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />}
+                    icon={<Clock className="w-5 h-5 text-orange-400" />}
                     label="Active Deals"
                     value={stats.activeDeals}
-                    iconBg="bg-orange-100 dark:bg-orange-900/50"
+                    iconBg="bg-orange-500/15"
                 />
                 <MetricCard
-                    icon={<CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />}
+                    icon={<CheckCircle className="w-5 h-5 text-green-400" />}
                     label="Closed Deals"
                     value={stats.closedDeals.length}
-                    iconBg="bg-green-100 dark:bg-green-900/50"
+                    iconBg="bg-green-500/15"
                 />
                 <MetricCard
-                    icon={<TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+                    icon={<TrendingUp className="w-5 h-5 text-blue-400" />}
                     label="Conversion Rate"
                     value={stats.total > 0 ? `${Math.round((stats.closedDeals.length / stats.total) * 100)}%` : '0%'}
-                    iconBg="bg-blue-100 dark:bg-blue-900/50"
+                    iconBg="bg-blue-500/15"
                 />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Pipeline by Stage (Takes up 2 columns) */}
-                <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                <div className="lg:col-span-2 bg-[#0e0e11] rounded-xl border border-white/[0.06] p-6">
                     <div className="flex items-center gap-2 mb-8">
-                        <BarChart2 className="w-5 h-5 text-slate-400" />
-                        <h3 className="font-semibold text-slate-900 dark:text-white">Pipeline by Stage</h3>
+                        <BarChart2 className="w-5 h-5 text-white/30" />
+                        <h3 className="font-semibold text-white">Pipeline by Stage</h3>
                     </div>
                     <div className="space-y-6">
                         {stats.stageBreakdown.map((stage) => (
                             <div key={stage.id} className="flex items-center gap-4">
-                                <div className="w-24 text-sm font-medium text-slate-600 dark:text-slate-300 truncate">{stage.label}</div>
-                                <div className="flex-1 bg-slate-50 dark:bg-slate-800 rounded-full h-4 overflow-hidden">
+                                <div className="w-24 text-sm font-medium text-white/60 truncate">{stage.label}</div>
+                                <div className="flex-1 bg-white/[0.04] rounded-full h-4 overflow-hidden">
                                     <div
                                         className="h-full rounded-full flex items-center justify-end pr-2 text-[10px] font-bold text-white transition-all duration-500"
                                         style={{
@@ -83,7 +83,7 @@ export function PipelineSummary({ pipeline }: PipelineSummaryProps) {
                                         {stage.count > 0 && stage.count}
                                     </div>
                                 </div>
-                                <div className="w-12 text-right text-sm text-slate-500 dark:text-slate-400">
+                                <div className="w-12 text-right text-sm text-white/60">
                                     {stage.percentage}%
                                 </div>
                             </div>
@@ -92,17 +92,17 @@ export function PipelineSummary({ pipeline }: PipelineSummaryProps) {
                 </div>
 
                 {/* Stage Overview (Donut) */}
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                <div className="bg-[#0e0e11] rounded-xl border border-white/[0.06] p-6">
                     <div className="flex items-center gap-2 mb-6">
-                        <Activity className="w-5 h-5 text-slate-400" />
-                        <h3 className="font-semibold text-slate-900 dark:text-white">Stage Overview</h3>
+                        <Activity className="w-5 h-5 text-white/30" />
+                        <h3 className="font-semibold text-white">Stage Overview</h3>
                     </div>
                     <div className="flex items-center justify-center py-4">
                         <div className="relative">
                             <DonutChart stages={stats.stageBreakdown} total={stats.total} />
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span className="text-3xl font-bold text-slate-900 dark:text-white">{stats.total}</span>
-                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">Total</span>
+                                <span className="text-3xl font-bold text-white">{stats.total}</span>
+                                <span className="text-xs font-medium text-white/60 uppercase tracking-wide">Total</span>
                             </div>
                         </div>
                     </div>
@@ -113,8 +113,8 @@ export function PipelineSummary({ pipeline }: PipelineSummaryProps) {
                                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                                     style={{ backgroundColor: STAGE_COLORS[stage.id as PipelineStage] }}
                                 />
-                                <span className="text-xs text-slate-600 dark:text-slate-400 truncate flex-1">{stage.label}</span>
-                                <span className="text-xs font-semibold text-slate-900 dark:text-white">{stage.count}</span>
+                                <span className="text-xs text-white/60 truncate flex-1">{stage.label}</span>
+                                <span className="text-xs font-semibold text-white">{stage.count}</span>
                             </div>
                         ))}
                     </div>
@@ -122,21 +122,21 @@ export function PipelineSummary({ pipeline }: PipelineSummaryProps) {
             </div>
 
             {/* Recently Closed */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+            <div className="bg-[#0e0e11] rounded-xl border border-white/[0.06] p-6">
                 <div className="flex items-center gap-2 mb-6">
                     <CheckCircle className="w-5 h-5 text-green-500" />
-                    <h3 className="font-semibold text-slate-900 dark:text-white">Recently Closed</h3>
+                    <h3 className="font-semibold text-white">Recently Closed</h3>
                 </div>
                 {stats.closedDeals.length === 0 ? (
-                    <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
-                        <p className="text-sm text-slate-500 dark:text-slate-400">No closed deals yet</p>
+                    <div className="text-center py-12 bg-white/[0.02] rounded-lg border border-dashed border-white/[0.06]">
+                        <p className="text-sm text-white/60">No closed deals yet</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <div className="divide-y divide-white/[0.06]">
                         {stats.closedDeals.slice(0, 8).map((company) => (
                             <div
                                 key={company.id}
-                                className="flex items-center gap-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 px-2 rounded-lg transition-colors -mx-2"
+                                className="flex items-center gap-4 py-4 hover:bg-white/[0.04] px-2 rounded-lg transition-colors -mx-2"
                             >
                                 <CompanyAvatar
                                     name={company.name}
@@ -146,15 +146,15 @@ export function PipelineSummary({ pipeline }: PipelineSummaryProps) {
                                     className="rounded-lg"
                                 />
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{company.name}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{company.domain}</p>
+                                    <p className="text-sm font-semibold text-white truncate">{company.name}</p>
+                                    <p className="text-xs text-white/60 truncate">{company.domain}</p>
                                 </div>
                                 {company.fitScore && (
                                     <span className={cn(
                                         "text-xs font-bold px-2.5 py-1 rounded-md",
-                                        company.fitScore >= 7.5 ? "text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30" :
-                                            company.fitScore >= 5 ? "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30" :
-                                                "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/30"
+                                        company.fitScore >= 7.5 ? "text-teal-400 bg-teal-500/15" :
+                                            company.fitScore >= 5 ? "text-amber-400 bg-amber-500/15" :
+                                                "text-red-400 bg-red-500/15"
                                     )}>
                                         {company.fitScore.toFixed(1)}
                                     </span>
@@ -180,13 +180,13 @@ function MetricCard({
     iconBg: string;
 }) {
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+        <div className="bg-[#0e0e11] rounded-xl border border-white/[0.06] p-6">
             <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-4", iconBg)}>
                 {icon}
             </div>
             <div>
-                <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-1">{value}</p>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
+                <p className="text-3xl font-bold text-white tracking-tight mb-1">{value}</p>
+                <p className="text-sm font-medium text-white/60">{label}</p>
             </div>
         </div>
     );
@@ -208,8 +208,7 @@ function DonutChart({ stages, total }: { stages: { id: string; percentage: numbe
                     cy={size / 2}
                     r={radius}
                     fill="none"
-                    stroke="#f1f5f9"
-                    className="dark:stroke-slate-800"
+                    stroke="rgba(255,255,255,0.06)"
                     strokeWidth={strokeWidth}
                 />
             </svg>
@@ -224,8 +223,7 @@ function DonutChart({ stages, total }: { stages: { id: string; percentage: numbe
                 cy={size / 2}
                 r={radius}
                 fill="none"
-                stroke="#f1f5f9"
-                className="dark:stroke-slate-800"
+                stroke="rgba(255,255,255,0.06)"
                 strokeWidth={strokeWidth}
             />
             {stages.map((stage) => {
