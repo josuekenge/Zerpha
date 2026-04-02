@@ -83,60 +83,66 @@ export function LandingPage() {
 
       {/* ── Navbar ── */}
       <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: 'circOut' }}
-        className="fixed top-0 z-50 w-full border-b border-white/[0.06] bg-[#07070e]/80 backdrop-blur-xl"
+        className="fixed top-5 inset-x-0 mx-auto z-50 w-full max-w-3xl px-4"
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-8 rounded-full border border-white/[0.10] bg-[#0a0a12]/70 backdrop-blur-2xl px-6 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
           <motion.div
             whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-2.5 cursor-pointer"
+            className="flex items-center gap-2.5 cursor-pointer flex-shrink-0"
             onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/'); }}
           >
             <ZerphaLogo />
-            <span className="font-display font-medium text-lg text-zinc-100">Zerpha</span>
+            <span className="font-display font-semibold text-base text-white/90">Zerpha</span>
           </motion.div>
 
           <div className="hidden md:flex items-center gap-8">
-            <a href="#capabilities" className="text-[13px] font-medium text-white/50 hover:text-white transition-colors">Capabilities</a>
-            <a href="#how-it-works" className="text-[13px] font-medium text-white/50 hover:text-white transition-colors">How it works</a>
-            <a href="#mission" className="text-[13px] font-medium text-white/50 hover:text-white transition-colors">Mission</a>
+            <a href="#capabilities" className="text-sm font-medium text-white/45 hover:text-white/90 transition-colors">Features</a>
+            <a href="#how-it-works" className="text-sm font-medium text-white/45 hover:text-white/90 transition-colors">How it works</a>
+            <a href="#mission" className="text-sm font-medium text-white/45 hover:text-white/90 transition-colors">About</a>
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
             {user ? (
-              <Button onClick={() => navigate('/workspace')} size="sm">
+              <button
+                onClick={() => navigate('/workspace')}
+                className="px-5 py-2 rounded-full bg-violet-500/90 hover:bg-violet-500 text-white text-sm font-semibold transition-colors"
+              >
                 Go to Workspace
-              </Button>
+              </button>
             ) : (
               <>
-                <button onClick={() => navigate('/login')} className="text-[13px] font-medium text-white/50 hover:text-white transition-colors">Sign in</button>
-                <Button onClick={() => navigate('/login')} size="sm">
+                <button onClick={() => navigate('/login')} className="text-sm font-medium text-white/45 hover:text-white/90 transition-colors px-2">Sign in</button>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="px-5 py-2 rounded-full bg-violet-500/90 hover:bg-violet-500 text-white text-sm font-semibold transition-colors"
+                >
                   Get Started
-                </Button>
+                </button>
               </>
             )}
           </div>
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden text-white/60 hover:text-white p-2"
+            className="md:hidden text-white/60 hover:text-white p-1"
           >
-            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
         </div>
 
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute top-16 left-0 w-full bg-[#09090b]/95 backdrop-blur-xl border-b border-white/[0.06] md:hidden"
+            className="mt-2 rounded-2xl border border-white/[0.08] bg-[#0a0a12]/90 backdrop-blur-xl md:hidden overflow-hidden"
           >
-            <div className="flex flex-col p-6 space-y-3">
-              <a href="#capabilities" onClick={() => setIsMobileMenuOpen(false)} className="text-sm text-white/50 hover:text-white py-2">Capabilities</a>
-              <a href="#how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="text-sm text-white/50 hover:text-white py-2">How it works</a>
-              <a href="#mission" onClick={() => setIsMobileMenuOpen(false)} className="text-sm text-white/50 hover:text-white py-2">Mission</a>
+            <div className="flex flex-col p-4 space-y-1">
+              <a href="#capabilities" onClick={() => setIsMobileMenuOpen(false)} className="text-sm text-white/50 hover:text-white py-2 px-3 rounded-lg hover:bg-white/[0.05] transition-colors">Capabilities</a>
+              <a href="#how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="text-sm text-white/50 hover:text-white py-2 px-3 rounded-lg hover:bg-white/[0.05] transition-colors">How it works</a>
+              <a href="#mission" onClick={() => setIsMobileMenuOpen(false)} className="text-sm text-white/50 hover:text-white py-2 px-3 rounded-lg hover:bg-white/[0.05] transition-colors">Mission</a>
               <div className="pt-4 border-t border-white/[0.06]">
                 {user ? (
                   <Button onClick={() => navigate('/workspace')} className="w-full">Go to Workspace</Button>
@@ -150,7 +156,7 @@ export function LandingPage() {
       </motion.nav>
 
       {/* ━━ HERO ━━ */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-grid-pattern" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center py-24 sm:py-32">

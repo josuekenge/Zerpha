@@ -3,7 +3,7 @@
  */
 
 // View types
-export type WorkspaceView = 'search' | 'companies' | 'insights' | 'pipeline' | 'people' | 'history';
+export type WorkspaceView = 'search' | 'companies' | 'insights' | 'pipeline';
 export type FitFilter = 'all' | 'high' | 'medium' | 'low';
 
 // Default values
@@ -51,9 +51,7 @@ export const LOCATIONS = [
 // View metadata
 export const VIEW_META: Record<WorkspaceView, { title: string; subtitle: string }> = {
     search: { title: 'Market Discovery', subtitle: 'New Search' },
-    companies: { title: 'Shortlist', subtitle: 'Saved Companies' },
+    companies: { title: 'Leads', subtitle: 'Companies & Contacts' },
     insights: { title: 'Insights', subtitle: 'Market Intelligence' },
     pipeline: { title: 'Pipeline', subtitle: 'Deal Flow' },
-    people: { title: 'Contacts', subtitle: 'Decision Makers' },
-    history: { title: 'Past Searches', subtitle: 'History' },
 };

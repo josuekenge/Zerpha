@@ -23,11 +23,11 @@ export function FitScoreBar({ score, size = 'md' }: FitScoreBarProps) {
     let textColor = 'text-white/25';
 
     if (score !== null && score > 0) {
-        if (score >= 7.5) {
-            barColor = 'bg-teal-500';
+        if (score >= 7) {
+            barColor = 'bg-green-500';
             textColor = 'text-white/70';
-        } else if (score >= 5) {
-            barColor = 'bg-amber-500';
+        } else if (score >= 4) {
+            barColor = 'bg-orange-500';
             textColor = 'text-white/70';
         } else {
             barColor = 'bg-red-500';

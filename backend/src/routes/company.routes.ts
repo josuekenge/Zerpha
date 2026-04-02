@@ -68,7 +68,7 @@ companyRouter.get('/companies', requireAuth, async (req: Request, res: Response,
     // Strict workspace filter - data must belong to workspace
     let query = supabase
       .from('companies')
-      .select('*')
+      .select('*, people(*)')
       .eq('is_saved', true)
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false });
@@ -97,7 +97,7 @@ companyRouter.get('/companies', requireAuth, async (req: Request, res: Response,
     }
 
     const mapped = savedCompanySchema.array().parse(
-      (data ?? []).map((row) => mapToSavedCompany(row as DatabaseCompany)),
+      (data ?? []).map((row) => mapToSavedCompany(row as DatabaseCompany & { people?: unknown[] })),
     );
 
     logger.info(
@@ -252,7 +252,7 @@ companyRouter.post('/companies/:companyId/unsave', requireAuth, async (req: Requ
   }
 });
 
-function mapToSavedCompany(row: DatabaseCompany): SavedCompany {
+function mapToSavedCompany(row: DatabaseCompany & { people?: unknown[] }): SavedCompany {
   const apiCompany = transformCompanyForApi(row);
   const category = apiCompany.saved_category ?? deriveCategory(apiCompany);
 
@@ -275,5 +275,6 @@ function mapToSavedCompany(row: DatabaseCompany): SavedCompany {
     primary_industry: apiCompany.primary_industry ?? null,
     secondary_industry: apiCompany.secondary_industry ?? null,
     favicon_url: apiCompany.favicon_url ?? null,
+    people: (row.people ?? []) as SavedCompany['people'],
   };
 }

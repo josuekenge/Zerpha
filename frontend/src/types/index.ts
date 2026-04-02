@@ -65,6 +65,7 @@ export interface SavedCompany {
   secondary_industry?: string;
   favicon_url?: string | null;
   pipeline_stage?: 'new' | 'researching' | 'contacted' | 'in_diligence' | 'closed' | null;
+  people?: PersonSummary[];
 }
 
 export interface InfographicPage {

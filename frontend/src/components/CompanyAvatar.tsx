@@ -66,7 +66,7 @@ export function CompanyAvatar({
 
         return (
             <div
-                className={`rounded-full flex items-center justify-center font-semibold bg-indigo-100 text-indigo-600 ${className}`}
+                className={`rounded-lg flex items-center justify-center font-semibold bg-white/[0.08] text-white/60 border border-white/[0.08] ${className}`}
                 style={{ ...containerStyle, fontSize }}
                 title={name}
             >
@@ -79,7 +79,7 @@ export function CompanyAvatar({
         <img
             src={effectiveFaviconUrl}
             alt={name}
-            className={`rounded-full object-cover bg-slate-100 ${className}`}
+            className={`rounded-lg object-contain bg-white/[0.06] border border-white/[0.06] ${className}`}
             style={containerStyle}
             onError={() => setHasError(true)}
             loading="lazy"

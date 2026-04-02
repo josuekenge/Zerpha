@@ -39,6 +39,22 @@ const searchHistoryItemSchema = z.object({
 
 export type SearchHistoryItem = z.infer<typeof searchHistoryItemSchema>;
 
+const personSummarySchema = z.object({
+  id: z.string(),
+  company_id: z.string(),
+  first_name: z.string().nullable(),
+  last_name: z.string().nullable(),
+  full_name: z.string().nullable(),
+  role: z.string().nullable(),
+  seniority: z.string().nullable(),
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  linkedin_url: z.string().nullable(),
+  is_ceo: z.boolean().default(false),
+  is_founder: z.boolean().default(false),
+  is_executive: z.boolean().default(false),
+});
+
 export const savedCompanySchema = z.object({
   id: z.string().uuid(),
   search_id: z.string().uuid(),
@@ -58,6 +74,7 @@ export const savedCompanySchema = z.object({
   primary_industry: z.string().nullable().optional(),
   secondary_industry: z.string().nullable().optional(),
   favicon_url: z.string().nullable().optional(),
+  people: z.array(personSummarySchema).optional(),
 });
 
 export type SavedCompany = z.infer<typeof savedCompanySchema>;

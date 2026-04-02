@@ -19,7 +19,8 @@
       "Bash(tasklist /FI \"PID eq 38748\")",
       "Bash(cmd /c \"tasklist /FI \\\\\"PID eq 8464\\\\\" && tasklist /FI \\\\\"PID eq 38748\\\\\"\")",
       "Bash(cmd /c \"tasklist | findstr /i \\\\\"8464\\\\|38748\\\\\"\")",
-      "Bash(cmd /c \"netstat -ano | findstr \\\\\":3001\\\\\"\")"
+      "Bash(cmd /c \"netstat -ano | findstr \\\\\":3001\\\\\"\")",
+      "Bash(python3 -c ':*)"
     ]
   }
 }
