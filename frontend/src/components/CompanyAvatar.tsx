@@ -19,7 +19,7 @@ function buildFaviconUrl(website: string): string | null {
         const url = new URL(normalizedUrl);
         const hostname = url.hostname;
         if (!hostname) return null;
-        return `https://www.google.com/s2/favicons?sz=64&domain_url=${hostname}`;
+        return `https://www.google.com/s2/favicons?sz=64&domain=${hostname}`;
     } catch {
         return null;
     }

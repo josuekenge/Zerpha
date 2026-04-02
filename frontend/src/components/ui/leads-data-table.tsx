@@ -193,7 +193,7 @@ export function LeadsDataTable({
       <div className="border border-white/[0.06] rounded-2xl overflow-hidden">
 
         {/* Header */}
-        <div className="grid grid-cols-[1fr_1fr_1.5fr_2.2fr_1.8fr_1fr_1.1fr_0.8fr] gap-3 px-5 py-3 text-xs font-medium text-white/30 uppercase tracking-wide bg-white/[0.02] border-b border-white/[0.06] group">
+        <div className="grid grid-cols-[1fr_1fr_1.5fr_2.2fr_1.8fr_1fr_1.1fr_0.8fr] gap-3 px-5 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-widest bg-white/[0.02] border-b border-white/[0.06] group">
           <div className="flex items-center gap-2.5">
             <Checkbox
               checked={isAllSelected}

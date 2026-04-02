@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { AlertCircle, GripVertical, ExternalLink, Search, StickyNote, Check, LayoutGrid, BarChart2, Calendar } from 'lucide-react';
+import { AlertCircle, GripVertical, ExternalLink, Search, StickyNote, Check, LayoutGrid, BarChart2, Calendar, X } from 'lucide-react';
 import { AiLoader } from './ui/ai-loader';
 import {
     DndContext,
@@ -40,13 +40,12 @@ interface PipelinePageProps {
     onCompanyClick?: (companyId: string) => void;
 }
 
-// Header badge colors only - columns are white
-const STAGE_BADGE_COLORS: Record<PipelineStage, string> = {
-    new: 'bg-slate-500',
-    researching: 'bg-blue-500',
-    contacted: 'bg-amber-500',
-    in_diligence: 'bg-purple-500',
-    closed: 'bg-green-500',
+const STAGE_DOT: Record<PipelineStage, string> = {
+    new: 'bg-white/30',
+    researching: 'bg-blue-400',
+    contacted: 'bg-amber-400',
+    in_diligence: 'bg-violet-400',
+    closed: 'bg-emerald-400',
 };
 
 // Module-level cache so pipeline data persists across tab switches
@@ -286,88 +285,56 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
     }
 
     return (
-        <div className="h-full flex flex-col overflow-hidden p-6 bg-[#09090b]">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-                <div>
-                    <h1 className="text-xl font-bold text-white">Pipeline</h1>
-                    <p className="text-sm text-white/60">{totalCompanies} companies in your pipeline</p>
-                </div>
-            </div>
-
-            {/* Search Bar + View Toggle */}
-            <div className="flex items-center justify-between gap-4 mb-6">
-                <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+        <div className="h-full flex flex-col overflow-hidden px-5 pt-5 pb-0 bg-[#09090b]">
+            {/* Toolbar: search + view toggle inline */}
+            <div className="flex items-center gap-3 mb-4">
+                <div className="relative w-64 shrink-0">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25 pointer-events-none" />
                     <input
                         type="text"
                         placeholder="Search companies, notes..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full pl-8 pr-8 py-1.5 bg-white/[0.04] border border-white/[0.08] rounded-lg text-xs text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-400/30 focus:border-violet-400/30 transition-all"
                     />
                     {searchQuery && (
-                        <button
-                            onClick={() => setSearchQuery('')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/30 hover:text-white/60"
-                        >
-                            Clear
+                        <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60">
+                            <X className="w-3 h-3" />
                         </button>
                     )}
                 </div>
 
-                {/* View Toggle */}
-                <div className="flex bg-white/[0.04] rounded-lg p-1 gap-1">
-                    <button
-                        onClick={() => setActiveView('board')}
-                        className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all",
-                            activeView === 'board'
-                                ? "bg-white/[0.08] text-white"
-                                : "text-white/60 hover:text-white hover:bg-white/[0.06]"
-                        )}
-                    >
-                        <LayoutGrid className="w-4 h-4" />
-                        Board
-                    </button>
-                    <button
-                        onClick={() => setActiveView('summary')}
-                        className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all",
-                            activeView === 'summary'
-                                ? "bg-white/[0.08] text-white"
-                                : "text-white/60 hover:text-white hover:bg-white/[0.06]"
-                        )}
-                    >
-                        <BarChart2 className="w-4 h-4" />
-                        Summary
-                    </button>
-                    <button
-                        onClick={() => setActiveView('backlog')}
-                        className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all",
-                            activeView === 'backlog'
-                                ? "bg-white/[0.08] text-white"
-                                : "text-white/60 hover:text-white hover:bg-white/[0.06]"
-                        )}
-                    >
-                        <Calendar className="w-4 h-4" />
-                        Backlog
-                    </button>
+                {/* View Toggle — immediately after search */}
+                <div className="flex bg-white/[0.04] border border-white/[0.06] rounded-lg p-0.5 gap-0.5">
+                    {([ ['board', LayoutGrid, 'Board'], ['summary', BarChart2, 'Summary'], ['backlog', Calendar, 'Backlog'] ] as const).map(([view, Icon, label]) => (
+                        <button
+                            key={view}
+                            onClick={() => setActiveView(view)}
+                            className={cn(
+                                "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all",
+                                activeView === view
+                                    ? "bg-violet-500/20 text-violet-300"
+                                    : "text-white/35 hover:text-white/65 hover:bg-white/[0.04]"
+                            )}
+                        >
+                            <Icon className="w-3.5 h-3.5" />
+                            {label}
+                        </button>
+                    ))}
                 </div>
+
+                <span className="text-[11px] text-white/20 ml-auto">{totalCompanies} companies</span>
             </div>
 
-            {/* Error toast */}
+            {/* Toasts */}
             {updateError && (
-                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+                <div className="mb-3 px-3 py-2 bg-red-500/10 border border-red-500/15 rounded-lg text-xs text-red-400">
                     {updateError}
                 </div>
             )}
-
-            {/* Success toast */}
             {successToast && (
-                <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm text-green-400 flex items-center gap-2">
-                    <Check className="w-4 h-4" />
+                <div className="mb-3 px-3 py-2 bg-violet-500/10 border border-violet-500/15 rounded-lg text-xs text-violet-300 flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5" />
                     {successToast}
                 </div>
             )}
@@ -380,7 +347,7 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
                     onDragStart={handleDragStart}
                     onDragEnd={handleDragEnd}
                 >
-                    <div className="flex-1 flex gap-4 overflow-x-auto pb-4">
+                    <div className="flex-1 flex gap-3 overflow-x-auto pb-4 min-w-0">
                         {filteredPipeline?.stages.map(stage => (
                             <PipelineColumn
                                 key={stage.id}
@@ -399,7 +366,7 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
 
             {/* Summary View */}
             {activeView === 'summary' && (
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-hidden -mx-5 -mb-4">
                     <PipelineSummary pipeline={pipeline} />
                 </div>
             )}
@@ -471,17 +438,14 @@ function PipelineColumn({ stage, onCompanyClick, onNotesClick }: PipelineColumnP
     return (
         <div
             ref={setNodeRef}
-            className="flex-shrink-0 w-72 flex flex-col rounded-xl border border-white/[0.06] bg-white/[0.02]"
+            className="flex-1 min-w-[190px] max-w-xs flex flex-col rounded-xl border border-white/[0.06] bg-[#0c0c10]"
         >
             {/* Column Header */}
-            <div className="p-3 border-b border-white/[0.06]">
-                <div className="flex items-center gap-2">
-                    <span className={cn("w-2 h-2 rounded-full", STAGE_BADGE_COLORS[stage.id])} />
-                    <h3 className="font-semibold text-sm text-white">{stage.label}</h3>
-                    <span className="ml-auto text-xs font-medium text-white/50 bg-white/[0.08] px-2 py-0.5 rounded-full">
-                        {stage.companies.length}
-                    </span>
-                </div>
+            <div className="px-4 py-3 flex items-center gap-3 border-b border-white/[0.06] bg-white/[0.02] shrink-0">
+                <h3 className="text-[11px] font-semibold text-white/40 tracking-widest uppercase flex-1">{stage.label}</h3>
+                <span className="text-[11px] font-medium text-white/25 tabular-nums">
+                    {stage.companies.length}
+                </span>
             </div>
 
             {/* Droppable Area */}
@@ -491,14 +455,12 @@ function PipelineColumn({ stage, onCompanyClick, onNotesClick }: PipelineColumnP
                 strategy={verticalListSortingStrategy}
             >
                 <div
-                    className="flex-1 p-2 space-y-2 overflow-y-auto min-h-[200px]"
+                    className="flex-1 p-2 space-y-1.5 overflow-y-auto min-h-[120px] scrollbar-hide"
                     data-stage={stage.id}
                 >
                     {stage.companies.length === 0 ? (
-                        <div className="h-full flex items-center justify-center">
-                            <p className="text-xs text-white/30 text-center p-4">
-                                Drop companies here
-                            </p>
+                        <div className="h-16 border border-dashed border-white/[0.06] rounded-lg flex items-center justify-center mt-1">
+                            <p className="text-[10px] text-white/15">Drop here</p>
                         </div>
                     ) : (
                         stage.companies.map(company => (
@@ -554,82 +516,99 @@ interface PipelineCardProps {
     onNotesClick?: (companyId: string, e: React.MouseEvent) => void;
 }
 
-function PipelineCard({ company, isDragging, onCompanyClick, onNotesClick }: PipelineCardProps) {
-    const getScoreColor = (score: number | null) => {
-        if (score === null) return 'text-white/30 bg-white/[0.06]';
-        if (score >= 7.5) return 'text-teal-400 bg-teal-500/15';
-        if (score >= 5) return 'text-amber-400 bg-amber-500/15';
-        return 'text-red-400 bg-red-500/15';
-    };
+const SCORE_ACCENT: Record<string, string> = {
+    high: 'border-l-emerald-500/60',
+    medium: 'border-l-amber-500/50',
+    low: 'border-l-red-500/50',
+    none: 'border-l-white/[0.06]',
+};
 
+function getScoreTier(score: number | null): 'high' | 'medium' | 'low' | 'none' {
+    if (score === null) return 'none';
+    if (score >= 7.5) return 'high';
+    if (score >= 5) return 'medium';
+    return 'low';
+}
+
+const SCORE_LABEL: Record<string, string> = {
+    high: 'text-emerald-400',
+    medium: 'text-amber-400',
+    low: 'text-red-400',
+    none: 'text-white/25',
+};
+
+function PipelineCard({ company, isDragging, onCompanyClick, onNotesClick }: PipelineCardProps) {
+    const tier = getScoreTier(company.fitScore);
     const hasNotes = company.notes || company.notesTitle;
 
     return (
         <div
             className={cn(
-                "bg-[#0e0e11] rounded-lg border border-white/[0.06] p-3 cursor-grab active:cursor-grabbing hover:border-white/[0.12] hover:bg-white/[0.04] transition-all",
-                isDragging && "ring-2 ring-indigo-400"
+                "group relative bg-[#111118] rounded-lg border border-white/[0.07] border-l-2 pl-2.5 pr-3 pt-2.5 pb-2 cursor-grab active:cursor-grabbing hover:bg-[#16161f] hover:border-white/[0.12] transition-all",
+                SCORE_ACCENT[tier],
+                isDragging && "opacity-50 ring-1 ring-violet-500/40"
             )}
             onClick={() => onCompanyClick?.(company.id)}
         >
+            {/* Company name + favicon */}
             <div className="flex items-start gap-2">
                 <CompanyAvatar
                     name={company.name}
                     faviconUrl={company.faviconUrl}
                     website={company.domain}
-                    size={24}
-                    className="flex-shrink-0"
+                    size={20}
+                    className="flex-shrink-0 mt-0.5"
                 />
-
                 <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm text-white truncate">{company.name}</h4>
-                    <a
-                        href={`https://${company.domain}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 truncate"
-                    >
-                        {company.domain}
-                        <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
+                    <span className="text-[13px] font-medium text-white/90 leading-tight line-clamp-1">{company.name}</span>
                 </div>
-
-                {/* Quick Notes Action */}
+                {/* Notes icon — visible when notes exist, otherwise on hover */}
                 <button
                     onClick={(e) => onNotesClick?.(company.id, e)}
                     className={cn(
-                        "p-1 rounded hover:bg-white/[0.06] flex-shrink-0 transition-colors",
-                        hasNotes ? "text-indigo-400" : "text-white/30 hover:text-white/60"
+                        "shrink-0 p-0.5 rounded transition-all -mt-0.5",
+                        hasNotes
+                            ? "text-violet-400/80 hover:text-violet-300"
+                            : "text-white/0 group-hover:text-white/25 hover:!text-white/50"
                     )}
                     title={hasNotes ? "View notes" : "Add notes"}
                 >
-                    <StickyNote className="w-4 h-4" />
+                    <StickyNote className="w-3.5 h-3.5" />
                 </button>
             </div>
 
-            {/* Notes Preview */}
+            {/* Domain link */}
+            <a
+                href={`https://${company.domain}`}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="mt-0.5 ml-7 text-[11px] text-white/25 hover:text-violet-400/70 flex items-center gap-0.5 truncate transition-colors w-fit"
+            >
+                {company.domain}
+                <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+            </a>
+
+            {/* Notes preview */}
             {hasNotes && (
-                <div className="mt-2 p-2 bg-white/[0.04] rounded-md border border-white/[0.06]">
+                <div className="mt-2 ml-7 px-2 py-1.5 bg-white/[0.03] rounded border border-white/[0.05]">
                     {company.notesTitle && (
-                        <p className="text-xs font-medium text-white truncate">{company.notesTitle}</p>
+                        <p className="text-[11px] font-medium text-white/60 truncate">{company.notesTitle}</p>
                     )}
                     {company.notes && (
-                        <p className="text-xs text-white/60 truncate mt-0.5">{company.notes}</p>
+                        <p className="text-[11px] text-white/35 line-clamp-2 mt-0.5 leading-relaxed">{company.notes}</p>
                     )}
                 </div>
             )}
 
-            <div className="mt-2 flex items-center justify-between">
+            {/* Footer: industry + fit score */}
+            <div className="mt-2.5 flex items-center gap-2">
                 {company.industry && (
-                    <span className="text-xs text-white/60 truncate max-w-[60%]">{company.industry}</span>
+                    <span className="text-[10px] text-white/25 bg-white/[0.04] px-1.5 py-0.5 rounded truncate max-w-[70%]">
+                        {company.industry}
+                    </span>
                 )}
-                <span
-                    className={cn(
-                        "text-xs font-medium px-1.5 py-0.5 rounded ml-auto",
-                        getScoreColor(company.fitScore)
-                    )}
-                >
+                <span className={cn("ml-auto text-[11px] font-semibold tabular-nums shrink-0", SCORE_LABEL[tier])}>
                     {company.fitScore?.toFixed(1) ?? '—'}
                 </span>
             </div>
