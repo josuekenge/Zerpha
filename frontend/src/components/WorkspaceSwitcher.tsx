@@ -18,7 +18,6 @@ export function WorkspaceSwitcher({ onNavigateToSettings }: WorkspaceSwitcherPro
     const dropdownRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -28,12 +27,10 @@ export function WorkspaceSwitcher({ onNavigateToSettings }: WorkspaceSwitcherPro
                 setCreateError(null);
             }
         }
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Focus input when create form opens
     useEffect(() => {
         if (showCreateForm && inputRef.current) {
             inputRef.current.focus();
@@ -41,11 +38,7 @@ export function WorkspaceSwitcher({ onNavigateToSettings }: WorkspaceSwitcherPro
     }, [showCreateForm]);
 
     const handleSwitch = async (ws: WorkspaceSummary) => {
-        if (ws.id === workspace?.id) {
-            setIsOpen(false);
-            return;
-        }
-
+        if (ws.id === workspace?.id) { setIsOpen(false); return; }
         try {
             setSwitching(true);
             await switchWorkspace(ws.id);
@@ -59,11 +52,7 @@ export function WorkspaceSwitcher({ onNavigateToSettings }: WorkspaceSwitcherPro
 
     const handleCreateWorkspace = async () => {
         const trimmedName = newWorkspaceName.trim();
-        if (!trimmedName) {
-            setCreateError('Please enter a workspace name');
-            return;
-        }
-
+        if (!trimmedName) { setCreateError('Please enter a workspace name'); return; }
         try {
             setSwitching(true);
             setCreateError(null);
@@ -79,63 +68,39 @@ export function WorkspaceSwitcher({ onNavigateToSettings }: WorkspaceSwitcherPro
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleCreateWorkspace();
-        } else if (e.key === 'Escape') {
-            setShowCreateForm(false);
-            setNewWorkspaceName('');
-            setCreateError(null);
-        }
+        if (e.key === 'Enter') { e.preventDefault(); handleCreateWorkspace(); }
+        else if (e.key === 'Escape') { setShowCreateForm(false); setNewWorkspaceName(''); setCreateError(null); }
     };
 
     const displayName = workspace?.name || 'Zerpha Intelligence';
     const displayInitial = displayName.charAt(0).toUpperCase();
 
-    // Get role badge color
-    const getRoleBadgeClass = (role: string) => {
-        switch (role) {
-            case 'owner':
-                return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300';
-            case 'admin':
-                return 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300';
-            default:
-                return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
-        }
-    };
-
     return (
         <div className="relative" ref={dropdownRef}>
-            {/* Trigger Button */}
+            {/* Trigger */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 disabled={loading || switching}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group disabled:opacity-60"
+                className="w-full flex items-center justify-between px-2 h-9 text-sm font-ui text-white/70 hover:bg-white/[0.05] hover:text-white rounded-lg transition-colors disabled:opacity-50 group"
             >
-                <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold border border-indigo-100 group-hover:border-indigo-200 transition-colors overflow-hidden">
-                        {workspace?.logo_url ? (
-                            <img src={workspace.logo_url} alt="Workspace Logo" className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full bg-indigo-50 text-indigo-600 flex items-center justify-center">{displayInitial}</div>
-                        )}
+                <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-semibold bg-white/[0.08] border border-white/[0.10] text-white flex-shrink-0 overflow-hidden">
+                        {workspace?.logo_url
+                            ? <img src={workspace.logo_url} alt="logo" className="w-full h-full object-cover" />
+                            : displayInitial}
                     </div>
-                    <span className="group-hover:text-indigo-900 dark:group-hover:text-indigo-400 transition-colors truncate max-w-[140px]">
-                        {switching ? 'Switching...' : displayName}
-                    </span>
+                    <span className="truncate">{switching ? 'Switching...' : displayName}</span>
                 </div>
-                <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 flex-shrink-0" />
+                <ChevronsUpDown className="w-3.5 h-3.5 text-white/25 flex-shrink-0" />
             </button>
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden z-50">
-                    {/* Workspaces List */}
-                    <div className="max-h-64 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-[#0a0a0a] rounded-xl border border-white/[0.08] shadow-2xl overflow-hidden z-50">
+                    {/* Workspace list */}
+                    <div className="max-h-64 overflow-y-auto py-1">
                         {allWorkspaces.length === 0 ? (
-                            <div className="px-3 py-4 text-center text-sm text-slate-500">
-                                No workspaces found
-                            </div>
+                            <p className="px-3 py-4 text-center text-xs text-white/30">No workspaces found</p>
                         ) : (
                             allWorkspaces.map((ws) => (
                                 <button
@@ -143,40 +108,30 @@ export function WorkspaceSwitcher({ onNavigateToSettings }: WorkspaceSwitcherPro
                                     onClick={() => handleSwitch(ws)}
                                     disabled={switching}
                                     className={cn(
-                                        "w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors disabled:opacity-50",
+                                        "w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors disabled:opacity-50",
                                         ws.id === workspace?.id
-                                            ? "bg-indigo-50 dark:bg-indigo-900/20"
-                                            : "hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                            ? "bg-white/[0.06]"
+                                            : "hover:bg-white/[0.04]"
                                     )}
                                 >
-                                    {/* Workspace Icon */}
-                                    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-600 overflow-hidden flex-shrink-0">
-                                        {ws.logo_url ? (
-                                            <img src={ws.logo_url} alt={ws.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                                                {ws.name.charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
+                                    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold bg-white/[0.08] border border-white/[0.10] text-white flex-shrink-0 overflow-hidden">
+                                        {ws.logo_url
+                                            ? <img src={ws.logo_url} alt={ws.name} className="w-full h-full object-cover" />
+                                            : ws.name.charAt(0).toUpperCase()}
                                     </div>
-
-                                    {/* Workspace Info */}
                                     <div className="flex-1 text-left min-w-0">
                                         <div className="flex items-center gap-2">
-                                            <span className="font-medium text-slate-900 dark:text-white truncate">
-                                                {ws.name}
-                                            </span>
+                                            <span className="font-medium text-white truncate text-sm">{ws.name}</span>
                                             {ws.id === workspace?.id && (
-                                                <Check className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
+                                                <Check className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
                                             )}
                                         </div>
                                         <div className="flex items-center gap-2 mt-0.5">
-                                            <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium capitalize", getRoleBadgeClass(ws.role))}>
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium capitalize bg-white/[0.06] text-white/40 border border-white/[0.08]">
                                                 {ws.role}
                                             </span>
-                                            <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                                                <Users className="w-3 h-3" />
-                                                {ws.member_count}
+                                            <span className="text-[10px] text-white/25 flex items-center gap-1">
+                                                <Users className="w-3 h-3" />{ws.member_count}
                                             </span>
                                         </div>
                                     </div>
@@ -185,80 +140,59 @@ export function WorkspaceSwitcher({ onNavigateToSettings }: WorkspaceSwitcherPro
                         )}
                     </div>
 
-                    {/* Divider */}
-                    <div className="border-t border-slate-200 dark:border-slate-700" />
+                    <div className="border-t border-white/[0.06]" />
 
-                    {/* Create New Workspace Form */}
+                    {/* Create form */}
                     {showCreateForm ? (
-                        <div className="p-3 space-y-3">
+                        <div className="p-3 space-y-2">
                             <input
                                 ref={inputRef}
                                 type="text"
                                 placeholder="Workspace name..."
                                 value={newWorkspaceName}
-                                onChange={(e) => {
-                                    setNewWorkspaceName(e.target.value);
-                                    setCreateError(null);
-                                }}
+                                onChange={(e) => { setNewWorkspaceName(e.target.value); setCreateError(null); }}
                                 onKeyDown={handleKeyDown}
                                 disabled={switching}
-                                className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
+                                className="w-full px-3 py-1.5 text-sm font-ui bg-black border border-white/[0.08] rounded-lg text-white placeholder:text-white/25 focus:outline-none focus:border-violet-500/40 disabled:opacity-50"
                             />
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={handleCreateWorkspace}
                                     disabled={switching || !newWorkspaceName.trim()}
-                                    className="flex-1 px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
+                                    className="flex-1 px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                                 >
-                                    {switching ? (
-                                        <Loader2 className="w-3 h-3 animate-spin" />
-                                    ) : (
-                                        <>
-                                            <Plus className="w-3 h-3" />
-                                            Create Workspace
-                                        </>
-                                    )}
+                                    {switching ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Plus className="w-3 h-3" />Create</>}
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        setShowCreateForm(false);
-                                        setNewWorkspaceName('');
-                                        setCreateError(null);
-                                    }}
+                                    onClick={() => { setShowCreateForm(false); setNewWorkspaceName(''); setCreateError(null); }}
                                     disabled={switching}
-                                    className="px-3 py-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors text-xs"
+                                    className="px-3 py-1.5 text-white/40 hover:text-white/70 border border-white/[0.08] rounded-lg transition-colors text-xs"
                                 >
                                     Cancel
                                 </button>
                             </div>
-                            {createError && (
-                                <p className="text-[10px] text-red-500">{createError}</p>
-                            )}
+                            {createError && <p className="text-[10px] text-red-400">{createError}</p>}
                         </div>
                     ) : (
                         <button
                             onClick={() => setShowCreateForm(true)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors font-medium"
+                            className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-ui text-white/40 hover:bg-white/[0.04] hover:text-white/70 transition-colors"
                         >
                             <Plus className="w-3.5 h-3.5" />
-                            <span>Create New Workspace</span>
+                            Create New Workspace
                         </button>
                     )}
 
-                    {/* Divider */}
-                    <div className="border-t border-slate-200 dark:border-slate-700" />
-
-                    {/* Manage Workspaces */}
                     {onNavigateToSettings && (
-                        <button
-                            onClick={() => {
-                                setIsOpen(false);
-                                onNavigateToSettings();
-                            }}
-                            className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                        >
-                            <span>Manage Workspaces</span>
-                        </button>
+                        <>
+                            <div className="border-t border-white/[0.06]" />
+                            <button
+                                onClick={() => { setIsOpen(false); onNavigateToSettings(); }}
+                                className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-ui text-white/40 hover:bg-white/[0.04] hover:text-white/70 transition-colors"
+                            >
+                                Manage Workspaces
+                            </button>
+                        </>
                     )}
                 </div>
             )}

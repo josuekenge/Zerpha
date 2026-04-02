@@ -8,10 +8,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Manrope', 'Inter', 'sans-serif'],
+        sans: ['Lexend', 'Manrope', 'Inter', 'sans-serif'],
         display: ['Fraunces', 'Georgia', 'serif'],
-        body: ['Manrope', 'Inter', 'sans-serif'],
+        body: ['Lexend', 'Manrope', 'Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        ui: ['Lexend', 'Manrope', 'sans-serif'],
       },
       colors: {
         primary: {

@@ -159,8 +159,8 @@ export function ChatWidget({ context, mode = 'floating', className }: ChatWidget
                         <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
                     </div>
                 ) : (
-                    <div className="w-6 h-6 rounded bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
-                        <FileIcon className="w-3 h-3 text-indigo-400" />
+                    <div className="w-6 h-6 rounded bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                        <FileIcon className="w-3 h-3 text-violet-400" />
                     </div>
                 )}
                 <span className="text-xs text-white/60 truncate max-w-[100px]">{file.name}</span>
@@ -203,7 +203,7 @@ export function ChatWidget({ context, mode = 'floating', className }: ChatWidget
                     "w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200",
                     isOpen
                         ? "bg-white/[0.06] text-white/40 border border-white/[0.08] hover:bg-white/[0.1]"
-                        : "bg-indigo-500 text-white hover:bg-indigo-400 hover:shadow-xl"
+                        : "bg-violet-600 text-white hover:bg-violet-500 hover:shadow-xl"
                 )}
             >
                 {isOpen ? (
@@ -256,11 +256,20 @@ function ChatInterface({
             {/* Header */}
             <div className="px-4 py-3 flex items-center justify-between bg-white/[0.03] border-b border-white/[0.06]">
                 <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-sm shadow-indigo-500/20">
-                        Z
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(109,40,217,0.20)', border: '1px solid rgba(139,92,246,0.25)' }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" className="w-5 h-5">
+                            <defs>
+                                <linearGradient id="cw-zg" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#a78bfa" />
+                                    <stop offset="50%" stopColor="#c084fc" />
+                                    <stop offset="100%" stopColor="#7c3aed" />
+                                </linearGradient>
+                            </defs>
+                            <path d="M6 7h20L6 25h20" stroke="url(#cw-zg)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                     </div>
                     <div>
-                        <h3 className="font-semibold text-sm text-white">Zerpha AI</h3>
+                        <h3 className="font-display font-medium text-sm text-white">Zerpha AI</h3>
                         <div className="flex items-center gap-1">
                             <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                             <span className="text-[10px] text-white/30">Online</span>
@@ -288,7 +297,7 @@ function ChatInterface({
                             className={cn(
                                 "max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm whitespace-pre-wrap",
                                 message.role === 'user'
-                                    ? "bg-indigo-500/20 text-white rounded-br-md"
+                                    ? "bg-violet-600/20 text-white rounded-br-md"
                                     : "bg-white/[0.04] text-white/80 border border-white/[0.08] rounded-bl-md"
                             )}
                         >
@@ -328,7 +337,7 @@ function ChatInterface({
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="p-2 text-white/40 hover:text-indigo-400 hover:bg-white/[0.06] rounded-lg transition-colors flex-shrink-0"
+                        className="p-2 text-white/40 hover:text-violet-400 hover:bg-white/[0.06] rounded-lg transition-colors flex-shrink-0"
                         title="Attach files"
                     >
                         <Paperclip className="w-4 h-4" />
@@ -340,14 +349,14 @@ function ChatInterface({
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             placeholder="Type a message..."
-                            className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all placeholder:text-white/20"
+                            className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm font-body text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 transition-all placeholder:text-white/20"
                         />
                     </div>
 
                     <button
                         type="submit"
                         disabled={(!inputValue.trim() && selectedFiles.length === 0) || isTyping}
-                        className="p-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                        className="p-2 bg-violet-600 text-white rounded-lg hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                     >
                         {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     </button>

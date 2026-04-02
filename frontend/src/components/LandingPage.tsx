@@ -16,8 +16,18 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth, signInWithGoogle } from '../lib/auth';
 import { TypewriterEffect } from './TypewriterEffect';
+import { Button } from '@/components/ui/button';
 
 const PENDING_SEARCH_KEY = 'pendingSearchQuery';
+
+function ZerphaLogo({ size = 'md' }: { size?: 'sm' | 'md' }) {
+  const font = size === 'sm' ? 'text-xl' : 'text-2xl';
+  return (
+    <span className={`${font} font-bold leading-none bg-gradient-to-r from-violet-400 via-purple-400 to-violet-600 bg-clip-text text-transparent`}>
+      Z
+    </span>
+  );
+}
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -59,14 +69,24 @@ export function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] selection:bg-indigo-400/30 selection:text-white font-body relative overflow-x-hidden">
+    <div className="min-h-screen selection:bg-indigo-400/30 selection:text-white font-body relative overflow-x-hidden" style={{background: '#07070e'}}>
+
+      {/* ── Global violet atmosphere — fixed, covers full scroll ── */}
+      <div className="pointer-events-none fixed inset-0" style={{zIndex: 0}}>
+        <div className="absolute inset-0" style={{background: 'radial-gradient(ellipse 80% 55% at 50% 0%, rgba(109,40,217,0.55) 0%, transparent 65%)'}} />
+        <div className="absolute inset-0" style={{background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(91,33,182,0.22) 0%, transparent 70%)'}} />
+        <div className="absolute inset-0" style={{background: 'radial-gradient(ellipse 70% 40% at 50% 100%, rgba(109,40,217,0.25) 0%, transparent 65%)'}} />
+      </div>
+
+      {/* All page content sits above the gradient layer */}
+      <div className="relative" style={{zIndex: 1}}>
 
       {/* ── Navbar ── */}
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, ease: 'circOut' }}
-        className="fixed top-0 z-50 w-full border-b border-white/[0.06] bg-[#09090b]/80 backdrop-blur-xl"
+        className="fixed top-0 z-50 w-full border-b border-white/[0.06] bg-[#07070e]/80 backdrop-blur-xl"
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
           <motion.div
@@ -74,10 +94,8 @@ export function LandingPage() {
             className="flex items-center gap-2.5 cursor-pointer"
             onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/'); }}
           >
-            <div className="w-7 h-7 rounded-md flex items-center justify-center bg-indigo-400">
-              <span className="font-body font-extrabold text-[13px] text-[#09090b] leading-none">Z</span>
-            </div>
-            <span className="font-display font-medium text-lg text-white tracking-tight">Zerpha</span>
+            <ZerphaLogo />
+            <span className="font-display font-medium text-lg text-zinc-100">Zerpha</span>
           </motion.div>
 
           <div className="hidden md:flex items-center gap-8">
@@ -88,21 +106,15 @@ export function LandingPage() {
 
           <div className="hidden md:flex items-center gap-3">
             {user ? (
-              <button
-                onClick={() => navigate('/workspace')}
-                className="text-[13px] font-medium bg-white text-[#09090b] px-5 py-2 rounded-lg hover:bg-white/90 transition-all"
-              >
+              <Button onClick={() => navigate('/workspace')} size="sm">
                 Go to Workspace
-              </button>
+              </Button>
             ) : (
               <>
                 <button onClick={() => navigate('/login')} className="text-[13px] font-medium text-white/50 hover:text-white transition-colors">Sign in</button>
-                <button
-                  onClick={() => navigate('/login')}
-                  className="text-[13px] font-medium bg-white text-[#09090b] px-5 py-2 rounded-lg hover:bg-white/90 transition-all"
-                >
+                <Button onClick={() => navigate('/login')} size="sm">
                   Get Started
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -127,13 +139,9 @@ export function LandingPage() {
               <a href="#mission" onClick={() => setIsMobileMenuOpen(false)} className="text-sm text-white/50 hover:text-white py-2">Mission</a>
               <div className="pt-4 border-t border-white/[0.06]">
                 {user ? (
-                  <button onClick={() => navigate('/workspace')} className="w-full text-center text-sm font-medium bg-white text-[#09090b] px-5 py-3 rounded-lg">
-                    Go to Workspace
-                  </button>
+                  <Button onClick={() => navigate('/workspace')} className="w-full">Go to Workspace</Button>
                 ) : (
-                  <button onClick={() => navigate('/login')} className="w-full text-center text-sm font-medium bg-white text-[#09090b] px-5 py-3 rounded-lg">
-                    Get Started
-                  </button>
+                  <Button onClick={() => navigate('/login')} className="w-full">Get Started</Button>
                 )}
               </div>
             </div>
@@ -144,7 +152,6 @@ export function LandingPage() {
       {/* ━━ HERO ━━ */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
         <div className="absolute inset-0 bg-grid-pattern" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-indigo-400/[0.07] rounded-full blur-[150px] pointer-events-none" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center py-24 sm:py-32">
           <motion.div
@@ -170,8 +177,8 @@ export function LandingPage() {
             <br className="hidden sm:block" />
             <TypewriterEffect
               words={["vertical SaaS.", "market intelligence.", "deal sourcing.", "private equity."]}
-              className="text-indigo-400"
-              cursorClassName="bg-indigo-400"
+              className="bg-gradient-to-r from-violet-400 via-purple-400 to-violet-600 bg-clip-text text-transparent"
+              cursorClassName="bg-violet-400"
             />
           </motion.h1>
 
@@ -227,17 +234,15 @@ export function LandingPage() {
             transition={{ duration: 0.6, delay: 0.6 }}
             className="mt-8"
           >
-            <button
+            <Button
               onClick={() => void handleSearch()}
               disabled={isAuthLoading}
-              className={`inline-flex items-center gap-2 rounded-lg px-7 py-3.5 text-sm font-semibold transition-all font-body ${isAuthLoading
-                ? 'bg-white/10 text-white/40 cursor-not-allowed'
-                : 'bg-white text-[#09090b] hover:bg-white/90'
-                }`}
+              size="lg"
+              className="px-8"
             >
               {isAuthLoading ? 'Connecting...' : 'Start discovering'}
-              {!isAuthLoading && <ChevronRight className="h-4 w-4" />}
-            </button>
+              {!isAuthLoading && <ChevronRight className="ml-1 h-4 w-4" />}
+            </Button>
           </motion.div>
 
           <motion.div
@@ -282,7 +287,7 @@ export function LandingPage() {
               {/* Query */}
               <div>
                 <span className="text-white/25">$</span>
-                <span className="text-indigo-400 ml-2">zerpha search</span>
+                <span className="ml-2 bg-gradient-to-r from-violet-400 via-purple-400 to-violet-600 bg-clip-text text-transparent">zerpha search</span>
                 <span className="text-white/60 ml-2">"sustainable logistics"</span>
               </div>
 
@@ -312,7 +317,7 @@ export function LandingPage() {
                     </div>
                     <div className="flex items-baseline gap-4 shrink-0">
                       <span className="text-white/20 hidden sm:inline text-[12px]">{r.vertical}</span>
-                      <span className="text-indigo-400 font-medium">{r.score}</span>
+                      <span className="font-medium bg-gradient-to-r from-violet-400 via-purple-400 to-violet-600 bg-clip-text text-transparent">{r.score}</span>
                     </div>
                   </motion.div>
                 ))}
@@ -341,7 +346,7 @@ export function LandingPage() {
             transition={{ duration: 0.5 }}
             className="max-w-xl mb-20"
           >
-            <p className="text-xs font-semibold text-indigo-400 uppercase tracking-[0.2em] mb-5 font-body">Capabilities</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-5 font-body bg-gradient-to-r from-violet-400 via-purple-400 to-violet-600 bg-clip-text text-transparent">Capabilities</p>
             <h2 className="text-3xl sm:text-4xl font-display font-medium tracking-tight text-white leading-[1.1]">
               Find, evaluate, close.
             </h2>
@@ -397,7 +402,7 @@ export function LandingPage() {
             transition={{ duration: 0.5 }}
             className="max-w-xl mb-20"
           >
-            <p className="text-xs font-semibold text-indigo-400 uppercase tracking-[0.2em] mb-5 font-body">How it works</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-5 font-body bg-gradient-to-r from-violet-400 via-purple-400 to-violet-600 bg-clip-text text-transparent">How it works</p>
             <h2 className="text-3xl sm:text-4xl font-display font-medium tracking-tight text-white leading-[1.1]">
               Three steps. Full pipeline.
             </h2>
@@ -436,7 +441,7 @@ export function LandingPage() {
                   <div className="hidden md:block absolute top-5 -right-6 w-12 h-px bg-white/[0.06]" />
                 )}
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-400/10 text-indigo-400 ring-1 ring-indigo-400/20">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-400/10 text-violet-400 ring-1 ring-violet-400/20">
                     {item.icon}
                   </div>
                   <span className="text-[11px] font-mono text-white/15 uppercase tracking-widest">{item.step}</span>
@@ -461,27 +466,25 @@ export function LandingPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-[0.2em] mb-6 font-body">For serious acquirers</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-6 font-body bg-gradient-to-r from-violet-400 via-purple-400 to-violet-600 bg-clip-text text-transparent">For serious acquirers</p>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-medium tracking-tight text-white leading-[1.1] mb-8">
                 Built for teams at{' '}
-                <span className="text-indigo-400">Constellation</span>,{' '}
-                <span className="text-indigo-400">Volaris</span>, and beyond.
+                <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-violet-600 bg-clip-text text-transparent">Constellation</span>,{' '}
+                <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-violet-600 bg-clip-text text-transparent">Volaris</span>, and beyond.
               </h2>
               <p className="text-base text-white/35 leading-relaxed mb-10 font-body max-w-lg">
                 When you're evaluating hundreds of vertical SaaS targets a year, speed and signal quality are everything.
                 Zerpha replaces months of manual screening with structured intelligence you can act on.
               </p>
-              <button
+              <Button
                 onClick={() => void handleSearch()}
                 disabled={isAuthLoading}
-                className={`inline-flex items-center gap-2 rounded-lg px-7 py-3.5 text-sm font-semibold transition-all font-body ${isAuthLoading
-                  ? 'bg-white/10 text-white/40 cursor-not-allowed'
-                  : 'bg-white text-[#09090b] hover:bg-white/90'
-                  }`}
+                size="lg"
+                className="px-8"
               >
                 {isAuthLoading ? 'Connecting...' : 'Start Discovering Targets'}
-                {!isAuthLoading && <ArrowRight className="h-4 w-4" />}
-              </button>
+                {!isAuthLoading && <ArrowRight className="ml-1 h-4 w-4" />}
+              </Button>
             </motion.div>
 
             <motion.div
@@ -521,7 +524,7 @@ export function LandingPage() {
                   transition={{ duration: 0.4, delay: 0.3 + i * 0.08 }}
                   className="flex gap-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1] transition-all group"
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-400/10 text-indigo-400/60 group-hover:text-indigo-400 transition-colors mt-0.5">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-400/10 text-violet-400/60 group-hover:text-violet-400 transition-colors mt-0.5">
                     {item.icon}
                   </div>
                   <div>
@@ -553,17 +556,15 @@ export function LandingPage() {
             <p className="text-base text-white/35 leading-relaxed mb-10 font-body">
               Join the acquirers who are already using Zerpha to find their next platform investment.
             </p>
-            <button
+            <Button
               onClick={() => void handleSearch()}
               disabled={isAuthLoading}
-              className={`inline-flex items-center gap-2 rounded-lg px-8 py-4 text-sm font-semibold transition-all font-body ${isAuthLoading
-                ? 'bg-white/10 text-white/40 cursor-not-allowed'
-                : 'bg-white text-[#09090b] hover:bg-white/90'
-                }`}
+              size="lg"
+              className="px-10"
             >
               {isAuthLoading ? 'Connecting...' : 'Get started for free'}
-              {!isAuthLoading && <ArrowRight className="h-4 w-4" />}
-            </button>
+              {!isAuthLoading && <ArrowRight className="ml-1 h-4 w-4" />}
+            </Button>
           </motion.div>
         </div>
       </section>
@@ -573,9 +574,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-400">
-                <span className="font-body font-extrabold text-[11px] text-[#09090b] leading-none">Z</span>
-              </div>
+              <ZerphaLogo size="sm" />
               <span className="text-sm font-medium text-white font-display">Zerpha</span>
             </div>
             <div className="flex items-center gap-6 text-xs text-white/30 font-body">
@@ -586,6 +585,7 @@ export function LandingPage() {
           </div>
         </div>
       </footer>
+      </div>{/* end content z-1 wrapper */}
     </div>
   );
 }

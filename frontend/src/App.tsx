@@ -7,7 +7,6 @@ import {
   Download,
   Trash2,
   ChevronDown,
-  ArrowRight,
   Building2,
   History,
   Table2,
@@ -42,6 +41,7 @@ import { InsightsPage } from './components/InsightsPage';
 import { PipelinePage } from './components/PipelinePage';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
+import { MarketSearchPanel } from './components/ui/market-search-panel';
 import { SettingsPage } from './pages/settings/SettingsPage';
 import { useAuth, signOut } from './lib/auth';
 import {
@@ -905,19 +905,22 @@ export function WorkspaceApp() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-[#0c0c0f]/95 backdrop-blur-xl border-r border-white/[0.06] flex flex-col h-full transition-transform duration-300 lg:translate-x-0 lg:static lg:flex-shrink-0 shadow-2xl lg:shadow-none",
+        "fixed inset-y-0 left-0 z-50 w-60 bg-[#0a0a0a] border-r border-white/[0.06] flex flex-col h-full transition-transform duration-300 lg:translate-x-0 lg:static lg:flex-shrink-0",
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Brand */}
-        <div className="h-14 flex items-center justify-between px-5 border-b border-white/[0.06] flex-shrink-0">
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-7 h-7 rounded-md flex items-center justify-center bg-indigo-400">
-              <span className="font-body font-extrabold text-[13px] text-[#09090b] leading-none">Z</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-semibold tracking-tight text-sm text-white leading-none">Zerpha</span>
-              <span className="text-white/30 text-[10px] font-medium leading-none mt-0.5">Intelligence</span>
-            </div>
+        <div className="h-14 flex items-center justify-between px-4 border-b border-white/[0.06] flex-shrink-0">
+          <div className="flex items-center cursor-pointer" onClick={() => setActiveView('search')}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" className="w-7 h-7 flex-shrink-0">
+              <defs>
+                <linearGradient id="sidebar-zg" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#a78bfa" />
+                  <stop offset="50%" stopColor="#c084fc" />
+                  <stop offset="100%" stopColor="#7c3aed" />
+                </linearGradient>
+              </defs>
+              <path d="M6 7h20L6 25h20" stroke="url(#sidebar-zg)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
@@ -927,11 +930,11 @@ export function WorkspaceApp() {
           </button>
         </div>
 
-        <div className="p-4 flex-1 overflow-y-auto space-y-6">
+        <div className="px-3 py-4 flex-1 overflow-y-auto space-y-5">
 
           {/* Workspace Switcher */}
           <div>
-            <label className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-3 block px-3">Workspace</label>
+            <p className="text-[11px] font-medium text-white/25 mb-2 px-2">Workspace</p>
             <WorkspaceSwitcher onNavigateToSettings={() => navigate('/settings')} />
 
             {/* Team Members Avatars */}
@@ -970,107 +973,49 @@ export function WorkspaceApp() {
           </div>
 
           {/* Search */}
-          {activeView === 'search' && (
-            <div className="relative group px-1">
-              <Search className="absolute left-4 top-2.5 w-4 h-4 text-white/20 group-focus-within:text-indigo-400 transition-colors" />
-              <input
-                type="text"
-                placeholder="Search vertical..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && void executeSearch()}
-                className="w-full pl-10 pr-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 focus:border-indigo-400/30 transition-all"
-              />
-            </div>
-          )}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={activeView === 'search' ? query : ''}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && void executeSearch()}
+              className="w-full pl-9 pr-3 h-9 bg-black border border-white/[0.08] rounded-lg text-sm font-ui text-white placeholder:text-white/25 focus:outline-none focus:border-violet-500/30 transition-all"
+            />
+          </div>
 
           {/* Navigation */}
           <div>
-            <label className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 block px-3">Menu</label>
-            <nav className="space-y-0.5">
-              <button
-                onClick={() => handleNavigation('search')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
-                  activeView === 'search'
-                    ? "bg-indigo-400/10 text-indigo-400"
-                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-                )}
-              >
-                <Search className={cn("w-4 h-4", activeView === 'search' ? "text-indigo-400" : "text-white/25")} />
-                New Search
-              </button>
-
-              <button
-                onClick={() => handleNavigation('companies')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
-                  activeView === 'companies'
-                    ? "bg-indigo-400/10 text-indigo-400"
-                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-                )}
-              >
-                <Building2 className={cn("w-4 h-4", activeView === 'companies' ? "text-indigo-400" : "text-white/25")} />
-                Companies
-              </button>
-
-              <button
-                onClick={() => handleNavigation('people')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
-                  activeView === 'people'
-                    ? "bg-indigo-400/10 text-indigo-400"
-                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-                )}
-              >
-                <Users className={cn("w-4 h-4", activeView === 'people' ? "text-indigo-400" : "text-white/25")} />
-                People
-              </button>
-
-              <button
-                onClick={() => handleNavigation('insights')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
-                  activeView === 'insights'
-                    ? "bg-indigo-400/10 text-indigo-400"
-                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-                )}
-              >
-                <TrendingUp className={cn("w-4 h-4", activeView === 'insights' ? "text-indigo-400" : "text-white/25")} />
-                Insights
-              </button>
-
-              <button
-                onClick={() => handleNavigation('pipeline')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
-                  activeView === 'pipeline'
-                    ? "bg-indigo-400/10 text-indigo-400"
-                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-                )}
-              >
-                <Kanban className={cn("w-4 h-4", activeView === 'pipeline' ? "text-indigo-400" : "text-white/25")} />
-                Pipeline
-              </button>
-
-              <button
-                onClick={() => handleNavigation('history')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200",
-                  activeView === 'history'
-                    ? "bg-indigo-400/10 text-indigo-400"
-                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-                )}
-              >
-                <History className={cn("w-4 h-4", activeView === 'history' ? "text-indigo-400" : "text-white/25")} />
-                Search history
-              </button>
-
+            <p className="text-[11px] font-medium text-white/25 mb-1 px-2">Menu</p>
+            <nav className="space-y-px">
+              {([
+                { view: 'search', icon: Search, label: 'New Search' },
+                { view: 'companies', icon: Building2, label: 'Companies' },
+                { view: 'people', icon: Users, label: 'People' },
+                { view: 'insights', icon: TrendingUp, label: 'Insights' },
+                { view: 'pipeline', icon: Kanban, label: 'Pipeline' },
+                { view: 'history', icon: History, label: 'Search History' },
+              ] as const).map(({ view, icon: Icon, label }) => (
+                <button
+                  key={view}
+                  onClick={() => handleNavigation(view)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 h-10 text-sm font-ui rounded-lg transition-colors duration-150",
+                    activeView === view
+                      ? "bg-white/[0.08] text-white"
+                      : "text-white/45 hover:bg-white/[0.05] hover:text-white/80"
+                  )}
+                >
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  {label}
+                </button>
+              ))}
               <button
                 onClick={() => navigate('/settings')}
-                className="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg text-white/40 hover:bg-white/[0.04] hover:text-white/70 transition-all duration-200"
+                className="w-full flex items-center gap-3 px-3 h-10 text-sm font-ui rounded-lg text-white/45 hover:bg-white/[0.05] hover:text-white/80 transition-colors duration-150"
               >
-                <Settings className="w-4 h-4 text-white/25" />
+                <Settings className="w-4 h-4 flex-shrink-0" />
                 Settings
               </button>
             </nav>
@@ -1079,7 +1024,7 @@ export function WorkspaceApp() {
           {/* View Toggle (Only visible in Companies view) */}
           {activeView === 'companies' && (
             <div>
-              <label className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 block px-3">View</label>
+              <p className="text-[11px] font-medium text-white/25 mb-2 px-2">View</p>
               <div className="flex p-1 bg-white/[0.03] rounded-lg border border-white/[0.06] mb-4 mx-1">
                 <button
                   onClick={() => setViewMode('table')}
@@ -1110,7 +1055,7 @@ export function WorkspaceApp() {
           {/* Filters (Only visible in Companies view) */}
           {activeView === 'companies' && (
             <div className="space-y-4">
-              <label className="text-[10px] font-semibold text-white/25 uppercase tracking-widest px-3">Filters</label>
+              <p className="text-[11px] font-medium text-white/25 px-2">Filters</p>
 
               <div className="px-1 space-y-3">
                 <div>
@@ -1292,67 +1237,14 @@ export function WorkspaceApp() {
         </header>
         <div className="relative z-10 flex-1 flex flex-col min-h-0">
           {activeView === 'search' && (
-            <div className="flex-1 overflow-auto px-4 sm:px-8 py-6">
+            <div className="flex-1 overflow-auto px-4 sm:px-8 py-6 flex flex-col">
               {!hasSearched && !isSearching && searchCompaniesList.length === 0 && (
-                <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto relative">
-                  <div className="h-full flex flex-col items-center justify-center relative overflow-hidden">
-
-                    {/* Content */}
-                    <div className="relative z-10 w-full max-w-3xl px-6 text-center">
-
-                      {/* Headings */}
-                      <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-medium text-white mb-5 tracking-tight leading-[1.1]">What market are you scouting?</h2>
-                      <p className="text-white/35 text-base md:text-lg mb-14">Search verticals, competitors, or technologies.</p>
-
-                      {/* Search Bar */}
-                      <div className="relative max-w-2xl mx-auto mb-10">
-                        <div className="relative bg-white/[0.05] rounded-2xl border border-white/[0.1] flex items-center transition-all focus-within:border-indigo-400/40 focus-within:bg-white/[0.07] backdrop-blur-sm">
-                          <Search className="w-5 h-5 text-white/25 ml-5" />
-                          <input
-                            type="text"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
-                            placeholder="e.g. B2B SaaS for Construction in Europe..."
-                            className="flex-1 px-5 py-5 bg-transparent border-none text-base text-white placeholder:text-white/25 focus:outline-none focus:ring-0 font-body"
-                            autoFocus
-                          />
-                          <div className="pr-3">
-                            <button
-                              onClick={() => executeSearch()}
-                              className="p-3 bg-indigo-500/20 hover:bg-indigo-400/30 text-indigo-400 hover:text-indigo-300 rounded-xl transition-all"
-                            >
-                              <ArrowRight className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Suggestions */}
-                      <div className="flex items-center justify-center gap-3">
-                        <span className="text-white/20 text-sm mr-1">Try:</span>
-                        <button
-                          onClick={() => handleQuickFilter('Fintech API')}
-                          className="px-4 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white/35 hover:border-indigo-400/30 hover:text-indigo-400 hover:bg-indigo-400/[0.06] transition-all text-sm font-medium"
-                        >
-                          Fintech API
-                        </button>
-                        <button
-                          onClick={() => handleQuickFilter('Green Energy')}
-                          className="px-4 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white/35 hover:border-indigo-400/30 hover:text-indigo-400 hover:bg-indigo-400/[0.06] transition-all text-sm font-medium"
-                        >
-                          Green Energy
-                        </button>
-                        <button
-                          onClick={() => handleQuickFilter('EdTech Mobile')}
-                          className="px-4 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white/35 hover:border-indigo-400/30 hover:text-indigo-400 hover:bg-indigo-400/[0.06] transition-all text-sm font-medium"
-                        >
-                          EdTech Mobile
-                        </button>
-                      </div>
-
-                    </div>
-                  </div>
+                <div className="flex-1 flex flex-col">
+                  <MarketSearchPanel
+                    query={query}
+                    setQuery={setQuery}
+                    onSearch={executeSearch}
+                  />
                 </div>
               )}
 
