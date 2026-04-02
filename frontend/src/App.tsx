@@ -2,15 +2,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search,
-  Loader2,
   Trash2,
   ChevronDown,
   Building2,
-  Menu,
   X,
   TrendingUp,
   Kanban,
   Settings,
+  LogOut,
 } from 'lucide-react';
 
 import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
@@ -23,7 +22,7 @@ import { InfographicModal } from './components/InfographicModal';
 import { LandingPage } from './components/LandingPage';
 import { LoginPage } from './components/LoginPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { LoadingStats } from './components/LoadingStats';
+import { AiLoader } from './components/ui/ai-loader';
 import { ChatWidget } from './components/ChatWidget';
 import { InsightsPage } from './components/InsightsPage';
 import { PipelinePage } from './components/PipelinePage';
@@ -122,24 +121,14 @@ export function WorkspaceApp() {
 
   // Load workspace companies - now client-side filtering for fit score
   const loadWorkspaceCompanies = useCallback(
-    async (options?: { category?: string; autoSelectId?: string }) => {
+    async () => {
       // Always load all companies and filter client-side by industry
       setWorkspaceLoading(true);
       try {
         const result = await fetchSavedCompanies({}); // No backend filtering
         setWorkspaceCompanies(result);
 
-        let nextSelected: string | null = null;
-        if (options?.autoSelectId && result.some((c) => c.id === options.autoSelectId)) {
-          nextSelected = options.autoSelectId;
-        } else if (result.length > 0) {
-          nextSelected = result[0].id;
-        } else {
-          // If no auto select and result exists, we don't auto select first anymore to respect requirement 4
-          nextSelected = null;
-        }
 
-        setSelectedWorkspaceCompanyId(nextSelected);
       } catch (error) {
         console.error(error);
         showToast('Failed to load saved companies', 'error');
@@ -427,7 +416,7 @@ export function WorkspaceApp() {
       showToast('Company saved to workspace');
       // Only auto-select if we are already in the workspace view to avoid jumping
       if (activeView === 'companies') {
-        await loadWorkspaceCompanies({ autoSelectId: saved.id });
+        await loadWorkspaceCompanies();
       } else {
         // Just reload in background
         await loadWorkspaceCompanies();
@@ -537,7 +526,7 @@ export function WorkspaceApp() {
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Brand */}
-        <div className="h-14 flex items-center justify-between px-4 border-b border-white/[0.06] flex-shrink-0">
+        <div className="h-14 flex items-center justify-between px-4 flex-shrink-0">
           <div className="flex items-center cursor-pointer" onClick={() => setActiveView('search')}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" className="w-7 h-7 flex-shrink-0">
               <defs>
@@ -760,12 +749,30 @@ export function WorkspaceApp() {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/[0.06] flex-shrink-0">
-          <p className="text-[11px] text-white/15 leading-relaxed px-2">
-            {activeView === 'companies'
-              ? "Click a row to view company details and contacts."
-              : "Enter a query to start scouting."}
-          </p>
+        <div className="p-3 border-t border-white/[0.06] flex-shrink-0 space-y-1">
+          {activeView === 'search' && (hasSearched || query) && (
+            <button
+              onClick={handleClearSearchData}
+              className="w-full flex items-center gap-3 px-3 h-9 text-sm font-ui rounded-lg text-red-400/70 hover:bg-red-500/10 hover:text-red-400 transition-colors duration-150"
+            >
+              <Trash2 className="w-4 h-4 flex-shrink-0" />
+              Clear search
+            </button>
+          )}
+          <button
+            onClick={async () => {
+              try {
+                navigate('/', { replace: true });
+                await signOut();
+              } catch (error) {
+                console.error('Failed to sign out', error);
+              }
+            }}
+            className="w-full flex items-center gap-3 px-3 h-9 text-sm font-ui rounded-lg text-white/30 hover:bg-white/[0.05] hover:text-white/60 transition-colors duration-150"
+          >
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            Logout
+          </button>
         </div>
       </aside>
 
@@ -782,39 +789,6 @@ export function WorkspaceApp() {
           {/* Accent — bottom left */}
           <div className="absolute -bottom-20 -left-20 w-[450px] h-[350px] rounded-full blur-[130px]" style={{ background: 'radial-gradient(ellipse, rgba(109,40,217,0.10) 0%, transparent 65%)' }} />
         </div>
-        <header className="relative z-10 h-11 flex items-center justify-between px-4 sm:px-8 border-b border-white/[0.04] flex-shrink-0 bg-[#09090b]/60 backdrop-blur-xl">
-          <div className="flex items-center">
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2 -ml-2 text-white/40 hover:text-white hover:bg-white/[0.06] rounded-lg transition-colors"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="flex items-center gap-2">
-            {activeView === 'search' && (hasSearched || query) && (
-              <button
-                onClick={handleClearSearchData}
-                className="px-3 py-1.5 text-[13px] font-medium text-white/50 bg-white/[0.04] border border-white/[0.08] rounded-lg hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all flex items-center gap-2"
-              >
-                <Trash2 className="w-3.5 h-3.5" /> Clear
-              </button>
-            )}
-            <button
-              onClick={async () => {
-                try {
-                  navigate('/', { replace: true });
-                  await signOut();
-                } catch (error) {
-                  console.error('Failed to sign out', error);
-                }
-              }}
-              className="px-3 py-1.5 text-[13px] font-medium text-white/50 bg-white/[0.04] border border-white/[0.08] rounded-lg hover:bg-white/[0.08] hover:text-white/70 transition-all"
-            >
-              Logout
-            </button>
-          </div>
-        </header>
         <div className="relative z-10 flex-1 flex flex-col min-h-0">
           {activeView === 'search' && (
             <div className="flex-1 overflow-auto px-4 sm:px-8 py-6 flex flex-col">
@@ -833,7 +807,7 @@ export function WorkspaceApp() {
                   <div className="flex-1 flex flex-col min-h-0 bg-[#0e0e11] rounded-xl overflow-hidden relative h-[500px] lg:h-auto ring-1 ring-white/[0.08]">
                     {isSearching ? (
                       <div className="absolute inset-0 z-20 bg-[#0e0e11] flex flex-col items-center justify-center">
-                        <LoadingStats />
+                        <AiLoader />
                       </div>
                     ) : (
                       <>
@@ -970,10 +944,6 @@ export function WorkspaceApp() {
                           />
                         </div>
                       </aside>
-                      {/* Embedded Chat for Search */}
-                      <aside className="w-full lg:w-[350px] flex-shrink-0 bg-[#0e0e11] rounded-xl overflow-hidden flex flex-col h-[500px] lg:h-auto ring-1 ring-white/[0.08]">
-                        <ChatWidget mode="embedded" context={chatContext} />
-                      </aside>
                     </>
                   )}
                 </div>
@@ -1002,8 +972,8 @@ export function WorkspaceApp() {
 
                   <div className="px-6 pb-6 flex-1">
                     {workspaceLoading ? (
-                      <div className="flex justify-center pt-12">
-                        <Loader2 className="w-6 h-6 text-violet-400 animate-spin" />
+                      <div className="flex items-center justify-center pt-20">
+                        <AiLoader />
                       </div>
                     ) : (
                       <LeadsDataTable
@@ -1024,13 +994,12 @@ export function WorkspaceApp() {
             activeView === 'insights' && (
               <div className="flex-1 overflow-hidden">
                 <InsightsPage
+                  companies={workspaceCompanies}
+                  loading={workspaceLoading}
                   industryFilter={industryFilter}
                   locationFilter={locationFilter}
                   fitFilter={workspaceFitFilter}
-                  onCompanyClick={(companyId) => {
-                    
-                    setActiveView('companies');
-                  }}
+                  onCompanyClick={() => setActiveView('companies')}
                 />
               </div>
             )
@@ -1068,10 +1037,7 @@ function App() {
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-[#09090b]">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-violet-400 mx-auto mb-4" />
-          <p className="text-sm text-white/60">Loading your workspace...</p>
-        </div>
+        <AiLoader />
       </div>
     );
   }

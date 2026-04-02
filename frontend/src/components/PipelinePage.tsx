@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Loader2, AlertCircle, GripVertical, ExternalLink, Search, StickyNote, Check, LayoutGrid, BarChart2, Calendar } from 'lucide-react';
+import { AlertCircle, GripVertical, ExternalLink, Search, StickyNote, Check, LayoutGrid, BarChart2, Calendar } from 'lucide-react';
+import { AiLoader } from './ui/ai-loader';
 import {
     DndContext,
     DragOverlay,
@@ -48,9 +49,12 @@ const STAGE_BADGE_COLORS: Record<PipelineStage, string> = {
     closed: 'bg-green-500',
 };
 
+// Module-level cache so pipeline data persists across tab switches
+let _pipelineCache: PipelineResponse | null = null;
+
 export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePageProps) {
-    const [pipeline, setPipeline] = useState<PipelineResponse | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [pipeline, setPipeline] = useState<PipelineResponse | null>(_pipelineCache);
+    const [loading, setLoading] = useState(_pipelineCache === null);
     const [error, setError] = useState<string | null>(null);
     const [activeCard, setActiveCard] = useState<PipelineCompany | null>(null);
     const [updateError, setUpdateError] = useState<string | null>(null);
@@ -67,6 +71,7 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
     const loadPipeline = useCallback(async () => {
         try {
             const data = await fetchPipeline();
+            _pipelineCache = data;
             setPipeline(data);
             setError(null);
         } catch (err) {
@@ -243,10 +248,7 @@ export function PipelinePage({ onCompanyClick: _onCompanyClick }: PipelinePagePr
     if (loading) {
         return (
             <div className="h-full flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-indigo-400 mx-auto mb-4" />
-                    <p className="text-sm text-white/60">Loading pipeline...</p>
-                </div>
+                <AiLoader />
             </div>
         );
     }
